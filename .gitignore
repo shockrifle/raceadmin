@@ -8,4 +8,6 @@ log/
 target/
 
 # Other
+backups/
+exports/
 *.db
