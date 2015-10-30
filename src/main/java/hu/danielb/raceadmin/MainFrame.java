@@ -39,6 +39,8 @@ import java.util.stream.Collectors;
 public class MainFrame extends javax.swing.JFrame {
 
     public static final String COLUMN_AGE_GROUP_ID = "age_group_id";
+    public static final String COLUMN_SCHOOL_ID = "school_id";
+    public static final String COLUMN_SCHOOL_NAME = "school_name";
     Map<String, JTable> tables;
     String[] headerString;
     private JDialog startupScreen;
@@ -258,12 +260,12 @@ public class MainFrame extends javax.swing.JFrame {
                 girlAgeGroup.team.name = ageGroupResultSet.getString(AgeGroup.COLUMN_NAME) + " " + "Lány, csapat";
                 ResultSet boyResultSet = getByAgeGroupAndSex(ageGroupResultSet.getInt(AgeGroup.COLUMN_ID), Constants.BOY);
                 while (boyResultSet.next()) {
-                    ResultSet rs3 = Database.runSql("select * from " + AgeGroup.TABLE + " where "+AgeGroup.COLUMN_ID+" = ?", Database.QUERRY, boyResultSet.getString("K_id"));
+                    ResultSet rs3 = Database.runSql("select * from " + AgeGroup.TABLE + " where " + AgeGroup.COLUMN_ID + " = ?", Database.QUERRY, boyResultSet.getString(COLUMN_AGE_GROUP_ID));
                     AgeGroup ageGroup = null;
                     while (rs3.next()) {
                         ageGroup = new AgeGroup(ageGroupResultSet.getInt(AgeGroup.COLUMN_ID), ageGroupResultSet.getString(AgeGroup.COLUMN_NAME), ageGroupResultSet.getInt("minimum"), ageGroupResultSet.getInt("maximum"));
                     }
-                    rs3 = Database.runSql("select * from " + School.TABLE + " where id = ?", Database.QUERRY, boyResultSet.getString("I_id"));
+                    rs3 = Database.runSql("select * from " + School.TABLE + " where id = ?", Database.QUERRY, boyResultSet.getString(COLUMN_SCHOOL_ID));
                     School school = null;
                     while (rs3.next()) {
                         school = new School(rs3.getInt("id"), rs3.getString("name"));
@@ -278,7 +280,7 @@ public class MainFrame extends javax.swing.JFrame {
                     while (rs3.next()) {
                         ageGroup = new AgeGroup(ageGroupResultSet.getInt(AgeGroup.COLUMN_ID), ageGroupResultSet.getString(AgeGroup.COLUMN_NAME), ageGroupResultSet.getInt("minimum"), ageGroupResultSet.getInt("maximum"));
                     }
-                    rs3 = Database.runSql("select * from " + School.TABLE + " where id = ?", Database.QUERRY, boyResultSet.getString("I_id"));
+                    rs3 = Database.runSql("select * from " + School.TABLE + " where id = ?", Database.QUERRY, boyResultSet.getString(COLUMN_SCHOOL_ID));
                     School school = null;
                     while (rs3.next()) {
                         school = new School(rs3.getInt("id"), rs3.getString("name"));
@@ -290,7 +292,7 @@ public class MainFrame extends javax.swing.JFrame {
                 Vector<Vector<String>> data = new Vector<>();
                 while (boyResultSet.next()) {
                     if (boyResultSet.getInt("position") > 0) {
-                        data.add(new Vector<>(Arrays.asList(new String[]{String.valueOf(boyResultSet.getInt("id")), String.valueOf(boyResultSet.getInt("position")), String.valueOf(boyResultSet.getInt("number")), boyResultSet.getString("name"), boyResultSet.getString("I_name")})));
+                        data.add(new Vector<>(Arrays.asList(new String[]{String.valueOf(boyResultSet.getInt("id")), String.valueOf(boyResultSet.getInt("position")), String.valueOf(boyResultSet.getInt("number")), boyResultSet.getString("name"), boyResultSet.getString(COLUMN_SCHOOL_NAME)})));
                     }
                 }
 
@@ -300,7 +302,7 @@ public class MainFrame extends javax.swing.JFrame {
                 data = new Vector<>();
                 while (boyResultSet.next()) {
                     if (boyResultSet.getInt("position") > 0) {
-                        data.add(new Vector<>(Arrays.asList(new String[]{String.valueOf(boyResultSet.getInt("id")), String.valueOf(boyResultSet.getInt("position")), String.valueOf(boyResultSet.getInt("number")), boyResultSet.getString("name"), boyResultSet.getString("I_name")})));
+                        data.add(new Vector<>(Arrays.asList(new String[]{String.valueOf(boyResultSet.getInt("id")), String.valueOf(boyResultSet.getInt("position")), String.valueOf(boyResultSet.getInt("number")), boyResultSet.getString("name"), boyResultSet.getString(COLUMN_SCHOOL_NAME)})));
                     }
                 }
                 girlAgeGroup.team.teams.addAll(makeTeams(data));
@@ -375,7 +377,7 @@ public class MainFrame extends javax.swing.JFrame {
         menuPrintHeader.removeAll();
 
         try {
-            ResultSet rs = Database.runSql("select * from PrintHeader");
+            ResultSet rs = Database.runSql("select * from " + PrintHeader.TABLE);
             while (rs.next()) {
                 PrintHeaderMenuItem<PrintHeader> item = new PrintHeaderMenuItem<>(new PrintHeader(rs.getInt("id"), rs.getString("name"), rs.getString("text")));
                 item.addActionListener(e -> headerString = ((PrintHeader) ((PrintHeaderMenuItem) e.getSource()).getData()).getFlText().split("\n"));
@@ -474,9 +476,9 @@ public class MainFrame extends javax.swing.JFrame {
             Vector<Vector<String>> disq = new Vector<>();
             while (rs.next()) {
                 if (rs.getInt("position") > 0) {
-                    data.add(new Vector<>(Arrays.asList(new String[]{String.valueOf(rs.getInt("id")), String.valueOf(rs.getInt("position")), String.valueOf(rs.getInt("number")), rs.getString("name"), rs.getString("I_name")})));
+                    data.add(new Vector<>(Arrays.asList(new String[]{String.valueOf(rs.getInt("id")), String.valueOf(rs.getInt("position")), String.valueOf(rs.getInt("number")), rs.getString("name"), rs.getString(COLUMN_SCHOOL_NAME)})));
                 } else {
-                    disq.add(new Vector<>(Arrays.asList(new String[]{String.valueOf(rs.getInt("id")), "", String.valueOf(rs.getInt("number")), rs.getString("name"), rs.getString("I_name")})));
+                    disq.add(new Vector<>(Arrays.asList(new String[]{String.valueOf(rs.getInt("id")), "", String.valueOf(rs.getInt("number")), rs.getString("name"), rs.getString(COLUMN_SCHOOL_NAME)})));
                 }
             }
             if (!data.isEmpty() || !disq.isEmpty()) {
@@ -499,7 +501,7 @@ public class MainFrame extends javax.swing.JFrame {
             for (int i = 0; i < teams.size(); i++) {
                 for (int j = 0; j < teams.get(i).getMembers().size(); j++) {
                     ResultSet rs;
-                    rs = Database.runSql("select Contestant.*,School.name as I_name from " + Contestant.TABLE + " inner join " + School.TABLE + " on Contestant.school_id=School.id where Contestant.id = ?", Database.QUERRY, String.valueOf(teams.get(i).getMembers().get(j).getId()));
+                    rs = Database.runSql("select Contestant.*,School.name as " + COLUMN_SCHOOL_NAME + " from " + Contestant.TABLE + " inner join " + School.TABLE + " on Contestant." + COLUMN_SCHOOL_ID + "=School.id where Contestant.id = ?", Database.QUERRY, String.valueOf(teams.get(i).getMembers().get(j).getId()));
                     while (rs.next()) {
                         teamData.add(new Vector<>(Arrays.asList(
                                 new String[]{String.valueOf(rs.getInt("id")),
@@ -508,7 +510,7 @@ public class MainFrame extends javax.swing.JFrame {
                                         String.valueOf(rs.getInt("position")),
                                         String.valueOf(rs.getInt("number")),
                                         rs.getString("name"),
-                                        rs.getString("I_name")})));
+                                        rs.getString(COLUMN_SCHOOL_NAME)})));
                     }
 
                 }
@@ -649,16 +651,23 @@ public class MainFrame extends javax.swing.JFrame {
 
 
     private ResultSet getByAgeGroupAndSex(int id, String sex) throws SQLException {
-        return Database.runSql("select 0 as sqn, Contestant.*, " + AgeGroup.TABLE + ".id as K_id, School.name as I_name, School.id as I_id from Contestant "
-                + "inner join " + AgeGroup.TABLE + " on Contestant." + COLUMN_AGE_GROUP_ID + " = " + AgeGroup.TABLE + ".id "
-                + "inner join School on Contestant.school_id = School.id "
-                + "where K_id = ? and sex = ? and position > 0 "
-                + "union all "
-                + "select 1 as sqn, Contestant.*, " + AgeGroup.TABLE + ".id as K_id, School.name as I_name, School.id as I_id from Contestant "
-                + "inner join " + AgeGroup.TABLE + " on Contestant." + COLUMN_AGE_GROUP_ID + " = " + AgeGroup.TABLE + ".id "
-                + "inner join School on Contestant.school_id = School.id "
-                + "where K_id = ? and sex = ? and position = 0 "
-                + "order by sqn, position, I_name, Contestant.name", Database.QUERRY, String.valueOf(id), sex, String.valueOf(id), sex);
+        return Database.runSql("select 0 as sqn, " + Contestant.TABLE + ".*, " +
+                        AgeGroup.TABLE + "." + AgeGroup.COLUMN_ID + " as " + COLUMN_AGE_GROUP_ID + ", " +
+                        School.TABLE + "." + School.COLUMN_NAME + " as " + COLUMN_SCHOOL_NAME + ", " +
+                        School.TABLE + "." + School.COLUMN_ID + " as " + COLUMN_SCHOOL_ID + " from " + Contestant.TABLE + " "
+                        + "inner join " + AgeGroup.TABLE + " on " + Contestant.TABLE + "." + COLUMN_AGE_GROUP_ID + " = " + AgeGroup.TABLE + "." + AgeGroup.COLUMN_ID + " "
+                        + "inner join " + School.TABLE + " on " + Contestant.TABLE + "." + COLUMN_SCHOOL_ID + " = " + School.TABLE + "." + School.COLUMN_ID + " "
+                        + "where " + COLUMN_AGE_GROUP_ID + " = ? and " + Contestant.COLUMN_SEX + " = ? and " + Contestant.COLUMN_POSITION + " > 0 "
+                        + "union all "
+                        + "select 1 as sqn, " + Contestant.TABLE + ".*, " +
+                        AgeGroup.TABLE + "." + AgeGroup.COLUMN_ID + " as " + COLUMN_AGE_GROUP_ID + ", " +
+                        School.TABLE + "." + School.COLUMN_NAME + " as " + COLUMN_SCHOOL_NAME + ", " +
+                        School.TABLE + "." + School.COLUMN_ID + " as " + COLUMN_SCHOOL_ID + " from " + Contestant.TABLE + " "
+                        + "inner join " + AgeGroup.TABLE + " on " + Contestant.TABLE + "." + COLUMN_AGE_GROUP_ID + " = " + AgeGroup.TABLE + "." + AgeGroup.COLUMN_ID + " "
+                        + "inner join " + School.TABLE + " on " + Contestant.TABLE + "." + COLUMN_SCHOOL_ID + " = " + School.TABLE + "." + School.COLUMN_ID + " "
+                        + "where " + COLUMN_AGE_GROUP_ID + " = ? and " + Contestant.COLUMN_SEX + " = ? and " + Contestant.COLUMN_POSITION + " = 0 "
+                        + "order by sqn, position, " + COLUMN_SCHOOL_NAME + ", " + Contestant.TABLE + "." + Contestant.COLUMN_POSITION,
+                Database.QUERRY, String.valueOf(id), sex, String.valueOf(id), sex);
     }
 
     public class Category {
