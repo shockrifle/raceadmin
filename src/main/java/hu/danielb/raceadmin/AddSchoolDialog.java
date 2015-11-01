@@ -14,12 +14,6 @@ import java.util.logging.Logger;
 class AddSchoolDialog extends BaseDialog {
 
 
-    @SuppressWarnings("FieldCanBeLocal")
-    private javax.swing.JButton buttonCancel;
-    @SuppressWarnings("FieldCanBeLocal")
-    private javax.swing.JButton buttonSave;
-    @SuppressWarnings("FieldCanBeLocal")
-    private javax.swing.JLabel labelName;
     private javax.swing.JTextField textName;
 
     public AddSchoolDialog(Dialog owner) {
@@ -30,10 +24,10 @@ class AddSchoolDialog extends BaseDialog {
 
     private void initComponents() {
 
-        labelName = new javax.swing.JLabel();
+        JLabel labelName = new JLabel();
         textName = new javax.swing.JTextField();
-        buttonCancel = new javax.swing.JButton();
-        buttonSave = new javax.swing.JButton();
+        JButton buttonCancel = new JButton();
+        JButton buttonSave = new JButton();
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setModalityType(java.awt.Dialog.ModalityType.APPLICATION_MODAL);
@@ -42,10 +36,10 @@ class AddSchoolDialog extends BaseDialog {
         labelName.setText("Iskola név:");
 
         buttonCancel.setText("Mégse");
-        buttonCancel.addActionListener(AddSchoolDialog.this::jButton1ActionPerformed);
+        buttonCancel.addActionListener(AddSchoolDialog.this::buttonCancelActionPerformed);
 
         buttonSave.setText("Mentés");
-        buttonSave.addActionListener(AddSchoolDialog.this::jButton2ActionPerformed);
+        buttonSave.addActionListener(AddSchoolDialog.this::buttonSaveActionPerformed);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -81,11 +75,11 @@ class AddSchoolDialog extends BaseDialog {
         pack();
     }
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
+    private void buttonCancelActionPerformed(java.awt.event.ActionEvent evt) {
         this.dispose();
     }
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {
+    private void buttonSaveActionPerformed(java.awt.event.ActionEvent evt) {
         String[] names = textName.getText().split(" ");
         ArrayList<String> toCheck = new ArrayList<>();
         ArrayList<String> checked = new ArrayList<>();

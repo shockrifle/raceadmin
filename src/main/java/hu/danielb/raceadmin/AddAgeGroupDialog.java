@@ -63,16 +63,16 @@ class AddAgeGroupDialog extends BaseDialog {
         labelMaximum.setText("Felső határ");
 
         spinnerMinimum.setModel(new SpinnerNumberModel(1900, 1900, Calendar.getInstance().get(Calendar.YEAR), 1));
-        spinnerMinimum.addChangeListener(this::jSpinner1StateChanged);
+        spinnerMinimum.addChangeListener(this::spinnerMinimumStateChanged);
 
         spinnerMaximum.setModel(new SpinnerNumberModel(1900, 1900, Calendar.getInstance().get(Calendar.YEAR), 1));
-        spinnerMaximum.addChangeListener(this::jSpinner2StateChanged);
+        spinnerMaximum.addChangeListener(this::spinnerMaximumStateChanged);
 
         buttonCancel.setText("Mégse");
-        buttonCancel.addActionListener(this::jButton1ActionPerformed);
+        buttonCancel.addActionListener(this::buttonCancelActionPerformed);
 
         buttonSave.setText("Mentés");
-        buttonSave.addActionListener(this::jButton2ActionPerformed);
+        buttonSave.addActionListener(this::buttonSaveActionPerformed);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -122,23 +122,23 @@ class AddAgeGroupDialog extends BaseDialog {
         pack();
     }
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
+    private void buttonCancelActionPerformed(java.awt.event.ActionEvent evt) {
         this.dispose();
     }
 
-    private void jSpinner1StateChanged(javax.swing.event.ChangeEvent evt) {
+    private void spinnerMinimumStateChanged(javax.swing.event.ChangeEvent evt) {
         if ((Integer) spinnerMinimum.getValue() > (Integer) spinnerMaximum.getValue()) {
             spinnerMaximum.setValue(spinnerMinimum.getValue());
         }
     }
 
-    private void jSpinner2StateChanged(javax.swing.event.ChangeEvent evt) {
+    private void spinnerMaximumStateChanged(javax.swing.event.ChangeEvent evt) {
         if ((Integer) spinnerMinimum.getValue() > (Integer) spinnerMaximum.getValue()) {
             spinnerMinimum.setValue(spinnerMaximum.getValue());
         }
     }
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {
+    private void buttonSaveActionPerformed(java.awt.event.ActionEvent evt) {
         try {
             ArrayList<AgeGroup> utkozes = new ArrayList<>();
             ResultSet rs = Database.runSql("select * from " + AgeGroup.TABLE + " where (" +

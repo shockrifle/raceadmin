@@ -98,7 +98,7 @@ public class MainFrame extends javax.swing.JFrame {
         initPane();
 
         buttonFinisher.setText("Beérkező");
-        buttonFinisher.addActionListener(MainFrame.this::jButton2ActionPerformed);
+        buttonFinisher.addActionListener(MainFrame.this::buttonFinisherActionPerformed);
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
@@ -121,15 +121,15 @@ public class MainFrame extends javax.swing.JFrame {
 
         menuItemPrint.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_P, java.awt.event.InputEvent.CTRL_MASK));
         menuItemPrint.setText("Nyomtatás");
-        menuItemPrint.addActionListener(MainFrame.this::jMenuItem4ActionPerformed);
+        menuItemPrint.addActionListener(MainFrame.this::menuItemPrintActionPerformed);
         menuFile.add(menuItemPrint);
 
         menuItemExport.setText("Export");
-        menuItemExport.addActionListener(MainFrame.this::jMenuItem7ActionPerformed);
+        menuItemExport.addActionListener(MainFrame.this::menuItemExportActionPerformed);
         menuFile.add(menuItemExport);
 
         menuItemExit.setText("Kilépés");
-        menuItemExit.addActionListener(MainFrame.this::jMenuItem3ActionPerformed);
+        menuItemExit.addActionListener(MainFrame.this::menuItemExitActionPerformed);
         menuFile.add(menuItemExit);
 
         menuBar.add(menuFile);
@@ -138,20 +138,20 @@ public class MainFrame extends javax.swing.JFrame {
 
         menuItemNewContestant.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_MASK));
         menuItemNewContestant.setText("Versenyző hozzáadása");
-        menuItemNewContestant.addActionListener(MainFrame.this::jMenuItem2ActionPerformed);
+        menuItemNewContestant.addActionListener(MainFrame.this::menuItemNewContestantActionPerformed);
         menuEdit.add(menuItemNewContestant);
 
         menuItemFinisher.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_B, java.awt.event.InputEvent.CTRL_MASK));
         menuItemFinisher.setText("Beérkezők megadása");
-        menuItemFinisher.addActionListener(MainFrame.this::jMenuItem5ActionPerformed);
+        menuItemFinisher.addActionListener(MainFrame.this::menuItemFinisherActionPerformed);
         menuEdit.add(menuItemFinisher);
 
         menuItemAgeGroups.setText("Korosztályok");
-        menuItemAgeGroups.addActionListener(MainFrame.this::jMenuItem1ActionPerformed);
+        menuItemAgeGroups.addActionListener(MainFrame.this::menuItemAgeGroupsActionPerformed);
         menuEdit.add(menuItemAgeGroups);
 
         menuItemContestants.setText("Versenyzők");
-        menuItemContestants.addActionListener(MainFrame.this::jMenuItem6ActionPerformed);
+        menuItemContestants.addActionListener(MainFrame.this::menuItemContestantsActionPerformed);
         menuEdit.add(menuItemContestants);
 
         menuBar.add(menuEdit);
@@ -184,33 +184,33 @@ public class MainFrame extends javax.swing.JFrame {
         pack();
     }
 
-    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {
+    private void menuItemAgeGroupsActionPerformed(java.awt.event.ActionEvent evt) {
         AgeGroupsDialog dialog = new AgeGroupsDialog(this);
         dialog.setVisible(true);
         loadData();
     }
 
-    private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {
+    private void menuItemNewContestantActionPerformed(java.awt.event.ActionEvent evt) {
         JDialog addFrame = new AddContestantDialog(this);
         addFrame.setVisible(true);
         loadData();
     }
 
-    private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {
+    private void menuItemExitActionPerformed(java.awt.event.ActionEvent evt) {
         this.dispose();
     }
 
-    private void jMenuItem5ActionPerformed(java.awt.event.ActionEvent evt) {
+    private void menuItemFinisherActionPerformed(java.awt.event.ActionEvent evt) {
         buttonFinisher.doClick();
     }
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {
+    private void buttonFinisherActionPerformed(java.awt.event.ActionEvent evt) {
         FinishingDialog dialog = new FinishingDialog(this);
         dialog.addFinishingListener(v -> loadData());
         dialog.setVisible(true);
     }
 
-    private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {
+    private void menuItemPrintActionPerformed(java.awt.event.ActionEvent evt) {
         if (headerString != null && headerString.length > 0) {
             GenericTabbedPane ktab = (GenericTabbedPane) ageGroupPane.getComponentAt(ageGroupPane.getSelectedIndex());
             AgeGroup ageGroup = (AgeGroup) ktab.getData();
@@ -231,13 +231,13 @@ public class MainFrame extends javax.swing.JFrame {
         }
     }
 
-    private void jMenuItem6ActionPerformed(java.awt.event.ActionEvent evt) {
+    private void menuItemContestantsActionPerformed(java.awt.event.ActionEvent evt) {
         ContestantsDialog dial = new ContestantsDialog(this);
         dial.setVisible(true);
         loadData();
     }
 
-    private void jMenuItem7ActionPerformed(java.awt.event.ActionEvent evt) {
+    private void menuItemExportActionPerformed(java.awt.event.ActionEvent evt) {
         try {
 
             List<Category> result = new ArrayList<>();
@@ -275,7 +275,7 @@ public class MainFrame extends javax.swing.JFrame {
                 boyResultSet = getByAgeGroupAndSex(ageGroupResultSet.getInt(AgeGroup.COLUMN_ID), Constants.GIRL);
                 while (boyResultSet.next()) {
 
-                    ResultSet rs3 = Database.runSql("select * from " + AgeGroup.TABLE + " where id = ?", Database.QUERRY, boyResultSet.getString("K_id"));
+                    ResultSet rs3 = Database.runSql("select * from " + AgeGroup.TABLE + " where id = ?", Database.QUERRY, boyResultSet.getString(COLUMN_AGE_GROUP_ID));
                     AgeGroup ageGroup = null;
                     while (rs3.next()) {
                         ageGroup = new AgeGroup(ageGroupResultSet.getInt(AgeGroup.COLUMN_ID), ageGroupResultSet.getString(AgeGroup.COLUMN_NAME), ageGroupResultSet.getInt("minimum"), ageGroupResultSet.getInt("maximum"));

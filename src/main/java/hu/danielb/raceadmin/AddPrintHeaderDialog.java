@@ -10,14 +10,8 @@ import java.util.logging.Logger;
 
 class AddPrintHeaderDialog extends BaseDialog {
 
-    @SuppressWarnings("FieldCanBeLocal")
-    private javax.swing.JButton jButton1;
-    @SuppressWarnings("FieldCanBeLocal")
-    private javax.swing.JButton jButton2;
-    @SuppressWarnings("FieldCanBeLocal")
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTextArea jTextArea1;
-    private javax.swing.JTextField jTextField1;
+    private javax.swing.JTextArea textText;
+    private javax.swing.JTextField textName;
 
     public AddPrintHeaderDialog(Frame owner) {
         super(owner);
@@ -29,11 +23,11 @@ class AddPrintHeaderDialog extends BaseDialog {
 
         javax.swing.JLabel jLabel1 = new javax.swing.JLabel();
         javax.swing.JLabel jLabel2 = new javax.swing.JLabel();
-        jTextField1 = new javax.swing.JTextField();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jTextArea1 = new javax.swing.JTextArea();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
+        textName = new javax.swing.JTextField();
+        javax.swing.JScrollPane scrollText = new javax.swing.JScrollPane();
+        textText = new javax.swing.JTextArea();
+        javax.swing.JButton buttonCancel = new javax.swing.JButton();
+        javax.swing.JButton buttonSave = new javax.swing.JButton();
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setModal(true);
@@ -43,16 +37,16 @@ class AddPrintHeaderDialog extends BaseDialog {
 
         jLabel2.setText("Fejléc szövege:");
 
-        jTextArea1.setColumns(20);
-        jTextArea1.setFont(new java.awt.Font("Arial", 0, 12));
-        jTextArea1.setRows(5);
-        jScrollPane1.setViewportView(jTextArea1);
+        textText.setColumns(20);
+        textText.setFont(new java.awt.Font("Arial", 0, 12));
+        textText.setRows(5);
+        scrollText.setViewportView(textText);
 
-        jButton1.setText("Mégse");
-        jButton1.addActionListener(AddPrintHeaderDialog.this::jButton1ActionPerformed);
+        buttonCancel.setText("Mégse");
+        buttonCancel.addActionListener(AddPrintHeaderDialog.this::buttonCancelActionPerformed);
 
-        jButton2.setText("Mentés");
-        jButton2.addActionListener(AddPrintHeaderDialog.this::jButton2ActionPerformed);
+        buttonSave.setText("Mentés");
+        buttonSave.addActionListener(AddPrintHeaderDialog.this::buttonSaveActionPerformed);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -61,19 +55,19 @@ class AddPrintHeaderDialog extends BaseDialog {
                         .addGroup(layout.createSequentialGroup()
                                 .addContainerGap()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(jScrollPane1)
+                                        .addComponent(scrollText)
                                         .addGroup(layout.createSequentialGroup()
                                                 .addComponent(jLabel2)
                                                 .addGap(0, 0, Short.MAX_VALUE))
                                         .addGroup(layout.createSequentialGroup()
                                                 .addComponent(jLabel1)
                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                                .addComponent(jTextField1))
+                                                .addComponent(textName))
                                         .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                                                 .addGap(0, 244, Short.MAX_VALUE)
-                                                .addComponent(jButton2)
+                                                .addComponent(buttonSave)
                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                                .addComponent(jButton1)))
+                                                .addComponent(buttonCancel)))
                                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -82,35 +76,35 @@ class AddPrintHeaderDialog extends BaseDialog {
                                 .addContainerGap()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                         .addComponent(jLabel1)
-                                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addComponent(textName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jLabel2)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(scrollText, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                        .addComponent(jButton1)
-                                        .addComponent(jButton2))
+                                        .addComponent(buttonCancel)
+                                        .addComponent(buttonSave))
                                 .addContainerGap())
         );
 
         pack();
     }
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
+    private void buttonCancelActionPerformed(java.awt.event.ActionEvent evt) {
         this.dispose();
     }
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {
+    private void buttonSaveActionPerformed(java.awt.event.ActionEvent evt) {
         try {
-            if (jTextField1.getText().trim().isEmpty()) {
+            if (textName.getText().trim().isEmpty()) {
                 throw new Exception("Nem adott meg nevet!");
             }
-            if (jTextArea1.getText().trim().isEmpty()) {
+            if (textText.getText().trim().isEmpty()) {
                 throw new Exception("Nem adott meg szöveget!");
             }
 
-            Database.runSql("insert into " + PrintHeader.TABLE + " (" + PrintHeader.COLUMN_NAME + "," + PrintHeader.COLUMN_TEXT + ") values(?,?)", Database.UPDATE, jTextField1.getText().trim(), jTextArea1.getText().trim());
+            Database.runSql("insert into " + PrintHeader.TABLE + " (" + PrintHeader.COLUMN_NAME + "," + PrintHeader.COLUMN_TEXT + ") values(?,?)", Database.UPDATE, textName.getText().trim(), textText.getText().trim());
             this.dispose();
         } catch (SQLException ex) {
             Logger.getLogger(AddPrintHeaderDialog.class.getName()).log(Level.SEVERE, null, ex);

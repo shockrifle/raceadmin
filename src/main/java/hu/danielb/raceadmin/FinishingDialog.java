@@ -126,7 +126,7 @@ public class FinishingDialog extends BaseDialog {
         setResizable(false);
 
         buttonEnd.setText("Vége");
-        buttonEnd.addActionListener(FinishingDialog.this::jButton2ActionPerformed);
+        buttonEnd.addActionListener(FinishingDialog.this::buttonEndActionPerformed);
 
         textNumber.setFont(new java.awt.Font("SansSerif", Font.BOLD, 40));
         textNumber.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
@@ -136,7 +136,7 @@ public class FinishingDialog extends BaseDialog {
         textNumber.setHorizontalAlignment(JTextField.CENTER);
         textNumber.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyReleased(java.awt.event.KeyEvent evt) {
-                jTextField1KeyReleased(evt);
+                textNumberKeyReleased(evt);
             }
         });
 
@@ -235,7 +235,7 @@ public class FinishingDialog extends BaseDialog {
         pack();
     }
 
-    private void jTextField1KeyReleased(java.awt.event.KeyEvent evt) {
+    private void textNumberKeyReleased(java.awt.event.KeyEvent evt) {
 
         String numberToCheck = textNumber.getText().trim();
         Contestant contestant = null;
@@ -304,7 +304,7 @@ public class FinishingDialog extends BaseDialog {
 
     }
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {
+    private void buttonEndActionPerformed(java.awt.event.ActionEvent evt) {
         this.dispose();
 //        TEST
 //        if (timer != null) {
@@ -340,7 +340,7 @@ public class FinishingDialog extends BaseDialog {
 //                                String number = String.valueOf(contestantTest.getNumber());
 //                                if (h == number.length()) {
 //                                    try {
-//                                        jTextField1KeyReleased(new KeyEvent(textNumber, 10, 9999, 0, KeyEvent.VK_ENTER, 'e'));
+//                                        textNumberKeyReleased(new KeyEvent(textNumber, 10, 9999, 0, KeyEvent.VK_ENTER, 'e'));
 //                                    } catch (StringIndexOutOfBoundsException e) {
 //                                        java.util.logging.Logger.getLogger(FinishingDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, e);
 //                                        textNumber.setText("");
@@ -350,7 +350,7 @@ public class FinishingDialog extends BaseDialog {
 //                                    return;
 //                                }
 //                                textNumber.setText(number.substring(0, h + 1));
-//                                jTextField1KeyReleased(new KeyEvent(textNumber, 10, 9999, 0, KeyEvent.VK_9, 'e'));
+//                                textNumberKeyReleased(new KeyEvent(textNumber, 10, 9999, 0, KeyEvent.VK_9, 'e'));
 //                            }
 //                        });
 //                    }

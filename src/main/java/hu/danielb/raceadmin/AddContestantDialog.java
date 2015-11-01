@@ -195,14 +195,14 @@ class AddContestantDialog extends BaseDialog {
         buttonGroupSex.add(radioGirl);
 
         buttonSave.setText("Mentés");
-        buttonSave.addActionListener(AddContestantDialog.this::jButton1ActionPerformed);
+        buttonSave.addActionListener(AddContestantDialog.this::buttonSaveActionPerformed);
 
         buttonEnd.setText("Vége");
-        buttonEnd.addActionListener(AddContestantDialog.this::jButton3ActionPerformed);
+        buttonEnd.addActionListener(AddContestantDialog.this::buttonEndActionPerformed);
 
         buttonNew.setText("Új");
         buttonNew.setFocusable(false);
-        buttonNew.addActionListener(AddContestantDialog.this::jButton4ActionPerformed);
+        buttonNew.addActionListener(AddContestantDialog.this::buttonNewActionPerformed);
 
         labelName.setText("Név:");
 
@@ -319,7 +319,7 @@ class AddContestantDialog extends BaseDialog {
         pack();
     }
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {
+    private void buttonSaveActionPerformed(java.awt.event.ActionEvent evt) {
         String name = (textName.getText()).trim();
         int school = ((School) comboSchool.getSelectedItem()).getId();
         int age = ((Integer) spinnerAge.getValue());
@@ -426,11 +426,11 @@ class AddContestantDialog extends BaseDialog {
         }
     }
 
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {
+    private void buttonEndActionPerformed(java.awt.event.ActionEvent evt) {
         this.dispose();
     }
 
-    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {
+    private void buttonNewActionPerformed(java.awt.event.ActionEvent evt) {
         new AddSchoolDialog(this).setVisible(true);
         comboSchool.setModel(new DefaultComboBoxModel<>(new School[]{new School(0, "")}));
         try {

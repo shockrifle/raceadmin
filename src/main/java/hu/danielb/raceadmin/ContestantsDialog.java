@@ -103,7 +103,7 @@ public class ContestantsDialog extends BaseDialog {
         } catch (SQLException ex) {
             Logger.getLogger(AddContestantDialog.class.getName()).log(Level.SEVERE, null, ex);
         }
-        comboSchools.addActionListener(ContestantsDialog.this::jComboBox1ActionPerformed);
+        comboSchools.addActionListener(ContestantsDialog.this::comboSchoolsActionPerformed);
 
         menuBar.setMaximumSize(new java.awt.Dimension(0, 0));
         menuBar.setMinimumSize(new java.awt.Dimension(0, 0));
@@ -118,7 +118,7 @@ public class ContestantsDialog extends BaseDialog {
         menuItemPrint.setMaximumSize(new java.awt.Dimension(0, 0));
         menuItemPrint.setName("");
         menuItemPrint.setPreferredSize(new java.awt.Dimension(0, 0));
-        menuItemPrint.addActionListener(ContestantsDialog.this::jMenuItem1ActionPerformed);
+        menuItemPrint.addActionListener(ContestantsDialog.this::menuItemPrintActionPerformed);
         menuFile.add(menuItemPrint);
 
         menuBar.add(menuFile);
@@ -165,7 +165,7 @@ public class ContestantsDialog extends BaseDialog {
         }
     }
 
-    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {
+    private void menuItemPrintActionPerformed(java.awt.event.ActionEvent evt) {
         try {
             new Printer(tableContestants);
         } catch (PrinterException | HeadlessException ex) {
@@ -173,7 +173,7 @@ public class ContestantsDialog extends BaseDialog {
         }
     }
 
-    private void jComboBox1ActionPerformed(java.awt.event.ActionEvent evt) {
+    private void comboSchoolsActionPerformed(java.awt.event.ActionEvent evt) {
 
         String name = ((School) comboSchools.getSelectedItem()).getName();
         if (name.isEmpty()) {
