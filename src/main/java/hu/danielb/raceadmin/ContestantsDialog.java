@@ -19,7 +19,10 @@ import java.awt.event.MouseEvent;
 import java.awt.print.PrinterException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -194,19 +197,19 @@ public class ContestantsDialog extends BaseDialog {
                     + "or " + Contestant.TABLE + "." + Contestant.COLUMN_AGE + " like ? "
                     + "or " + COLUMN_AGE_GROUP_NAME + " like ? "
                     + "or " + COLUMN_SCHOOL_NAME + " like ? "
-                    + "order by " + sortStrings.get(sortBy) + (sortBackwards ? " desc" : " asc"), Database.QUERRY, filter, filter, filter, filter, filter, filter);
+                    + "order by " + sortStrings.get(sortBy) + (sortBackwards ? " desc" : " asc"), Database.QUERRY, filter, filter, filter, filter, filter);
             while (rs.next()) {
                 data.add(new Vector<>(Arrays.asList(
                         new String[]{String.valueOf(rs.getInt(Contestant.COLUMN_ID)),
                                 String.valueOf(rs.getInt(Contestant.COLUMN_SCHOOL_ID)),
                                 String.valueOf(rs.getInt(Contestant.COLUMN_AGE_GROUP_ID)),
                                 rs.getInt(Contestant.COLUMN_POSITION) < 1 ? "" : String.valueOf(rs.getInt(Contestant.COLUMN_POSITION)),
-                                rs.getString(Contestant.COLUMN_AGE),
+                                rs.getString(Contestant.COLUMN_NAME),
                                 String.valueOf(rs.getInt(Contestant.COLUMN_NUMBER)),
                                 String.valueOf(rs.getInt(Contestant.COLUMN_AGE)),
                                 rs.getString(COLUMN_AGE_GROUP_NAME),
                                 rs.getString(COLUMN_SCHOOL_NAME),
-                                Constants.BOY.equals(rs.getString(Contestant.COLUMN_SEX))?"F":"L",
+                                Constants.BOY.equals(rs.getString(Contestant.COLUMN_SEX)) ? "F" : "L",
                                 "Szerkesztés"})));
             }
         } catch (SQLException ex) {
@@ -220,8 +223,8 @@ public class ContestantsDialog extends BaseDialog {
         Vector<Vector<String>> data = new Vector<>();
         try {
             ResultSet rs = Database.runSql("select " + Contestant.TABLE + ".*," +
-                    School.TABLE + "."+School.COLUMN_NAME+" as "+COLUMN_SCHOOL_NAME+"," +
-                    AgeGroup.TABLE + "."+AgeGroup.COLUMN_NAME+" as "+COLUMN_AGE_GROUP_NAME+" from " + Contestant.TABLE + " "
+                    School.TABLE + "." + School.COLUMN_NAME + " as " + COLUMN_SCHOOL_NAME + "," +
+                    AgeGroup.TABLE + "." + AgeGroup.COLUMN_NAME + " as " + COLUMN_AGE_GROUP_NAME + " from " + Contestant.TABLE + " "
                     + "inner join " + School.TABLE + " on " + Contestant.TABLE + "." + Contestant.COLUMN_SCHOOL_ID + "=" + School.TABLE + "." + School.COLUMN_ID + " "
                     + "inner join " + AgeGroup.TABLE + " on " + Contestant.TABLE + "." + Contestant.COLUMN_AGE_GROUP_ID + "=" + AgeGroup.TABLE + "." + AgeGroup.COLUMN_ID + " "
                     + "order by " + sortStrings.get(sortBy) + (sortBackwards ? " desc" : " asc"));
@@ -231,12 +234,12 @@ public class ContestantsDialog extends BaseDialog {
                                 String.valueOf(rs.getInt(Contestant.COLUMN_SCHOOL_ID)),
                                 String.valueOf(rs.getInt(Contestant.COLUMN_AGE_GROUP_ID)),
                                 rs.getInt(Contestant.COLUMN_POSITION) < 1 ? "" : String.valueOf(rs.getInt(Contestant.COLUMN_POSITION)),
-                                rs.getString(Contestant.COLUMN_AGE),
+                                rs.getString(Contestant.COLUMN_NAME),
                                 String.valueOf(rs.getInt(Contestant.COLUMN_NUMBER)),
                                 String.valueOf(rs.getInt(Contestant.COLUMN_AGE)),
                                 rs.getString(COLUMN_AGE_GROUP_NAME),
                                 rs.getString(COLUMN_SCHOOL_NAME),
-                                Constants.BOY.equals(rs.getString(Contestant.COLUMN_SEX))?"F":"L",
+                                Constants.BOY.equals(rs.getString(Contestant.COLUMN_SEX)) ? "F" : "L",
                                 "Szerkesztés"})));
             }
         } catch (SQLException ex) {
