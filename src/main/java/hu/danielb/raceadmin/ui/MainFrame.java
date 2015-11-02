@@ -1,4 +1,4 @@
-package hu.danielb.raceadmin.ui;
+﻿package hu.danielb.raceadmin.ui;
 
 
 import hu.danielb.raceadmin.database.DatabaseOld;
@@ -34,13 +34,12 @@ import java.util.stream.Collectors;
 //TODO: fejléc szerkesztés
 //TODO: beállítások ablak összes beállítást egybefogva
 //TODO: korosztály gyors beállítás (kezdődátum +hány év egy korosztály)
-//TODO: nem név alapján
 //TODO: régi adatok újrafelhasználása rajtszám elvételével
 //TODO: iskolalista
 //TODO: iskola legördülő ne csak az elején keressen
-//TODO: ormlite
-//TODO: maven
-//TODO: git
+//TODO: nevek nagybetűvel kezdése
+//TODO: iskola rövidített név
+
 public class MainFrame extends javax.swing.JFrame {
 
     public static final String COLUMN_AGE_GROUP_ID = "age_group_id";
