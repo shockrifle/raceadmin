@@ -18,6 +18,7 @@ import java.util.Properties;
 public class Database {
 
     private static Database database;
+    private final Backup backup;
     private Dao<AgeGroup, Integer> ageGroupDao;
     private Dao<Contestant, Integer> contestantDao;
     private Dao<PrintHeader, Integer> printHeaderDao;
@@ -26,6 +27,7 @@ public class Database {
 
     private Database() {
         connect();
+        backup = new Backup().start();
     }
 
     public static Database get() {
@@ -87,11 +89,11 @@ public class Database {
         return schoolDao;
     }
 
-    private void backedUp() {
+    public void backedUp() {
         this.backedUp = true;
     }
 
-    private boolean isBackedUp() {
+    public boolean isBackedUp() {
         return backedUp;
     }
 }

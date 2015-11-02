@@ -34,6 +34,9 @@ public class Contestant {
     @DatabaseField
     private int age;
 
+    public Contestant() {
+    }
+
     public Contestant(int id, int position, String name, String sex, int number, AgeGroup ageGroup, School school, int age) {
         this.id = id;
         this.position = position;

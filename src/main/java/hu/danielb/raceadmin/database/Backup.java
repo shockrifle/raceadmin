@@ -12,8 +12,12 @@ import java.util.TimerTask;
 
 public class Backup {
 
-    private static final String BACKUPTHREAD = "hu.danielb.raceadmin.database.Backup.BACKUPTHREAD";
-    private String backupPath;
+    private static final String BACKUP_THREAD = "hu.danielb.raceadmin.database.Backup.BACKUP_THREAD";
+    private final int backupInterval;
+    private final String backupsPath;
+    private final String fileName;
+    private final String timeFormat;
+    private Timer backupTimer;
 
     public Backup() {
 
@@ -23,36 +27,42 @@ public class Backup {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        backupPath = properties.getProperty("backupsPath");
         backupInterval = Integer.parseInt(properties.getProperty("backup-interval")) * 1000 * 60;
-
-        start(backupInterval);
+        backupsPath = properties.getProperty("backup-path", "backups");
+        fileName = properties.getProperty("database", "adatok.db");
+        timeFormat = properties.getProperty("backup-time-format", "_HH.mm.ss");
     }
 
-    private void start(int backupInterval) {
-        Timer backupTimer = new Timer(BACKUPTHREAD, true);
+    public Backup start() {
+        backupTimer = new Timer(BACKUP_THREAD, true);
         backupTimer.schedule(new TimerTask() {
             @Override
             public void run() {
                 try {
-                    backup();
+                    backup(backupsPath, fileName, timeFormat);
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
             }
         }, backupInterval, backupInterval);
+        return this;
     }
 
-    synchronized public void backup() throws IOException {
+    public Backup stop() {
+        backupTimer.cancel();
+        return this;
+    }
+
+    synchronized public void backup(String backupsPath, String fileName, String timeFormat) throws IOException {
         if (!Database.get().isBackedUp()) {
-            DateFormat f = new SimpleDateFormat(BACKUP_TIME_FORMAT);
-            File dir = new File(backupPath);
+            DateFormat f = new SimpleDateFormat(timeFormat);
+            File dir = new File(backupsPath);
             if (!dir.exists()) {
                 if (!dir.mkdirs()) {
                     throw new IOException("Cannot create backup directory on path:" + dir.getAbsolutePath());
                 }
             }
-            Files.copy(new File(DATABASEFILE).toPath(), new File(backupPath + File.separator + DATABASEFILE + f.format(new Date())).toPath());
+            Files.copy(new File(fileName).toPath(), new File(backupsPath + File.separator + fileName + f.format(new Date())).toPath());
             Database.get().backedUp();
         }
     }

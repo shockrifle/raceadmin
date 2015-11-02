@@ -20,6 +20,8 @@ public class School {
     @DatabaseField(columnName = "settlement")
     private String settlement;
 
+    public School() {
+    }
 
     public School(int id, String name) {
         this.id = id;

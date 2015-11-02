@@ -1,18 +1,15 @@
 package hu.danielb.raceadmin.ui;
 
-import hu.danielb.raceadmin.database.DatabaseOld;
+import hu.danielb.raceadmin.database.Database;
 import hu.danielb.raceadmin.entity.AgeGroup;
 import hu.danielb.raceadmin.ui.components.ButtonEditor;
 import hu.danielb.raceadmin.ui.components.ButtonRenderer;
 
 import javax.swing.*;
 import java.awt.*;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.Vector;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class AgeGroupsDialog extends BaseDialog {
 
@@ -64,19 +61,23 @@ public class AgeGroupsDialog extends BaseDialog {
 
     private void loadData() {
         Vector<Vector<String>> data = new Vector<>();
+
         try {
-            ResultSet rs = DatabaseOld.runSql("select * from " + AgeGroup.TABLE);
-            while (rs.next()) {
-                data.add(new Vector<>(Arrays.asList(new String[]{
-                        String.valueOf(rs.getInt(AgeGroup.COLUMN_ID)),
-                        rs.getString(AgeGroup.COLUMN_NAME),
-                        String.valueOf(rs.getInt(AgeGroup.COLUMN_MINIMUM)),
-                        String.valueOf(rs.getInt(AgeGroup.COLUMN_MAXIMUM)),
-                        "Szerkeszt"})));
-            }
-        } catch (SQLException ex) {
-            Logger.getLogger(AgeGroupsDialog.class.getName()).log(Level.SEVERE, null, ex);
+            java.util.List<AgeGroup> ageGroups = Database.get().getAgeGroupDao().queryForAll();
+
+            ageGroups.forEach(ageGroup -> data.add(new Vector<>(Arrays.asList(new String[]{
+                    String.valueOf(ageGroup.getId()),
+                    ageGroup.getName(),
+                    String.valueOf(ageGroup.getMinimum()),
+                    String.valueOf(ageGroup.getMaximum()),
+                    "Szerkeszt"}))));
+
+
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
+
+
         tableAgeGroups.setModel(new javax.swing.table.DefaultTableModel(data, new Vector<>(Arrays.asList(new String[]{"", "Név", "Alsó határ", "Felső határ", ""}))) {
             @Override
             public boolean isCellEditable(int row, int column) {

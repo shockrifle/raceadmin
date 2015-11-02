@@ -19,6 +19,9 @@ public class PrintHeader {
     @DatabaseField
     private String text;
 
+    public PrintHeader() {
+    }
+
     public PrintHeader(int id, String name, String text) {
         this.id = id;
         this.name = name;

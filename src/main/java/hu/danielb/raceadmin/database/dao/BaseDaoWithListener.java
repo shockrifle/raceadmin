@@ -8,6 +8,7 @@ import com.j256.ormlite.support.DatabaseConnection;
 import hu.danielb.raceadmin.database.listeners.DatabaseListener;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -16,6 +17,7 @@ public class BaseDaoWithListener<T, ID> extends BaseDaoImpl<T, ID> {
 
     public BaseDaoWithListener(ConnectionSource connectionSource, Class<T> dataClass) throws SQLException {
         super(connectionSource, dataClass);
+        listeners = new ArrayList<>();
     }
 
     @Override

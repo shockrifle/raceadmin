@@ -21,6 +21,9 @@ public class AgeGroup {
     @DatabaseField
     private int maximum;
 
+    public AgeGroup() {
+    }
+
     public AgeGroup(int id, String name, int minimum, int maximum) {
         this.id = id;
         this.name = name;
