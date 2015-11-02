@@ -1,6 +1,6 @@
 package hu.danielb.raceadmin.ui;
 
-import hu.danielb.raceadmin.config.Database;
+import hu.danielb.raceadmin.database.DatabaseOld;
 import hu.danielb.raceadmin.entity.AgeGroup;
 import hu.danielb.raceadmin.entity.Contestant;
 import hu.danielb.raceadmin.entity.School;
@@ -112,7 +112,7 @@ class AddContestantDialog extends BaseDialog {
         AutoCompleteDecorator.decorate(comboSchool);
         comboSchool.setModel(new javax.swing.DefaultComboBoxModel<>(new School[]{new School(0, "")}));
         try {
-            ResultSet rs = Database.runSql("select * from " + School.TABLE + " order by " + School.COLUMN_NAME);
+            ResultSet rs = DatabaseOld.runSql("select * from " + School.TABLE + " order by " + School.COLUMN_NAME);
             while (rs.next()) {
                 comboSchool.addItem(new School(rs.getInt(School.COLUMN_ID), rs.getString(School.COLUMN_NAME)));
             }
@@ -123,7 +123,7 @@ class AddContestantDialog extends BaseDialog {
         int min = 9999;
         int max = 0;
         try {
-            ResultSet rs = Database.runSql("select * from " + AgeGroup.TABLE);
+            ResultSet rs = DatabaseOld.runSql("select * from " + AgeGroup.TABLE);
             while (rs.next()) {
                 if (rs.getInt(AgeGroup.COLUMN_MINIMUM) < min) min = rs.getInt(AgeGroup.COLUMN_MINIMUM);
                 if (rs.getInt(AgeGroup.COLUMN_MAXIMUM) > max) max = rs.getInt(AgeGroup.COLUMN_MAXIMUM);
@@ -220,7 +220,7 @@ class AddContestantDialog extends BaseDialog {
 
         comboAgeGroup.setModel(new javax.swing.DefaultComboBoxModel<>(new AgeGroup[]{new AgeGroup(0, "", 0, 0)}));
         try {
-            ResultSet rs = Database.runSql("select * from " + AgeGroup.TABLE + " order by " + AgeGroup.COLUMN_NAME);
+            ResultSet rs = DatabaseOld.runSql("select * from " + AgeGroup.TABLE + " order by " + AgeGroup.COLUMN_NAME);
             while (rs.next()) {
                 comboAgeGroup.addItem(new AgeGroup(rs.getInt(AgeGroup.COLUMN_ID), rs.getString(AgeGroup.COLUMN_NAME), rs.getInt(AgeGroup.COLUMN_MINIMUM), rs.getInt(AgeGroup.COLUMN_MAXIMUM)));
             }
@@ -335,9 +335,9 @@ class AddContestantDialog extends BaseDialog {
             if (number < 1) {
                 throw new Exception("Adjon meg rajtszámot!");
             }
-            ResultSet rs = Database.runSql("select * from " + Contestant.TABLE + " where " +
+            ResultSet rs = DatabaseOld.runSql("select * from " + Contestant.TABLE + " where " +
                     Contestant.COLUMN_NUMBER + " = ? and " +
-                    Contestant.COLUMN_ID + " != ?", Database.QUERRY, String.valueOf(number), contestant != null ? String.valueOf(contestant.getId()) : "-1");
+                    Contestant.COLUMN_ID + " != ?", DatabaseOld.QUERRY, String.valueOf(number), contestant != null ? String.valueOf(contestant.getId()) : "-1");
             if (rs.next()) {
                 throw new Exception("Már létezik versenyző ezzel a rajtszámmal!\nNév: " + rs.getString(Contestant.COLUMN_NAME));
             }
@@ -346,7 +346,7 @@ class AddContestantDialog extends BaseDialog {
                 throw new Exception("Nem választott nemet!");
             }
             if (contestant == null) {
-                Database.runSql("insert into " + Contestant.TABLE + " (" +
+                DatabaseOld.runSql("insert into " + Contestant.TABLE + " (" +
                                 Contestant.COLUMN_POSITION + "," +
                                 Contestant.COLUMN_NAME + "," +
                                 Contestant.COLUMN_SEX + "," +
@@ -355,7 +355,7 @@ class AddContestantDialog extends BaseDialog {
                                 Contestant.COLUMN_SCHOOL_ID + "," +
                                 Contestant.COLUMN_AGE + ") "
                                 + "values(?,?,?,?,?,?,?)",
-                        Database.UPDATE, String.valueOf(position), name, sex, String.valueOf(number), String.valueOf(ageGroupId), String.valueOf(school), String.valueOf(age));
+                        DatabaseOld.UPDATE, String.valueOf(position), name, sex, String.valueOf(number), String.valueOf(ageGroupId), String.valueOf(school), String.valueOf(age));
 
                 textName.setText("");
                 spinnerNumber.setValue(((int) spinnerNumber.getValue()) + 1);
@@ -371,27 +371,27 @@ class AddContestantDialog extends BaseDialog {
 
                 if (position != contestant.getPosition()) {
                     if ((0 < position && position < contestant.getPosition()) || contestant.getPosition() == 0) {
-                        Database.runSql("update " + Contestant.TABLE + " set " +
+                        DatabaseOld.runSql("update " + Contestant.TABLE + " set " +
                                         Contestant.COLUMN_POSITION + " = " + Contestant.COLUMN_POSITION + "+1 where " +
                                         Contestant.COLUMN_POSITION + " >= ? and " +
                                         Contestant.COLUMN_POSITION + " < ? and " +
                                         Contestant.COLUMN_POSITION + " != 0 and " +
                                         Contestant.COLUMN_SEX + " = ? and " +
                                         Contestant.COLUMN_AGE_GROUP_ID + " = ?",
-                                Database.UPDATE, String.valueOf(position), String.valueOf(contestant.getPosition() != 0 ? contestant.getPosition() : 9999), contestant.getSex(), String.valueOf(contestant.getAgeGroup().getId()));
+                                DatabaseOld.UPDATE, String.valueOf(position), String.valueOf(contestant.getPosition() != 0 ? contestant.getPosition() : 9999), contestant.getSex(), String.valueOf(contestant.getAgeGroup().getId()));
                     } else if ((0 < contestant.getPosition() && contestant.getPosition() < position) || position == 0) {
-                        Database.runSql("update " + Contestant.TABLE + " set " +
+                        DatabaseOld.runSql("update " + Contestant.TABLE + " set " +
                                         Contestant.COLUMN_POSITION + " = " + Contestant.COLUMN_POSITION + "-1 where " +
                                         Contestant.COLUMN_POSITION + " > ? and " +
                                         Contestant.COLUMN_POSITION + " <= ? and " +
                                         Contestant.COLUMN_POSITION + " != 0 and " +
                                         Contestant.COLUMN_SEX + " = ? and " +
                                         Contestant.COLUMN_AGE_GROUP_ID + " = ?",
-                                Database.UPDATE, String.valueOf(contestant.getPosition()), String.valueOf(position != 0 ? position : 9999), contestant.getSex(), String.valueOf(contestant.getAgeGroup().getId()));
+                                DatabaseOld.UPDATE, String.valueOf(contestant.getPosition()), String.valueOf(position != 0 ? position : 9999), contestant.getSex(), String.valueOf(contestant.getAgeGroup().getId()));
                     }
                 }
 
-                Database.runSql("update " + Contestant.TABLE + " set "
+                DatabaseOld.runSql("update " + Contestant.TABLE + " set "
                                 + Contestant.COLUMN_POSITION + " = ?, "
                                 + Contestant.COLUMN_NAME + " = ?, "
                                 + Contestant.COLUMN_SEX + " = ?, "
@@ -400,7 +400,7 @@ class AddContestantDialog extends BaseDialog {
                                 + Contestant.COLUMN_SCHOOL_ID + " = ?,"
                                 + Contestant.COLUMN_AGE + " = ? "
                                 + "where " + Contestant.COLUMN_ID + " = ?",
-                        Database.UPDATE,
+                        DatabaseOld.UPDATE,
                         String.valueOf(position),
                         name,
                         sex,
@@ -429,7 +429,7 @@ class AddContestantDialog extends BaseDialog {
         new AddSchoolDialog(this).setVisible(true);
         comboSchool.setModel(new DefaultComboBoxModel<>(new School[]{new School(0, "")}));
         try {
-            ResultSet rs = Database.runSql("select * from " + School.TABLE + " order by " + School.COLUMN_NAME);
+            ResultSet rs = DatabaseOld.runSql("select * from " + School.TABLE + " order by " + School.COLUMN_NAME);
             while (rs.next()) {
                 comboSchool.addItem(new School(rs.getInt(School.COLUMN_ID), rs.getString(School.COLUMN_NAME)));
             }

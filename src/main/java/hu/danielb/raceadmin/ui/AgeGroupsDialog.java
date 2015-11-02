@@ -1,6 +1,6 @@
 package hu.danielb.raceadmin.ui;
 
-import hu.danielb.raceadmin.config.Database;
+import hu.danielb.raceadmin.database.DatabaseOld;
 import hu.danielb.raceadmin.entity.AgeGroup;
 import hu.danielb.raceadmin.ui.components.ButtonEditor;
 import hu.danielb.raceadmin.ui.components.ButtonRenderer;
@@ -65,7 +65,7 @@ public class AgeGroupsDialog extends BaseDialog {
     private void loadData() {
         Vector<Vector<String>> data = new Vector<>();
         try {
-            ResultSet rs = Database.runSql("select * from " + AgeGroup.TABLE);
+            ResultSet rs = DatabaseOld.runSql("select * from " + AgeGroup.TABLE);
             while (rs.next()) {
                 data.add(new Vector<>(Arrays.asList(new String[]{
                         String.valueOf(rs.getInt(AgeGroup.COLUMN_ID)),

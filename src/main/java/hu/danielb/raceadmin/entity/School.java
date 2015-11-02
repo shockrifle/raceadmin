@@ -2,8 +2,9 @@ package hu.danielb.raceadmin.entity;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+import hu.danielb.raceadmin.database.dao.BaseDaoWithListener;
 
-@DatabaseTable(tableName = "school")
+@DatabaseTable(tableName = "school", daoClass = BaseDaoWithListener.class)
 public class School {
 
     public static final String TABLE = "school";

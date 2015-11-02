@@ -1,6 +1,6 @@
 package hu.danielb.raceadmin.ui;
 
-import hu.danielb.raceadmin.config.Database;
+import hu.danielb.raceadmin.database.DatabaseOld;
 import hu.danielb.raceadmin.entity.PrintHeader;
 
 import java.awt.*;
@@ -104,7 +104,7 @@ class AddPrintHeaderDialog extends BaseDialog {
                 throw new Exception("Nem adott meg szöveget!");
             }
 
-            Database.runSql("insert into " + PrintHeader.TABLE + " (" + PrintHeader.COLUMN_NAME + "," + PrintHeader.COLUMN_TEXT + ") values(?,?)", Database.UPDATE, textName.getText().trim(), textText.getText().trim());
+            DatabaseOld.runSql("insert into " + PrintHeader.TABLE + " (" + PrintHeader.COLUMN_NAME + "," + PrintHeader.COLUMN_TEXT + ") values(?,?)", DatabaseOld.UPDATE, textName.getText().trim(), textText.getText().trim());
             this.dispose();
         } catch (SQLException ex) {
             Logger.getLogger(AddPrintHeaderDialog.class.getName()).log(Level.SEVERE, null, ex);

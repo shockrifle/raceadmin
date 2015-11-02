@@ -1,6 +1,6 @@
 package hu.danielb.raceadmin.ui;
 
-import hu.danielb.raceadmin.config.Database;
+import hu.danielb.raceadmin.database.DatabaseOld;
 import hu.danielb.raceadmin.entity.AgeGroup;
 import hu.danielb.raceadmin.entity.Contestant;
 import hu.danielb.raceadmin.entity.School;
@@ -108,7 +108,7 @@ public class ContestantsDialog extends BaseDialog {
 
         comboSchools.setModel(new javax.swing.DefaultComboBoxModel<>(new School[]{new School(0, "")}));
         try {
-            ResultSet rs = Database.runSql("select * from " + School.TABLE + " order by " + School.COLUMN_NAME);
+            ResultSet rs = DatabaseOld.runSql("select * from " + School.TABLE + " order by " + School.COLUMN_NAME);
             while (rs.next()) {
                 comboSchools.addItem(new School(rs.getInt(School.COLUMN_ID), rs.getString(School.COLUMN_NAME)));
             }
@@ -199,7 +199,7 @@ public class ContestantsDialog extends BaseDialog {
         Vector<Vector<String>> data = new Vector<>();
         filter = "%" + filter + "%";
         try {
-            ResultSet rs = Database.runSql("select " + Contestant.TABLE + ".*," +
+            ResultSet rs = DatabaseOld.runSql("select " + Contestant.TABLE + ".*," +
                     School.TABLE + "." + School.COLUMN_NAME + " as " + COLUMN_SCHOOL_NAME + "," +
                     AgeGroup.TABLE + "." + AgeGroup.COLUMN_NAME + " as " + COLUMN_AGE_GROUP_NAME + " from " + Contestant.TABLE + " "
                     + "inner join " + School.TABLE + " on " + Contestant.TABLE + "." + Contestant.COLUMN_SCHOOL_ID + "=" + School.TABLE + "." + School.COLUMN_ID + " "
@@ -209,7 +209,7 @@ public class ContestantsDialog extends BaseDialog {
                     + "or " + Contestant.TABLE + "." + Contestant.COLUMN_AGE + " like ? "
                     + "or " + COLUMN_AGE_GROUP_NAME + " like ? "
                     + "or " + COLUMN_SCHOOL_NAME + " like ? "
-                    + "order by " + sortStrings.get(sortBy) + (sortBackwards ? " desc" : " asc"), Database.QUERRY, filter, filter, filter, filter, filter);
+                    + "order by " + sortStrings.get(sortBy) + (sortBackwards ? " desc" : " asc"), DatabaseOld.QUERRY, filter, filter, filter, filter, filter);
             while (rs.next()) {
                 data.add(new Vector<>(Arrays.asList(
                         new String[]{String.valueOf(rs.getInt(Contestant.COLUMN_ID)),
@@ -234,7 +234,7 @@ public class ContestantsDialog extends BaseDialog {
 
         Vector<Vector<String>> data = new Vector<>();
         try {
-            ResultSet rs = Database.runSql("select " + Contestant.TABLE + ".*," +
+            ResultSet rs = DatabaseOld.runSql("select " + Contestant.TABLE + ".*," +
                     School.TABLE + "." + School.COLUMN_NAME + " as " + COLUMN_SCHOOL_NAME + "," +
                     AgeGroup.TABLE + "." + AgeGroup.COLUMN_NAME + " as " + COLUMN_AGE_GROUP_NAME + " from " + Contestant.TABLE + " "
                     + "inner join " + School.TABLE + " on " + Contestant.TABLE + "." + Contestant.COLUMN_SCHOOL_ID + "=" + School.TABLE + "." + School.COLUMN_ID + " "

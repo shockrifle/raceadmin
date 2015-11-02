@@ -2,8 +2,9 @@ package hu.danielb.raceadmin.entity;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+import hu.danielb.raceadmin.database.dao.BaseDaoWithListener;
 
-@DatabaseTable(tableName = "print_header")
+@DatabaseTable(tableName = "print_header", daoClass = BaseDaoWithListener.class)
 public class PrintHeader {
 
     public static final String TABLE = "print_header";

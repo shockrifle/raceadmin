@@ -2,8 +2,9 @@ package hu.danielb.raceadmin.entity;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+import hu.danielb.raceadmin.database.dao.BaseDaoWithListener;
 
-@DatabaseTable(tableName = "age_group")
+@DatabaseTable(tableName = "age_group", daoClass = BaseDaoWithListener.class)
 public class AgeGroup {
     public static final String TABLE = "age_group";
     public static final String COLUMN_ID = "id";

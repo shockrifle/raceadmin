@@ -1,6 +1,6 @@
 package hu.danielb.raceadmin.ui;
 
-import hu.danielb.raceadmin.config.Database;
+import hu.danielb.raceadmin.database.DatabaseOld;
 import hu.danielb.raceadmin.entity.School;
 
 import javax.swing.*;
@@ -101,13 +101,13 @@ class AddSchoolDialog extends BaseDialog {
         System.out.println(checkStatement);
         ResultSet rs;
         try {
-            rs = Database.runSql(checkStatement, Database.QUERRY, toCheck);
+            rs = DatabaseOld.runSql(checkStatement, DatabaseOld.QUERRY, toCheck);
             while (rs.next()) {
                 checked.add(rs.getString(School.COLUMN_NAME));
             }
             if (checked.isEmpty()) {
                 try {
-                    Database.runSql("insert into " + School.TABLE + " (" + School.COLUMN_NAME + ") values (?)", Database.UPDATE, textName.getText());
+                    DatabaseOld.runSql("insert into " + School.TABLE + " (" + School.COLUMN_NAME + ") values (?)", DatabaseOld.UPDATE, textName.getText());
                     message("Új iskola hozzáadva");
                     dispose();
                 } catch (SQLException ex) {
@@ -126,7 +126,7 @@ class AddSchoolDialog extends BaseDialog {
                         break;
                     case 1:
                         try {
-                            Database.runSql("insert into " + School.TABLE + " (" + School.COLUMN_NAME + ") values (?)", Database.UPDATE, textName.getText());
+                            DatabaseOld.runSql("insert into " + School.TABLE + " (" + School.COLUMN_NAME + ") values (?)", DatabaseOld.UPDATE, textName.getText());
                         } catch (SQLException ex) {
                             Logger.getLogger(AddSchoolDialog.class.getName()).log(Level.SEVERE, null, ex);
                         }

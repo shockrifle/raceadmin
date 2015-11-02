@@ -1,4 +1,4 @@
-package hu.danielb.raceadmin.config;
+package hu.danielb.raceadmin.database;
 
 import hu.danielb.raceadmin.entity.AgeGroup;
 import hu.danielb.raceadmin.entity.Contestant;
@@ -16,20 +16,20 @@ import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public final class Database {
+public class DatabaseOld {
 
     public static final int QUERRY = 1;
     public static final int UPDATE = 2;
-    private static final String BACKUPTHREAD = "hu.danielb.raceadmin.Database.BACKUPTHREAD";
+    private static final String BACKUPTHREAD = "hu.danielb.raceadmin.DatabaseOld.BACKUPTHREAD";
     private static final int BACKUPINTERVAL = 1000 * 60 * 5;
     private static final String DATABASEFILE = "adatok.db";
     private static final String BACKUP_TIME_FORMAT = "_HH.mm.ss";
-    private static Database database;
+    private static DatabaseOld databaseOld;
     private static String backupPath;
     private Connection connection = null;
     private boolean backedUp = true;
 
-    private Database() throws SQLException {
+    private DatabaseOld() throws SQLException {
         final Properties properties = new Properties();
         try {
             properties.load(this.getClass().getResourceAsStream("/project.properties"));
@@ -38,7 +38,7 @@ public final class Database {
         }
         backupPath = properties.getProperty("backupsPath");
 
-        // create a database connection
+        // create a databaseOld connection
         connection = DriverManager.getConnection("jdbc:sqlite:" + DATABASEFILE);
         Timer backupTimer = new Timer(BACKUPTHREAD, true);
         backupTimer.schedule(new TimerTask() {
@@ -47,14 +47,14 @@ public final class Database {
                 try {
                     backup();
                 } catch (IOException ex) {
-                    Logger.getLogger(Database.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(DatabaseOld.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         }, BACKUPINTERVAL, BACKUPINTERVAL);
     }
 
     public static void connect() throws SQLException {
-        database = new Database();
+        databaseOld = new DatabaseOld();
         runSql("create table if not exists " + AgeGroup.TABLE + " ('id' INTEGER PRIMARY KEY AUTOINCREMENT, 'name' string, 'minimum' integer, 'maximum' integer)", UPDATE);
         runSql("create table if not exists " + Contestant.TABLE + " ('id' INTEGER PRIMARY KEY AUTOINCREMENT, 'position' integer, 'name' string, 'sex' string, 'number' integer, 'age_group_id' integer, 'school_id' integer, 'age' integer)", UPDATE);
         runSql("create table if not exists " + School.TABLE + " ('id' INTEGER PRIMARY KEY AUTOINCREMENT, 'name' string)", UPDATE);
@@ -79,7 +79,7 @@ public final class Database {
 
         ResultSet rs = null;
 
-        PreparedStatement st = database.getConnection().prepareStatement(statement);
+        PreparedStatement st = databaseOld.getConnection().prepareStatement(statement);
         if (params != null) {
             for (int i = 0; i < params.size(); i++) {
                 String string = params.get(i);
@@ -97,7 +97,7 @@ public final class Database {
                 break;
             case 2:
                 st.executeUpdate();
-                database.edited();
+                databaseOld.edited();
                 break;
             default:
                 throw new AssertionError();
@@ -107,7 +107,7 @@ public final class Database {
     }
 
     synchronized public void backup() throws IOException {
-        if (!database.isBackedUp()) {
+        if (!databaseOld.isBackedUp()) {
             DateFormat f = new SimpleDateFormat(BACKUP_TIME_FORMAT);
             File dir = new File(backupPath);
             if (!dir.exists()) {
@@ -116,7 +116,7 @@ public final class Database {
                 }
             }
             Files.copy(new File(DATABASEFILE).toPath(), new File(backupPath + File.separator + DATABASEFILE + f.format(new Date())).toPath());
-            database.backedUp();
+            databaseOld.backedUp();
         }
     }
 

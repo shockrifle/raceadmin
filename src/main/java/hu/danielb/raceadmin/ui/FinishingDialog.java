@@ -1,6 +1,6 @@
 package hu.danielb.raceadmin.ui;
 
-import hu.danielb.raceadmin.config.Database;
+import hu.danielb.raceadmin.database.DatabaseOld;
 import hu.danielb.raceadmin.entity.AgeGroup;
 import hu.danielb.raceadmin.entity.Contestant;
 import hu.danielb.raceadmin.entity.School;
@@ -57,7 +57,7 @@ public class FinishingDialog extends BaseDialog {
         HashMap<Integer, School> schools = new HashMap<>();
         ResultSet rs;
         try {
-            rs = Database.runSql("select * from " + AgeGroup.TABLE);
+            rs = DatabaseOld.runSql("select * from " + AgeGroup.TABLE);
             while (rs.next()) {
                 ageGroups.put(rs.getInt(AgeGroup.COLUMN_ID),
                         new AgeGroup(rs.getInt(AgeGroup.COLUMN_ID),
@@ -68,13 +68,13 @@ public class FinishingDialog extends BaseDialog {
                 positionGirl.put(rs.getInt(AgeGroup.COLUMN_ID), 1);
             }
 
-            rs = Database.runSql("select * from " + School.TABLE);
+            rs = DatabaseOld.runSql("select * from " + School.TABLE);
             while (rs.next()) {
                 schools.put(rs.getInt(School.COLUMN_ID),
                         new School(rs.getInt(School.COLUMN_ID),
                                 rs.getString(School.COLUMN_NAME)));
             }
-            rs = Database.runSql("select " + Contestant.COLUMN_SEX + ", " +
+            rs = DatabaseOld.runSql("select " + Contestant.COLUMN_SEX + ", " +
                     Contestant.COLUMN_AGE_GROUP_ID + ",count(*) as " +
                     COLUMN_POS + " from " + Contestant.TABLE + " where " +
                     Contestant.COLUMN_POSITION + " > 0  group by " +
@@ -86,7 +86,7 @@ public class FinishingDialog extends BaseDialog {
                     positionGirl.put(rs.getInt(Contestant.COLUMN_AGE_GROUP_ID), rs.getInt(COLUMN_POS) + 1);
                 }
             }
-            rs = Database.runSql("select * from " + Contestant.TABLE + " where " + Contestant.COLUMN_POSITION + " = 0");
+            rs = DatabaseOld.runSql("select * from " + Contestant.TABLE + " where " + Contestant.COLUMN_POSITION + " = 0");
             while (rs.next()) {
                 int id = rs.getInt(Contestant.COLUMN_ID);
                 String name = rs.getString(Contestant.COLUMN_NAME);
@@ -274,11 +274,11 @@ public class FinishingDialog extends BaseDialog {
                         int nextpos;
                         if (contestant.getSex().equals(Constants.BOY)) {
                             nextpos = positionBoy.get(contestant.getAgeGroup().getId());
-                            Database.runSql("update " + Contestant.TABLE + " set " + Contestant.COLUMN_POSITION + " = ? where " + Contestant.COLUMN_ID + " = ?", Database.UPDATE, String.valueOf(nextpos), String.valueOf(contestant.getId()));
+                            DatabaseOld.runSql("update " + Contestant.TABLE + " set " + Contestant.COLUMN_POSITION + " = ? where " + Contestant.COLUMN_ID + " = ?", DatabaseOld.UPDATE, String.valueOf(nextpos), String.valueOf(contestant.getId()));
                             positionBoy.put(contestant.getAgeGroup().getId(), nextpos + 1);
                         } else {
                             nextpos = positionGirl.get(contestant.getAgeGroup().getId());
-                            Database.runSql("update " + Contestant.TABLE + " set " + Contestant.COLUMN_POSITION + " = ? where " + Contestant.COLUMN_ID + " = ?", Database.UPDATE, String.valueOf(nextpos), String.valueOf(contestant.getId()));
+                            DatabaseOld.runSql("update " + Contestant.TABLE + " set " + Contestant.COLUMN_POSITION + " = ? where " + Contestant.COLUMN_ID + " = ?", DatabaseOld.UPDATE, String.valueOf(nextpos), String.valueOf(contestant.getId()));
                             positionGirl.put(contestant.getAgeGroup().getId(), nextpos + 1);
                         }
                     } catch (SQLException ex) {

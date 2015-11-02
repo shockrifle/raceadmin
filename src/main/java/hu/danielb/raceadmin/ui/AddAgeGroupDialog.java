@@ -1,6 +1,6 @@
 package hu.danielb.raceadmin.ui;
 
-import hu.danielb.raceadmin.config.Database;
+import hu.danielb.raceadmin.database.DatabaseOld;
 import hu.danielb.raceadmin.entity.AgeGroup;
 import hu.danielb.raceadmin.entity.Contestant;
 
@@ -137,11 +137,11 @@ class AddAgeGroupDialog extends BaseDialog {
     private void buttonSaveActionPerformed(java.awt.event.ActionEvent evt) {
         try {
             ArrayList<AgeGroup> utkozes = new ArrayList<>();
-            ResultSet rs = Database.runSql("select * from " + AgeGroup.TABLE + " where (" +
+            ResultSet rs = DatabaseOld.runSql("select * from " + AgeGroup.TABLE + " where (" +
                             AgeGroup.COLUMN_MINIMUM + " between ? and ? or " +
                             AgeGroup.COLUMN_MAXIMUM + " between ? and ?) and not " +
                             AgeGroup.COLUMN_ID + " = ?",
-                    Database.QUERRY,
+                    DatabaseOld.QUERRY,
                     String.valueOf(spinnerMinimum.getValue()),
                     String.valueOf(spinnerMaximum.getValue()),
                     String.valueOf(spinnerMinimum.getValue()),
@@ -153,27 +153,27 @@ class AddAgeGroupDialog extends BaseDialog {
             if (utkozes.isEmpty()) {
                 if (ageGroup != null) {
                     if (0 == JOptionPane.showOptionDialog(this, "Ha megválzotatja a korosztályt, az eddigi eredmények elvesznek!\nBiztos ezt akarja?", "Figyelem!", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[]{"Igen", "Nem"}, null)) {
-                        Database.runSql("update " + AgeGroup.TABLE + " set " +
+                        DatabaseOld.runSql("update " + AgeGroup.TABLE + " set " +
                                         AgeGroup.COLUMN_NAME + " = ?, " +
                                         AgeGroup.COLUMN_MINIMUM + " = ?, " +
                                         AgeGroup.COLUMN_MAXIMUM + " = ? where id = ?",
-                                Database.UPDATE, textName.getText(), String.valueOf(spinnerMinimum.getValue()), String.valueOf(spinnerMaximum.getValue()), String.valueOf(ageGroup.getId()));
-                        Database.runSql("update " + Contestant.TABLE + " set " +
+                                DatabaseOld.UPDATE, textName.getText(), String.valueOf(spinnerMinimum.getValue()), String.valueOf(spinnerMaximum.getValue()), String.valueOf(ageGroup.getId()));
+                        DatabaseOld.runSql("update " + Contestant.TABLE + " set " +
                                         Contestant.COLUMN_POSITION + " = 0, ",
-                                Database.UPDATE);
+                                DatabaseOld.UPDATE);
                     }
                 } else {
-                    Database.runSql("insert into " + AgeGroup.TABLE + " (" +
+                    DatabaseOld.runSql("insert into " + AgeGroup.TABLE + " (" +
                                     AgeGroup.COLUMN_NAME + ", " +
                                     AgeGroup.COLUMN_MINIMUM + ", " +
                                     AgeGroup.COLUMN_MAXIMUM + ") values(?,?,?)",
-                            Database.UPDATE, textName.getText(), String.valueOf(spinnerMinimum.getValue()), String.valueOf(spinnerMaximum.getValue()));
-                    Database.runSql("update " + Contestant.TABLE + " set "
+                            DatabaseOld.UPDATE, textName.getText(), String.valueOf(spinnerMinimum.getValue()), String.valueOf(spinnerMaximum.getValue()));
+                    DatabaseOld.runSql("update " + Contestant.TABLE + " set "
                                     + Contestant.COLUMN_POSITION + " = 0, "
                                     + "where " + Contestant.COLUMN_AGE_GROUP_ID + " = null or " +
                                     Contestant.COLUMN_AGE_GROUP_ID + " = '' or " +
                                     Contestant.COLUMN_AGE_GROUP_ID + " = 0",
-                            Database.UPDATE);
+                            DatabaseOld.UPDATE);
                 }
                 this.dispose();
             } else {

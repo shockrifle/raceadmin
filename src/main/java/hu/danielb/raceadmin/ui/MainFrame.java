@@ -1,7 +1,7 @@
 package hu.danielb.raceadmin.ui;
 
 
-import hu.danielb.raceadmin.config.Database;
+import hu.danielb.raceadmin.database.DatabaseOld;
 import hu.danielb.raceadmin.entity.AgeGroup;
 import hu.danielb.raceadmin.entity.Contestant;
 import hu.danielb.raceadmin.entity.PrintHeader;
@@ -247,7 +247,7 @@ public class MainFrame extends javax.swing.JFrame {
 
             List<Category> result = new ArrayList<>();
 
-            ResultSet ageGroupResultSet = Database.runSql("select * from " + AgeGroup.TABLE);
+            ResultSet ageGroupResultSet = DatabaseOld.runSql("select * from " + AgeGroup.TABLE);
             while (ageGroupResultSet.next()) {
                 File exportDir = new File(exportsPath);
                 if (!exportDir.exists()) {
@@ -265,12 +265,12 @@ public class MainFrame extends javax.swing.JFrame {
                 girlAgeGroup.team.name = ageGroupResultSet.getString(AgeGroup.COLUMN_NAME) + " " + "Lány, csapat";
                 ResultSet boyResultSet = getByAgeGroupAndSex(ageGroupResultSet.getInt(AgeGroup.COLUMN_ID), Constants.BOY);
                 while (boyResultSet.next()) {
-                    ResultSet rs3 = Database.runSql("select * from " + AgeGroup.TABLE + " where " + AgeGroup.COLUMN_ID + " = ?", Database.QUERRY, boyResultSet.getString(COLUMN_AGE_GROUP_ID));
+                    ResultSet rs3 = DatabaseOld.runSql("select * from " + AgeGroup.TABLE + " where " + AgeGroup.COLUMN_ID + " = ?", DatabaseOld.QUERRY, boyResultSet.getString(COLUMN_AGE_GROUP_ID));
                     AgeGroup ageGroup = null;
                     while (rs3.next()) {
                         ageGroup = new AgeGroup(ageGroupResultSet.getInt(AgeGroup.COLUMN_ID), ageGroupResultSet.getString(AgeGroup.COLUMN_NAME), ageGroupResultSet.getInt("minimum"), ageGroupResultSet.getInt("maximum"));
                     }
-                    rs3 = Database.runSql("select * from " + School.TABLE + " where id = ?", Database.QUERRY, boyResultSet.getString(COLUMN_SCHOOL_ID));
+                    rs3 = DatabaseOld.runSql("select * from " + School.TABLE + " where id = ?", DatabaseOld.QUERRY, boyResultSet.getString(COLUMN_SCHOOL_ID));
                     School school = null;
                     while (rs3.next()) {
                         school = new School(rs3.getInt("id"), rs3.getString("name"));
@@ -280,12 +280,12 @@ public class MainFrame extends javax.swing.JFrame {
                 boyResultSet = getByAgeGroupAndSex(ageGroupResultSet.getInt(AgeGroup.COLUMN_ID), Constants.GIRL);
                 while (boyResultSet.next()) {
 
-                    ResultSet rs3 = Database.runSql("select * from " + AgeGroup.TABLE + " where id = ?", Database.QUERRY, boyResultSet.getString(COLUMN_AGE_GROUP_ID));
+                    ResultSet rs3 = DatabaseOld.runSql("select * from " + AgeGroup.TABLE + " where id = ?", DatabaseOld.QUERRY, boyResultSet.getString(COLUMN_AGE_GROUP_ID));
                     AgeGroup ageGroup = null;
                     while (rs3.next()) {
                         ageGroup = new AgeGroup(ageGroupResultSet.getInt(AgeGroup.COLUMN_ID), ageGroupResultSet.getString(AgeGroup.COLUMN_NAME), ageGroupResultSet.getInt("minimum"), ageGroupResultSet.getInt("maximum"));
                     }
-                    rs3 = Database.runSql("select * from " + School.TABLE + " where id = ?", Database.QUERRY, boyResultSet.getString(COLUMN_SCHOOL_ID));
+                    rs3 = DatabaseOld.runSql("select * from " + School.TABLE + " where id = ?", DatabaseOld.QUERRY, boyResultSet.getString(COLUMN_SCHOOL_ID));
                     School school = null;
                     while (rs3.next()) {
                         school = new School(rs3.getInt("id"), rs3.getString("name"));
@@ -349,7 +349,7 @@ public class MainFrame extends javax.swing.JFrame {
                 @Override
                 public void run() {
                     try {
-                        Database.connect();
+                        DatabaseOld.connect();
 
                         tables = new HashMap<>();
                         initComponents();
@@ -382,7 +382,7 @@ public class MainFrame extends javax.swing.JFrame {
         menuPrintHeader.removeAll();
 
         try {
-            ResultSet rs = Database.runSql("select * from " + PrintHeader.TABLE);
+            ResultSet rs = DatabaseOld.runSql("select * from " + PrintHeader.TABLE);
             while (rs.next()) {
                 PrintHeaderMenuItem<PrintHeader> item = new PrintHeaderMenuItem<>(new PrintHeader(rs.getInt("id"), rs.getString("name"), rs.getString("text")));
                 item.addActionListener(e -> headerString = ((PrintHeader) ((PrintHeaderMenuItem) e.getSource()).getData()).getText().split("\n"));
@@ -406,7 +406,7 @@ public class MainFrame extends javax.swing.JFrame {
     private void initPane() {
         ageGroupPane.removeAll();
         try {
-            ResultSet rs = Database.runSql("select * from " + AgeGroup.TABLE);
+            ResultSet rs = DatabaseOld.runSql("select * from " + AgeGroup.TABLE);
             while (rs.next()) {
                 GenericTabbedPane<AgeGroup> jtp = new GenericTabbedPane<>(new AgeGroup(rs.getInt("id"), rs.getString("name"), rs.getInt("minimum"), rs.getInt("maximum")));
                 String ageGroupId = String.valueOf(rs.getInt("id"));
@@ -458,7 +458,7 @@ public class MainFrame extends javax.swing.JFrame {
             @Override
             public void run() {
                 try {
-                    ResultSet rs = Database.runSql("select * from " + AgeGroup.TABLE + "");
+                    ResultSet rs = DatabaseOld.runSql("select * from " + AgeGroup.TABLE + "");
                     while (rs.next()) {
                         updateData(new AgeGroup(rs.getInt("id"), rs.getString("name"), rs.getInt("minimum"), rs.getInt("maximum")));
                     }
@@ -506,7 +506,7 @@ public class MainFrame extends javax.swing.JFrame {
             for (int i = 0; i < teams.size(); i++) {
                 for (int j = 0; j < teams.get(i).getMembers().size(); j++) {
                     ResultSet rs;
-                    rs = Database.runSql("select Contestant.*,School.name as " + COLUMN_SCHOOL_NAME + " from " + Contestant.TABLE + " inner join " + School.TABLE + " on Contestant." + COLUMN_SCHOOL_ID + "=School.id where Contestant.id = ?", Database.QUERRY, String.valueOf(teams.get(i).getMembers().get(j).getId()));
+                    rs = DatabaseOld.runSql("select Contestant.*,School.name as " + COLUMN_SCHOOL_NAME + " from " + Contestant.TABLE + " inner join " + School.TABLE + " on Contestant." + COLUMN_SCHOOL_ID + "=School.id where Contestant.id = ?", DatabaseOld.QUERRY, String.valueOf(teams.get(i).getMembers().get(j).getId()));
                     while (rs.next()) {
                         teamData.add(new Vector<>(Arrays.asList(
                                 new String[]{String.valueOf(rs.getInt("id")),
@@ -656,7 +656,7 @@ public class MainFrame extends javax.swing.JFrame {
 
 
     private ResultSet getByAgeGroupAndSex(int id, String sex) throws SQLException {
-        return Database.runSql("select 0 as sqn, " + Contestant.TABLE + ".*, " +
+        return DatabaseOld.runSql("select 0 as sqn, " + Contestant.TABLE + ".*, " +
                         AgeGroup.TABLE + "." + AgeGroup.COLUMN_ID + " as " + COLUMN_AGE_GROUP_ID + ", " +
                         School.TABLE + "." + School.COLUMN_NAME + " as " + COLUMN_SCHOOL_NAME + ", " +
                         School.TABLE + "." + School.COLUMN_ID + " as " + COLUMN_SCHOOL_ID + " from " + Contestant.TABLE + " "
@@ -672,7 +672,7 @@ public class MainFrame extends javax.swing.JFrame {
                         + "inner join " + School.TABLE + " on " + Contestant.TABLE + "." + COLUMN_SCHOOL_ID + " = " + School.TABLE + "." + School.COLUMN_ID + " "
                         + "where " + COLUMN_AGE_GROUP_ID + " = ? and " + Contestant.COLUMN_SEX + " = ? and " + Contestant.COLUMN_POSITION + " = 0 "
                         + "order by sqn, position, " + COLUMN_SCHOOL_NAME + ", " + Contestant.TABLE + "." + Contestant.COLUMN_POSITION,
-                Database.QUERRY, String.valueOf(id), sex, String.valueOf(id), sex);
+                DatabaseOld.QUERRY, String.valueOf(id), sex, String.valueOf(id), sex);
     }
 
     public class Category {
