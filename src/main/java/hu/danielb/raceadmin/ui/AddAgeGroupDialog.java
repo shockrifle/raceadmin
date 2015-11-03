@@ -1,17 +1,18 @@
 package hu.danielb.raceadmin.ui;
 
+import hu.danielb.raceadmin.database.Database;
 import hu.danielb.raceadmin.database.DatabaseOld;
 import hu.danielb.raceadmin.entity.AgeGroup;
 import hu.danielb.raceadmin.entity.Contestant;
 
 import javax.swing.*;
 import java.awt.*;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 class AddAgeGroupDialog extends BaseDialog {
 
@@ -34,6 +35,8 @@ class AddAgeGroupDialog extends BaseDialog {
             textName.setText(ageGroup.getName());
             spinnerMinimum.setValue(ageGroup.getMinimum());
             spinnerMaximum.setValue(ageGroup.getMaximum());
+        } else {
+            ageGroup = new AgeGroup();
         }
     }
 
@@ -136,49 +139,37 @@ class AddAgeGroupDialog extends BaseDialog {
 
     private void buttonSaveActionPerformed(java.awt.event.ActionEvent evt) {
         try {
-            ArrayList<AgeGroup> utkozes = new ArrayList<>();
-            ResultSet rs = DatabaseOld.runSql("select * from " + AgeGroup.TABLE + " where (" +
-                            AgeGroup.COLUMN_MINIMUM + " between ? and ? or " +
-                            AgeGroup.COLUMN_MAXIMUM + " between ? and ?) and not " +
-                            AgeGroup.COLUMN_ID + " = ?",
-                    DatabaseOld.QUERRY,
-                    String.valueOf(spinnerMinimum.getValue()),
-                    String.valueOf(spinnerMaximum.getValue()),
-                    String.valueOf(spinnerMinimum.getValue()),
-                    String.valueOf(spinnerMaximum.getValue()),
-                    ageGroup != null ? String.valueOf(ageGroup.getId()) : "0");
-            while (rs.next()) {
-                utkozes.add(new AgeGroup(rs.getInt(AgeGroup.COLUMN_ID), rs.getString(AgeGroup.COLUMN_NAME), rs.getInt(AgeGroup.COLUMN_MINIMUM), rs.getInt(AgeGroup.COLUMN_MAXIMUM)));
-            }
-            if (utkozes.isEmpty()) {
-                if (ageGroup != null) {
+            AgeGroup ageGroupOld = ageGroup;
+            ageGroup.setName(textName.getText());
+            ageGroup.setMinimum((Integer) spinnerMinimum.getValue());
+            ageGroup.setMaximum((Integer) spinnerMaximum.getValue());
+
+            List<AgeGroup> overlaps = Database.get().getAgeGroupDao().queryForAll().stream().filter(ageGroup2 ->
+                    !(ageGroup != null && ageGroup2.getId() == ageGroup.getId()) &&
+                            (ageGroup.includes(ageGroup2.getMinimum()) ||
+                                    ageGroup.includes(ageGroup2.getMaximum()))).collect(Collectors.toList());
+
+            if (overlaps.isEmpty()) {
+                if (ageGroup.getId() != 0) {
                     if (0 == JOptionPane.showOptionDialog(this, "Ha megválzotatja a korosztályt, az eddigi eredmények elvesznek!\nBiztos ezt akarja?", "Figyelem!", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[]{"Igen", "Nem"}, null)) {
-                        DatabaseOld.runSql("update " + AgeGroup.TABLE + " set " +
-                                        AgeGroup.COLUMN_NAME + " = ?, " +
-                                        AgeGroup.COLUMN_MINIMUM + " = ?, " +
-                                        AgeGroup.COLUMN_MAXIMUM + " = ? where id = ?",
-                                DatabaseOld.UPDATE, textName.getText(), String.valueOf(spinnerMinimum.getValue()), String.valueOf(spinnerMaximum.getValue()), String.valueOf(ageGroup.getId()));
-                        DatabaseOld.runSql("update " + Contestant.TABLE + " set " +
-                                        Contestant.COLUMN_POSITION + " = 0, ",
-                                DatabaseOld.UPDATE);
+
+                        Database.get().getAgeGroupDao().createOrUpdate(ageGroup);
+
+                        Database.get().getContestantDao().queryForAll().forEach(contestant -> {
+                            contestant.setPosition(0);
+                            updateContestantAgeGroup(contestant, ageGroupOld, ageGroup);
+                        });
                     }
                 } else {
-                    DatabaseOld.runSql("insert into " + AgeGroup.TABLE + " (" +
-                                    AgeGroup.COLUMN_NAME + ", " +
-                                    AgeGroup.COLUMN_MINIMUM + ", " +
-                                    AgeGroup.COLUMN_MAXIMUM + ") values(?,?,?)",
-                            DatabaseOld.UPDATE, textName.getText(), String.valueOf(spinnerMinimum.getValue()), String.valueOf(spinnerMaximum.getValue()));
-                    DatabaseOld.runSql("update " + Contestant.TABLE + " set "
-                                    + Contestant.COLUMN_POSITION + " = 0, "
-                                    + "where " + Contestant.COLUMN_AGE_GROUP_ID + " = null or " +
-                                    Contestant.COLUMN_AGE_GROUP_ID + " = '' or " +
-                                    Contestant.COLUMN_AGE_GROUP_ID + " = 0",
-                            DatabaseOld.UPDATE);
+                    Database.get().getAgeGroupDao().createOrUpdate(ageGroup);
+                    Database.get().getContestantDao().queryForAll().forEach(contestant -> {
+                        updateContestantAgeGroup(contestant, ageGroupOld, ageGroup);
+                    });
                 }
                 this.dispose();
             } else {
                 String msg = "A beállított korhatár ütközik a következővel:\n";
-                for (AgeGroup ageGroup1 : utkozes) {
+                for (AgeGroup ageGroup1 : overlaps) {
                     msg += ageGroup1.getName() + "\n";
                 }
                 warn(msg);
@@ -187,6 +178,19 @@ class AddAgeGroupDialog extends BaseDialog {
             Logger.getLogger(AddAgeGroupDialog.class.getName()).log(Level.SEVERE, null, ex);
         }
 
+    }
+
+    private void updateContestantAgeGroup(Contestant contestant, AgeGroup ageGroupOld, AgeGroup ageGroupNew){
+        if (ageGroupOld.equals(contestant.getAgeGroup()) && !ageGroupNew.includes(contestant.getAge())) {
+            contestant.setAgeGroup(null);
+        } else if (!ageGroupOld.equals(contestant.getAgeGroup()) && ageGroupNew.includes(contestant.getAge())) {
+            contestant.setAgeGroup(ageGroupNew);
+        }
+        try {
+            Database.get().getContestantDao().update(contestant);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
 }

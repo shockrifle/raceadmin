@@ -1,4 +1,4 @@
-﻿package hu.danielb.raceadmin.ui;
+package hu.danielb.raceadmin.ui;
 
 
 import hu.danielb.raceadmin.database.DatabaseOld;
@@ -341,7 +341,7 @@ public class MainFrame extends javax.swing.JFrame {
             e.printStackTrace();
         }
         startupScreen = new StartupScreen(this, true, properties.getProperty("version"));
-        exportsPath = properties.getProperty("exportsPath");
+        exportsPath = properties.getProperty("exports-path");
         try {
             Class.forName("org.sqlite.JDBC");
             new Thread() {

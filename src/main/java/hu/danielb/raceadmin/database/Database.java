@@ -3,6 +3,7 @@ package hu.danielb.raceadmin.database;
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
+import com.j256.ormlite.logger.LocalLog;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 import hu.danielb.raceadmin.database.dao.BaseDaoWithListener;
@@ -26,6 +27,7 @@ public class Database {
     private boolean backedUp = true;
 
     private Database() {
+        System.setProperty(LocalLog.LOCAL_LOG_LEVEL_PROPERTY, "ERROR");
         connect();
         backup = new Backup().start();
     }

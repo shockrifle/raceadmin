@@ -4,6 +4,7 @@ import hu.danielb.raceadmin.database.Database;
 import hu.danielb.raceadmin.entity.AgeGroup;
 import hu.danielb.raceadmin.ui.components.ButtonEditor;
 import hu.danielb.raceadmin.ui.components.ButtonRenderer;
+import hu.danielb.raceadmin.ui.components.table.models.AgeGroupTableModel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -51,49 +52,28 @@ public class AgeGroupsDialog extends BaseDialog {
     }
 
     private void editButtonActionPerformed(java.awt.event.ActionEvent evt) {
-        int row = evt.getID();
-        new AddAgeGroupDialog(this,
-                new AgeGroup(Integer.parseInt((String) tableAgeGroups.getValueAt(row, 0)),
-                        (String) tableAgeGroups.getValueAt(row, 1),
-                        Integer.parseInt((String) tableAgeGroups.getValueAt(row, 2)),
-                        Integer.parseInt((String) tableAgeGroups.getValueAt(row, 3)))).setVisible(true);
+        new AddAgeGroupDialog(this,((AgeGroupTableModel)tableAgeGroups.getModel()).getDataAt(evt.getID())).setVisible(true);
     }
 
     private void loadData() {
-        Vector<Vector<String>> data = new Vector<>();
 
         try {
-            java.util.List<AgeGroup> ageGroups = Database.get().getAgeGroupDao().queryForAll();
-
-            ageGroups.forEach(ageGroup -> data.add(new Vector<>(Arrays.asList(new String[]{
-                    String.valueOf(ageGroup.getId()),
-                    ageGroup.getName(),
-                    String.valueOf(ageGroup.getMinimum()),
-                    String.valueOf(ageGroup.getMaximum()),
-                    "Szerkeszt"}))));
-
-
+            tableAgeGroups.setModel(new AgeGroupTableModel(Database.get().getAgeGroupDao().queryForAll()));
         } catch (SQLException e) {
             e.printStackTrace();
         }
 
-
-        tableAgeGroups.setModel(new javax.swing.table.DefaultTableModel(data, new Vector<>(Arrays.asList(new String[]{"", "Név", "Alsó határ", "Felső határ", ""}))) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return column == 4;
-            }
-        });
-        tableAgeGroups.getColumnModel().getColumn(0).setMaxWidth(0);
-        tableAgeGroups.getColumnModel().getColumn(0).setMinWidth(0);
-        tableAgeGroups.getColumnModel().getColumn(0).setPreferredWidth(0);
-        tableAgeGroups.getColumnModel().getColumn(4).setCellRenderer(new ButtonRenderer());
-        tableAgeGroups.getColumnModel().getColumn(4).setCellEditor(new ButtonEditor(
+        tableAgeGroups.getColumnModel().getColumn(AgeGroupTableModel.COLUMN_ID).setMaxWidth(0);
+        tableAgeGroups.getColumnModel().getColumn(AgeGroupTableModel.COLUMN_ID).setMinWidth(0);
+        tableAgeGroups.getColumnModel().getColumn(AgeGroupTableModel.COLUMN_ID).setPreferredWidth(0);
+        tableAgeGroups.getColumnModel().getColumn(AgeGroupTableModel.COLUMN_EDIT).setCellRenderer(new ButtonRenderer());
+        tableAgeGroups.getColumnModel().getColumn(AgeGroupTableModel.COLUMN_EDIT).setCellEditor(new ButtonEditor(
                 AgeGroupsDialog.this::editButtonActionPerformed).addEditingStoppedListener(
                 AgeGroupsDialog.this::loadData));
         tableAgeGroups.getTableHeader().setReorderingAllowed(false);
         tableAgeGroups.getTableHeader().setResizingAllowed(false);
         tableAgeGroups.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
     }
+
 
 }
