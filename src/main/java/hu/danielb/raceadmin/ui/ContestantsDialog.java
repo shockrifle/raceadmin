@@ -1,16 +1,15 @@
 package hu.danielb.raceadmin.ui;
 
-import hu.danielb.raceadmin.database.DatabaseOld;
-import hu.danielb.raceadmin.entity.AgeGroup;
+import hu.danielb.raceadmin.database.Database;
 import hu.danielb.raceadmin.entity.Contestant;
 import hu.danielb.raceadmin.entity.School;
 import hu.danielb.raceadmin.ui.components.ButtonEditor;
 import hu.danielb.raceadmin.ui.components.ButtonRenderer;
+import hu.danielb.raceadmin.ui.components.table.models.ContestantTableModel;
 import hu.danielb.raceadmin.util.Constants;
 import hu.danielb.raceadmin.util.Printer;
 
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -18,37 +17,22 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.print.PrinterException;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class ContestantsDialog extends BaseDialog {
-
-    public static final String COLUMN_AGE_GROUP_NAME = "age_group_name";
-    public static final String COLUMN_SCHOOL_NAME = "school_name";
-    private static final int CONTESTANT_ID = 0;
-    private static final int SCHOOL_ID = 1;
-    private static final int AGE_GROUP_ID = 2;
-    private static final int POSITION = 3;
-    private static final int NAME = 4;
-    private static final int NUMBER = 5;
-    private static final int AGE = 6;
-    private static final int AGE_GROUP_NAME = 7;
-    private static final int SCHOOL_NAME = 8;
-    private static final int SEX = 9;
-    private static final int EDIT = 10;
-    protected int sortBy = NAME;
-    protected boolean sortBackwards = false;
-    protected Map<Integer, String> sortStrings;
 
     private JComboBox<School> comboSchools;
     private javax.swing.JTable tableContestants;
     private javax.swing.JTextField textSearch;
+
+    private int sortBy = ContestantTableModel.COLUMN_NAME;
+    private boolean sortBackwards = false;
+    private String filter = "";
 
     public ContestantsDialog(Frame owner) {
         super(owner);
@@ -57,23 +41,14 @@ public class ContestantsDialog extends BaseDialog {
     }
 
     private void init() {
-        sortStrings = new HashMap<>();
-        sortStrings.put(POSITION, Contestant.TABLE + "." + Contestant.COLUMN_POSITION);
-        sortStrings.put(NAME, Contestant.TABLE + "." + Contestant.COLUMN_NAME);
-        sortStrings.put(NUMBER, Contestant.TABLE + "." + Contestant.COLUMN_NUMBER);
-        sortStrings.put(AGE, Contestant.TABLE + "." + Contestant.COLUMN_AGE);
-        sortStrings.put(AGE_GROUP_NAME, COLUMN_AGE_GROUP_NAME);
-        sortStrings.put(SCHOOL_NAME, COLUMN_SCHOOL_NAME);
-        sortStrings.put(SEX, Contestant.TABLE + "." + Contestant.COLUMN_SEX);
-
         initComponents();
         tableContestants.getTableHeader().addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                int col = tableContestants.columnAtPoint(e.getPoint());
-                sortBackwards = col == sortBy && !sortBackwards;
-                sortBy = col;
-                jTextField1KeyReleased(null);
+                int columnAtPoint = tableContestants.columnAtPoint(e.getPoint());
+                sortBackwards = sortBy == columnAtPoint && !sortBackwards;
+                sortBy = columnAtPoint;
+                loadData();
             }
         });
     }
@@ -95,6 +70,7 @@ public class ContestantsDialog extends BaseDialog {
         setModal(true);
         setResizable(false);
 
+        tableContestants.setModel(new ContestantTableModel(new ArrayList<>()));
         loadData();
         scrollPaneTableContestants.setViewportView(tableContestants);
 
@@ -102,16 +78,13 @@ public class ContestantsDialog extends BaseDialog {
 
         textSearch.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyReleased(java.awt.event.KeyEvent evt) {
-                jTextField1KeyReleased(evt);
+                textSearchKeyReleased(evt);
             }
         });
 
         comboSchools.setModel(new javax.swing.DefaultComboBoxModel<>(new School[]{new School(0, "")}));
         try {
-            ResultSet rs = DatabaseOld.runSql("select * from " + School.TABLE + " order by " + School.COLUMN_NAME);
-            while (rs.next()) {
-                comboSchools.addItem(new School(rs.getInt(School.COLUMN_ID), rs.getString(School.COLUMN_NAME)));
-            }
+            Database.get().getSchoolDao().queryBuilder().orderBy(School.COLUMN_NAME, true).query().forEach(comboSchools::addItem);
         } catch (SQLException ex) {
             Logger.getLogger(AddContestantDialog.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -165,16 +138,13 @@ public class ContestantsDialog extends BaseDialog {
         pack();
     }
 
-    private void jTextField1KeyReleased(java.awt.event.KeyEvent evt) {
-        String find = textSearch.getText().trim();
+    private void textSearchKeyReleased(java.awt.event.KeyEvent evt) {
+        String find = textSearch.getText().toLowerCase().trim();
         if (evt != null && (evt.getModifiers() == KeyEvent.CTRL_DOWN_MASK)) {
             return;
         }
-        if (!find.isEmpty()) {
-            filterData(find);
-        } else {
-            loadData();
-        }
+        filter = find;
+        loadData();
     }
 
     private void menuItemPrintActionPerformed(java.awt.event.ActionEvent evt) {
@@ -186,74 +156,58 @@ public class ContestantsDialog extends BaseDialog {
     }
 
     private void comboSchoolsActionPerformed(java.awt.event.ActionEvent evt) {
-
-        String name = ((School) comboSchools.getSelectedItem()).getName();
-        if (name.isEmpty()) {
-            loadData();
-            return;
-        }
-        filterData(name);
-    }
-
-    private void filterData(String filter) {
-        Vector<Vector<String>> data = new Vector<>();
-        filter = "%" + filter + "%";
-        try {
-            ResultSet rs = DatabaseOld.runSql("select " + Contestant.TABLE + ".*," +
-                    School.TABLE + "." + School.COLUMN_NAME + " as " + COLUMN_SCHOOL_NAME + "," +
-                    AgeGroup.TABLE + "." + AgeGroup.COLUMN_NAME + " as " + COLUMN_AGE_GROUP_NAME + " from " + Contestant.TABLE + " "
-                    + "inner join " + School.TABLE + " on " + Contestant.TABLE + "." + Contestant.COLUMN_SCHOOL_ID + "=" + School.TABLE + "." + School.COLUMN_ID + " "
-                    + "inner join " + AgeGroup.TABLE + " on " + Contestant.TABLE + "." + Contestant.COLUMN_AGE_GROUP_ID + "=" + AgeGroup.TABLE + "." + AgeGroup.COLUMN_ID + " "
-                    + "where " + Contestant.TABLE + "." + Contestant.COLUMN_NAME + " like ? "
-                    + "or " + Contestant.TABLE + "." + Contestant.COLUMN_NUMBER + " like ? "
-                    + "or " + Contestant.TABLE + "." + Contestant.COLUMN_AGE + " like ? "
-                    + "or " + COLUMN_AGE_GROUP_NAME + " like ? "
-                    + "or " + COLUMN_SCHOOL_NAME + " like ? "
-                    + "order by " + sortStrings.get(sortBy) + (sortBackwards ? " desc" : " asc"), DatabaseOld.QUERRY, filter, filter, filter, filter, filter);
-            while (rs.next()) {
-                data.add(new Vector<>(Arrays.asList(
-                        new String[]{String.valueOf(rs.getInt(Contestant.COLUMN_ID)),
-                                String.valueOf(rs.getInt(Contestant.COLUMN_SCHOOL_ID)),
-                                String.valueOf(rs.getInt(Contestant.COLUMN_AGE_GROUP_ID)),
-                                rs.getInt(Contestant.COLUMN_POSITION) < 1 ? "" : String.valueOf(rs.getInt(Contestant.COLUMN_POSITION)),
-                                rs.getString(Contestant.COLUMN_NAME),
-                                String.valueOf(rs.getInt(Contestant.COLUMN_NUMBER)),
-                                String.valueOf(rs.getInt(Contestant.COLUMN_AGE)),
-                                rs.getString(COLUMN_AGE_GROUP_NAME),
-                                rs.getString(COLUMN_SCHOOL_NAME),
-                                Constants.BOY.equals(rs.getString(Contestant.COLUMN_SEX)) ? "F" : "L",
-                                "Szerkesztés"})));
-            }
-        } catch (SQLException ex) {
-            Logger.getLogger(ContestantsDialog.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        loadData(data);
+        filter = ((School) comboSchools.getSelectedItem()).getName();
+        loadData();
     }
 
     private void loadData() {
 
-        Vector<Vector<String>> data = new Vector<>();
+        List<Contestant> data = new ArrayList<>();
         try {
-            ResultSet rs = DatabaseOld.runSql("select " + Contestant.TABLE + ".*," +
-                    School.TABLE + "." + School.COLUMN_NAME + " as " + COLUMN_SCHOOL_NAME + "," +
-                    AgeGroup.TABLE + "." + AgeGroup.COLUMN_NAME + " as " + COLUMN_AGE_GROUP_NAME + " from " + Contestant.TABLE + " "
-                    + "inner join " + School.TABLE + " on " + Contestant.TABLE + "." + Contestant.COLUMN_SCHOOL_ID + "=" + School.TABLE + "." + School.COLUMN_ID + " "
-                    + "inner join " + AgeGroup.TABLE + " on " + Contestant.TABLE + "." + Contestant.COLUMN_AGE_GROUP_ID + "=" + AgeGroup.TABLE + "." + AgeGroup.COLUMN_ID + " "
-                    + "order by " + sortStrings.get(sortBy) + (sortBackwards ? " desc" : " asc"));
-            while (rs.next()) {
-                data.add(new Vector<>(Arrays.asList(
-                        new String[]{String.valueOf(rs.getInt(Contestant.COLUMN_ID)),
-                                String.valueOf(rs.getInt(Contestant.COLUMN_SCHOOL_ID)),
-                                String.valueOf(rs.getInt(Contestant.COLUMN_AGE_GROUP_ID)),
-                                rs.getInt(Contestant.COLUMN_POSITION) < 1 ? "" : String.valueOf(rs.getInt(Contestant.COLUMN_POSITION)),
-                                rs.getString(Contestant.COLUMN_NAME),
-                                String.valueOf(rs.getInt(Contestant.COLUMN_NUMBER)),
-                                String.valueOf(rs.getInt(Contestant.COLUMN_AGE)),
-                                rs.getString(COLUMN_AGE_GROUP_NAME),
-                                rs.getString(COLUMN_SCHOOL_NAME),
-                                Constants.BOY.equals(rs.getString(Contestant.COLUMN_SEX)) ? "F" : "L",
-                                "Szerkesztés"})));
+
+            data = Database.get().getContestantDao().queryForAll();
+
+            if (!filter.isEmpty()) {
+                data = data.stream().filter(contestant -> contestant.getName().toLowerCase().contains(filter) ||
+                        contestant.getAgeGroup().getName().toLowerCase().contains(filter) ||
+                        contestant.getSchool().getName().toLowerCase().contains(filter) ||
+                        (contestant.getSex().equals(Constants.BOY) ? "Fiú".toLowerCase().contains(filter) : "Lány".toLowerCase().contains(filter)) ||
+                        String.valueOf(contestant.getPosition()).toLowerCase().contains(filter) ||
+                        String.valueOf(contestant.getNumber()).toLowerCase().contains(filter) ||
+                        String.valueOf(contestant.getAge()).toLowerCase().contains(filter))
+                        .collect(Collectors.toList());
             }
+
+            data = data.stream().sorted((o1, o2) -> {
+                int bigger = 0;
+                switch (sortBy) {
+                    case ContestantTableModel.COLUMN_POSITION:
+                        bigger = Integer.compare(o1.getPosition(), o2.getPosition());
+                        break;
+                    case ContestantTableModel.COLUMN_NAME:
+                        bigger = o1.getName().compareTo(o2.getName());
+                        break;
+                    case ContestantTableModel.COLUMN_NUMBER:
+                        bigger = Integer.compare(o1.getNumber(), o2.getNumber());
+                        break;
+                    case ContestantTableModel.COLUMN_AGE:
+                        bigger = Integer.compare(o1.getAge(), o2.getAge());
+                        break;
+                    case ContestantTableModel.COLUMN_AGE_GROUP_NAME:
+                        bigger = o1.getAgeGroup().getName().compareTo(o2.getAgeGroup().getName());
+                        break;
+                    case ContestantTableModel.COLUMN_SCHOOL_NAME:
+                        bigger = o1.getSchool().getName().compareTo(o2.getSchool().getName());
+                        break;
+                    case ContestantTableModel.COLUMN_SEX:
+                        bigger = o1.getSex().compareTo(o2.getSex());
+                        break;
+                    default:
+                        bigger = 0;
+                }
+                return sortBackwards ? bigger * -1 : bigger;
+            }).collect(Collectors.toList());
+
         } catch (SQLException ex) {
             Logger.getLogger(ContestantsDialog.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -261,38 +215,22 @@ public class ContestantsDialog extends BaseDialog {
 
     }
 
-    private void loadData(Vector<Vector<String>> data) {
+    private void loadData(List<Contestant> data) {
 
-        tableContestants.setModel(new DefaultTableModel(data, new Vector<>(Arrays.asList(
-                new String[]{
-                        "",
-                        "",
-                        "",
-                        "Helyezés" + putSortMark(POSITION),
-                        "Név" + putSortMark(NAME),
-                        "Rajtszám" + putSortMark(NUMBER),
-                        "Születési év" + putSortMark(AGE),
-                        "Korosztály" + putSortMark(AGE_GROUP_NAME),
-                        "Iskola" + putSortMark(SCHOOL_NAME),
-                        "Nem" + putSortMark(SEX),
-                        ""}))) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return column == EDIT;
-            }
-        });
-        setColumnWidth(CONTESTANT_ID, 0);
-        setColumnWidth(SCHOOL_ID, 0);
-        setColumnWidth(AGE_GROUP_ID, 0);
-        setColumnWidth(POSITION, 65);
-        setColumnWidth(NAME, 65);
-        setColumnWidth(AGE, 75);
-        setColumnWidth(AGE_GROUP_NAME, 90);
-        setColumnWidth(SCHOOL_NAME, 40);
-        setColumnWidth(SEX, 90);
-        tableContestants.getColumnModel().getColumn(EDIT).setCellRenderer(new ButtonRenderer());
-        tableContestants.getColumnModel().getColumn(EDIT).setCellEditor(new ButtonEditor(
-                ContestantsDialog.this::editButtonActionPerformed).addEditingStoppedListener(ContestantsDialog.this::loadData));
+        tableContestants.setModel(new ContestantTableModel(data).setSortBy(sortBy).setSortBackwards(sortBackwards));
+        setColumnWidth(ContestantTableModel.COLUMN_CONTESTANT_ID, 0);
+        setColumnWidth(ContestantTableModel.COLUMN_SCHOOL_ID, 0);
+        setColumnWidth(ContestantTableModel.COLUMN_AGE_GROUP_ID, 0);
+        setColumnWidth(ContestantTableModel.COLUMN_POSITION, 60);
+        setColumnWidth(ContestantTableModel.COLUMN_NUMBER, 60);
+        setColumnWidth(ContestantTableModel.COLUMN_AGE, 70);
+        setColumnWidth(ContestantTableModel.COLUMN_AGE_GROUP_NAME, 85);
+        setColumnWidth(ContestantTableModel.COLUMN_SEX, 40);
+        setColumnWidth(ContestantTableModel.COLUMN_EDIT, 90);
+        tableContestants.getColumnModel().getColumn(ContestantTableModel.COLUMN_EDIT).setCellRenderer(new ButtonRenderer());
+        tableContestants.getColumnModel().getColumn(ContestantTableModel.COLUMN_EDIT).setCellEditor(
+                new ButtonEditor(ContestantsDialog.this::editButtonActionPerformed)
+                        .addEditingStoppedListener(ContestantsDialog.this::loadData));
         tableContestants.getTableHeader().setReorderingAllowed(false);
         tableContestants.getTableHeader().setResizingAllowed(false);
     }
@@ -307,26 +245,9 @@ public class ContestantsDialog extends BaseDialog {
     private void editButtonActionPerformed(ActionEvent evt) {
         int row = evt.getID();
         AddContestantDialog dialog = new AddContestantDialog(this,
-                new Contestant(Integer.parseInt((String) tableContestants.getValueAt(row, CONTESTANT_ID)),
-                        "".equals(tableContestants.getValueAt(row, POSITION)) ? 0 : Integer.parseInt((String) tableContestants.getValueAt(row, POSITION)),
-                        (String) tableContestants.getValueAt(row, NAME),
-                        (String) tableContestants.getValueAt(row, SCHOOL_NAME),
-                        Integer.parseInt((String) tableContestants.getValueAt(row, NUMBER)),
-                        new AgeGroup(Integer.parseInt((String) tableContestants.getValueAt(row, AGE_GROUP_ID)), "", 0, 0),
-                        new School(Integer.parseInt((String) tableContestants.getValueAt(row, SCHOOL_ID)), (String) tableContestants.getValueAt(row, SCHOOL_NAME)),
-                        Integer.parseInt((String) tableContestants.getValueAt(row, AGE))));
+                ((ContestantTableModel) tableContestants.getModel()).getDataAt(row));
 
         dialog.setVisible(true);
         textSearch.setText("");
-    }
-
-    private String putSortMark(int i) {
-        if (i == sortBy) {
-            if (sortBackwards) {
-                return "^";
-            }
-            return "ˇ";
-        }
-        return "";
     }
 }

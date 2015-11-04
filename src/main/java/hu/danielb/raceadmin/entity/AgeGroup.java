@@ -32,6 +32,14 @@ public class AgeGroup {
         this.maximum = maximum;
     }
 
+    public AgeGroup(AgeGroup other) {
+        this.id = other.getId();
+        this.name = other.getName();
+        this.minimum = other.getMinimum();
+        this.maximum = getMaximum();
+    }
+
+
     public int getId() {
         return id;
     }

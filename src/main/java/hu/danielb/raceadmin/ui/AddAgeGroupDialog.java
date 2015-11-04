@@ -1,7 +1,6 @@
 package hu.danielb.raceadmin.ui;
 
 import hu.danielb.raceadmin.database.Database;
-import hu.danielb.raceadmin.database.DatabaseOld;
 import hu.danielb.raceadmin.entity.AgeGroup;
 import hu.danielb.raceadmin.entity.Contestant;
 
@@ -139,7 +138,7 @@ class AddAgeGroupDialog extends BaseDialog {
 
     private void buttonSaveActionPerformed(java.awt.event.ActionEvent evt) {
         try {
-            AgeGroup ageGroupOld = ageGroup;
+            AgeGroup ageGroupOld = new AgeGroup(ageGroup);
             ageGroup.setName(textName.getText());
             ageGroup.setMinimum((Integer) spinnerMinimum.getValue());
             ageGroup.setMaximum((Integer) spinnerMaximum.getValue());
@@ -160,9 +159,7 @@ class AddAgeGroupDialog extends BaseDialog {
                     }
                 } else {
                     Database.get().getAgeGroupDao().createOrUpdate(ageGroup);
-                    Database.get().getContestantDao().queryForAll().forEach(contestant -> {
-                        updateContestantAgeGroup(contestant, ageGroupOld, ageGroup);
-                    });
+                    Database.get().getContestantDao().queryForAll().forEach(contestant -> updateContestantAgeGroup(contestant, ageGroupOld, ageGroup));
                 }
                 this.dispose();
             } else {

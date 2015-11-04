@@ -37,6 +37,6 @@ public class AgeGroupTableModel extends BaseTableModel<AgeGroup> {
 
     @Override
     public boolean isCellEditable(int row, int column) {
-        return column == 4;
+        return column == COLUMN_EDIT;
     }
 }

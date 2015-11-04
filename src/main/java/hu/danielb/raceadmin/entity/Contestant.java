@@ -48,6 +48,17 @@ public class Contestant {
         this.age = age;
     }
 
+    public Contestant(Contestant other) {
+        this.id = other.getId();
+        this.position = other.getPosition();
+        this.name = other.getName();
+        this.sex = other.getSex();
+        this.number = other.getNumber();
+        this.ageGroup = other.getAgeGroup();
+        this.school = other.getSchool();
+        this.age = other.getAge();
+    }
+
     public int getId() {
         return id;
     }

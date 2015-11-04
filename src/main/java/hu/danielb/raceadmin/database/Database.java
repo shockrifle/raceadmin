@@ -49,7 +49,7 @@ public class Database {
             ConnectionSource connectionSource = new JdbcConnectionSource(databaseUrl + databaseFile);
 
             initDaos(connectionSource);
-            create(connectionSource);
+            createTables(connectionSource);
 
         } catch (SQLException | IOException e) {
             e.printStackTrace();
@@ -68,7 +68,7 @@ public class Database {
         ((BaseDaoWithListener) schoolDao).addListener(() -> backedUp = false);
     }
 
-    private void create(ConnectionSource connectionSource) throws SQLException {
+    private void createTables(ConnectionSource connectionSource) throws SQLException {
         TableUtils.createTableIfNotExists(connectionSource, AgeGroup.class);
         TableUtils.createTableIfNotExists(connectionSource, Contestant.class);
         TableUtils.createTableIfNotExists(connectionSource, PrintHeader.class);

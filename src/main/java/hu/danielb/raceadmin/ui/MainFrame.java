@@ -1,6 +1,7 @@
 package hu.danielb.raceadmin.ui;
 
 
+import hu.danielb.raceadmin.database.Database;
 import hu.danielb.raceadmin.database.DatabaseOld;
 import hu.danielb.raceadmin.entity.AgeGroup;
 import hu.danielb.raceadmin.entity.Contestant;
@@ -262,54 +263,44 @@ public class MainFrame extends javax.swing.JFrame {
                 result.add(girlAgeGroup);
                 girlAgeGroup.individual.name = ageGroupResultSet.getString(AgeGroup.COLUMN_NAME) + " " + "Lány, egyéni";
                 girlAgeGroup.team.name = ageGroupResultSet.getString(AgeGroup.COLUMN_NAME) + " " + "Lány, csapat";
-                ResultSet boyResultSet = getByAgeGroupAndSex(ageGroupResultSet.getInt(AgeGroup.COLUMN_ID), Constants.BOY);
-                while (boyResultSet.next()) {
-                    ResultSet rs3 = DatabaseOld.runSql("select * from " + AgeGroup.TABLE + " where " + AgeGroup.COLUMN_ID + " = ?", DatabaseOld.QUERRY, boyResultSet.getString(COLUMN_AGE_GROUP_ID));
-                    AgeGroup ageGroup = null;
-                    while (rs3.next()) {
-                        ageGroup = new AgeGroup(ageGroupResultSet.getInt(AgeGroup.COLUMN_ID), ageGroupResultSet.getString(AgeGroup.COLUMN_NAME), ageGroupResultSet.getInt("minimum"), ageGroupResultSet.getInt("maximum"));
-                    }
-                    rs3 = DatabaseOld.runSql("select * from " + School.TABLE + " where id = ?", DatabaseOld.QUERRY, boyResultSet.getString(COLUMN_SCHOOL_ID));
-                    School school = null;
-                    while (rs3.next()) {
-                        school = new School(rs3.getInt("id"), rs3.getString("name"));
-                    }
-                    boyAgeGroup.individual.contestants.add(new Contestant(boyResultSet.getInt("id"), boyResultSet.getInt("position"), boyResultSet.getString("name"), boyResultSet.getString("sex"), boyResultSet.getInt("number"), ageGroup, school, boyResultSet.getInt("age")));
-                }
-                boyResultSet = getByAgeGroupAndSex(ageGroupResultSet.getInt(AgeGroup.COLUMN_ID), Constants.GIRL);
-                while (boyResultSet.next()) {
 
-                    ResultSet rs3 = DatabaseOld.runSql("select * from " + AgeGroup.TABLE + " where id = ?", DatabaseOld.QUERRY, boyResultSet.getString(COLUMN_AGE_GROUP_ID));
-                    AgeGroup ageGroup = null;
-                    while (rs3.next()) {
-                        ageGroup = new AgeGroup(ageGroupResultSet.getInt(AgeGroup.COLUMN_ID), ageGroupResultSet.getString(AgeGroup.COLUMN_NAME), ageGroupResultSet.getInt("minimum"), ageGroupResultSet.getInt("maximum"));
-                    }
-                    rs3 = DatabaseOld.runSql("select * from " + School.TABLE + " where id = ?", DatabaseOld.QUERRY, boyResultSet.getString(COLUMN_SCHOOL_ID));
-                    School school = null;
-                    while (rs3.next()) {
-                        school = new School(rs3.getInt("id"), rs3.getString("name"));
-                    }
-                    girlAgeGroup.individual.contestants.add(new Contestant(boyResultSet.getInt("id"), boyResultSet.getInt("position"), boyResultSet.getString("name"), boyResultSet.getString("sex"), boyResultSet.getInt("number"), ageGroup, school, boyResultSet.getInt("age")));
-                }
+                List<Contestant> contestants = getByAgeGroupAndSex(ageGroupResultSet.getInt(AgeGroup.COLUMN_ID), Constants.BOY);
+                contestants.forEach(boyAgeGroup.individual.contestants::add);
 
-                boyResultSet = getByAgeGroupAndSex(ageGroupResultSet.getInt(AgeGroup.COLUMN_ID), Constants.BOY);
-                Vector<Vector<String>> data = new Vector<>();
-                while (boyResultSet.next()) {
-                    if (boyResultSet.getInt("position") > 0) {
-                        data.add(new Vector<>(Arrays.asList(new String[]{String.valueOf(boyResultSet.getInt("id")), String.valueOf(boyResultSet.getInt("position")), String.valueOf(boyResultSet.getInt("number")), boyResultSet.getString("name"), boyResultSet.getString(COLUMN_SCHOOL_NAME)})));
-                    }
-                }
+                contestants = getByAgeGroupAndSex(ageGroupResultSet.getInt(AgeGroup.COLUMN_ID), Constants.GIRL);
+                contestants.forEach(girlAgeGroup.individual.contestants::add);
 
-                boyAgeGroup.team.teams.addAll(makeTeams(data));
 
-                boyResultSet = getByAgeGroupAndSex(ageGroupResultSet.getInt(AgeGroup.COLUMN_ID), Constants.GIRL);
-                data = new Vector<>();
-                while (boyResultSet.next()) {
-                    if (boyResultSet.getInt("position") > 0) {
-                        data.add(new Vector<>(Arrays.asList(new String[]{String.valueOf(boyResultSet.getInt("id")), String.valueOf(boyResultSet.getInt("position")), String.valueOf(boyResultSet.getInt("number")), boyResultSet.getString("name"), boyResultSet.getString(COLUMN_SCHOOL_NAME)})));
+                contestants = getByAgeGroupAndSex(ageGroupResultSet.getInt(AgeGroup.COLUMN_ID), Constants.BOY);
+
+                contestants.forEach(contestant -> {
+                    if (contestant.getPosition() > 0) {
+                        Vector<Vector<String>> data = new Vector<>();
+                        data.add(new Vector<>(Arrays.asList(new String[]{
+                                String.valueOf(contestant.getId()),
+                                String.valueOf(contestant.getPosition()),
+                                String.valueOf(contestant.getNumber()),
+                                contestant.getName(),
+                                contestant.getSchool().getName()})));
+                        boyAgeGroup.team.teams.addAll(makeTeams(data));
                     }
-                }
-                girlAgeGroup.team.teams.addAll(makeTeams(data));
+                });
+
+
+                contestants = getByAgeGroupAndSex(ageGroupResultSet.getInt(AgeGroup.COLUMN_ID), Constants.GIRL);
+                contestants.forEach(contestant -> {
+                    if (contestant.getPosition() > 0) {
+                        Vector<Vector<String>> data = new Vector<>();
+                        data.add(new Vector<>(Arrays.asList(new String[]{
+                                String.valueOf(contestant.getId()),
+                                String.valueOf(contestant.getPosition()),
+                                String.valueOf(contestant.getNumber()),
+                                contestant.getName(),
+                                contestant.getSchool().getName()})));
+                        girlAgeGroup.team.teams.addAll(makeTeams(data));
+                    }
+                });
+
             }
 
             Map<String, List> beans = new HashMap<>();
@@ -381,15 +372,16 @@ public class MainFrame extends javax.swing.JFrame {
         menuPrintHeader.removeAll();
 
         try {
-            ResultSet rs = DatabaseOld.runSql("select * from " + PrintHeader.TABLE);
-            while (rs.next()) {
-                PrintHeaderMenuItem<PrintHeader> item = new PrintHeaderMenuItem<>(new PrintHeader(rs.getInt("id"), rs.getString("name"), rs.getString("text")));
+            Database.get().getPrintHeaderDao().queryForAll().forEach(printHeader -> {
+                PrintHeaderMenuItem<PrintHeader> item = new PrintHeaderMenuItem<>(printHeader);
                 item.addActionListener(e -> headerString = ((PrintHeader) ((PrintHeaderMenuItem) e.getSource()).getData()).getText().split("\n"));
                 buttonGroup2.add(item);
                 menuPrintHeader.add(item);
                 buttonGroup2.setSelected(item.getModel(), true);
                 headerString = item.getData().getText().split("\n");
-            }
+
+            });
+
             JMenuItem edit = new JMenuItem("Új");
             edit.addActionListener(e -> {
                 AddPrintHeaderDialog addPrintHeaderDialog = new AddPrintHeaderDialog(MainFrame.this);
@@ -475,16 +467,28 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void loadTable(String sex, AgeGroup ageGroup) {
         try {
-            ResultSet rs = getByAgeGroupAndSex(ageGroup.getId(), sex);
+            List<Contestant> contestants = getByAgeGroupAndSex(ageGroup.getId(), sex);
             Vector<Vector<String>> data = new Vector<>();
             Vector<Vector<String>> disq = new Vector<>();
-            while (rs.next()) {
-                if (rs.getInt("position") > 0) {
-                    data.add(new Vector<>(Arrays.asList(new String[]{String.valueOf(rs.getInt("id")), String.valueOf(rs.getInt("position")), String.valueOf(rs.getInt("number")), rs.getString("name"), rs.getString(COLUMN_SCHOOL_NAME)})));
+            contestants.forEach(contestant -> {
+                if (contestant.getPosition() > 0) {
+                    data.add(new Vector<>(Arrays.asList(new String[]{
+                            String.valueOf(contestant.getId()),
+                            String.valueOf(contestant.getPosition()),
+                            String.valueOf(contestant.getNumber()),
+                            contestant.getName(),
+                            contestant.getSchool().getName()})));
                 } else {
-                    disq.add(new Vector<>(Arrays.asList(new String[]{String.valueOf(rs.getInt("id")), "", String.valueOf(rs.getInt("number")), rs.getString("name"), rs.getString(COLUMN_SCHOOL_NAME)})));
+                    data.add(new Vector<>(Arrays.asList(new String[]{
+                            String.valueOf(contestant.getId()),
+                            "",
+                            String.valueOf(contestant.getNumber()),
+                            contestant.getName(),
+                            contestant.getSchool().getName()})));
                 }
-            }
+
+            });
+
             if (!data.isEmpty() || !disq.isEmpty()) {
                 loadTeams(sex, ageGroup, data);
 
@@ -549,7 +553,7 @@ public class MainFrame extends javax.swing.JFrame {
                     if (!tmp.get(sch).isFull()) {
                         tmp.get(sch).addMember(new Contestant(
                                 Integer.parseInt(data1.get(0)),
-                                Integer.parseInt(data1.get(1)),
+                                Integer.parseInt(data1.get(1).isEmpty() ? "0" : data1.get(1)),
                                 data1.get(3),
                                 "",
                                 Integer.parseInt(data1.get(2)),
@@ -563,7 +567,7 @@ public class MainFrame extends javax.swing.JFrame {
                     tmp.put(sch, new hu.danielb.raceadmin.entity.Team(sch));
                     tmp.get(sch).addMember(new Contestant(
                             Integer.parseInt(data1.get(0)),
-                            Integer.parseInt(data1.get(1)),
+                            Integer.parseInt(data1.get(1).isEmpty() ? "0" : data1.get(1)),
                             data1.get(3),
                             "",
                             Integer.parseInt(data1.get(2)),
@@ -654,24 +658,21 @@ public class MainFrame extends javax.swing.JFrame {
     }
 
 
-    private ResultSet getByAgeGroupAndSex(int id, String sex) throws SQLException {
-        return DatabaseOld.runSql("select 0 as sqn, " + Contestant.TABLE + ".*, " +
-                        AgeGroup.TABLE + "." + AgeGroup.COLUMN_ID + " as " + COLUMN_AGE_GROUP_ID + ", " +
-                        School.TABLE + "." + School.COLUMN_NAME + " as " + COLUMN_SCHOOL_NAME + ", " +
-                        School.TABLE + "." + School.COLUMN_ID + " as " + COLUMN_SCHOOL_ID + " from " + Contestant.TABLE + " "
-                        + "inner join " + AgeGroup.TABLE + " on " + Contestant.TABLE + "." + COLUMN_AGE_GROUP_ID + " = " + AgeGroup.TABLE + "." + AgeGroup.COLUMN_ID + " "
-                        + "inner join " + School.TABLE + " on " + Contestant.TABLE + "." + COLUMN_SCHOOL_ID + " = " + School.TABLE + "." + School.COLUMN_ID + " "
-                        + "where " + COLUMN_AGE_GROUP_ID + " = ? and " + Contestant.COLUMN_SEX + " = ? and " + Contestant.COLUMN_POSITION + " > 0 "
-                        + "union all "
-                        + "select 1 as sqn, " + Contestant.TABLE + ".*, " +
-                        AgeGroup.TABLE + "." + AgeGroup.COLUMN_ID + " as " + COLUMN_AGE_GROUP_ID + ", " +
-                        School.TABLE + "." + School.COLUMN_NAME + " as " + COLUMN_SCHOOL_NAME + ", " +
-                        School.TABLE + "." + School.COLUMN_ID + " as " + COLUMN_SCHOOL_ID + " from " + Contestant.TABLE + " "
-                        + "inner join " + AgeGroup.TABLE + " on " + Contestant.TABLE + "." + COLUMN_AGE_GROUP_ID + " = " + AgeGroup.TABLE + "." + AgeGroup.COLUMN_ID + " "
-                        + "inner join " + School.TABLE + " on " + Contestant.TABLE + "." + COLUMN_SCHOOL_ID + " = " + School.TABLE + "." + School.COLUMN_ID + " "
-                        + "where " + COLUMN_AGE_GROUP_ID + " = ? and " + Contestant.COLUMN_SEX + " = ? and " + Contestant.COLUMN_POSITION + " = 0 "
-                        + "order by sqn, position, " + COLUMN_SCHOOL_NAME + ", " + Contestant.TABLE + "." + Contestant.COLUMN_POSITION,
-                DatabaseOld.QUERRY, String.valueOf(id), sex, String.valueOf(id), sex);
+    private List<Contestant> getByAgeGroupAndSex(int ageGroupId, String sex) throws SQLException {
+        List<Contestant> contestants = Database.get().getContestantDao().queryBuilder()
+                .where()
+                .eq(AgeGroup.COLUMN_ID, ageGroupId).and()
+                .eq(Contestant.COLUMN_SEX, sex).and()
+                .gt(Contestant.COLUMN_POSITION, 0)
+                .query();
+        contestants.addAll(Database.get().getContestantDao().queryBuilder()
+                .where()
+                .eq(AgeGroup.COLUMN_ID, ageGroupId).and()
+                .eq(Contestant.COLUMN_SEX, sex).and()
+                .eq(Contestant.COLUMN_POSITION, 0)
+                .query());
+
+        return contestants;
     }
 
     public class Category {

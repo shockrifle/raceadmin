@@ -18,10 +18,16 @@ class AddSchoolDialog extends BaseDialog {
 
     private javax.swing.JTextField textName;
 
+    private School school;
+
     public AddSchoolDialog(Dialog owner) {
         super(owner);
         initComponents();
         setLocationRelativeTo(owner);
+
+        if (school == null) {
+            school = new School();
+        }
     }
 
     private void initComponents() {
@@ -153,6 +159,6 @@ class AddSchoolDialog extends BaseDialog {
     }
 
     public  interface SaveListener {
-        public void onSave(School newSchool);
+        void onSave(School newSchool);
     }
 }

@@ -6,7 +6,6 @@ import hu.danielb.raceadmin.entity.Contestant;
 import hu.danielb.raceadmin.entity.School;
 import hu.danielb.raceadmin.util.Constants;
 import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
-import org.jdesktop.swingx.autocomplete.ObjectToStringConverter;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
@@ -59,6 +58,7 @@ class AddContestantDialog extends BaseDialog {
             textName.setText(contestant.getName());
             comboSchool.setSelectedItem(contestant.getSchool());
             spinnerAge.setValue(contestant.getAge());
+            spinnerAgeStateChanged(null);
             spinnerNumber.setValue(contestant.getNumber());
             if (Constants.BOY.equals(contestant.getSex())) {
                 radioBoy.setSelected(true);
@@ -112,13 +112,7 @@ class AddContestantDialog extends BaseDialog {
         setModalityType(java.awt.Dialog.ModalityType.APPLICATION_MODAL);
         setResizable(false);
 
-        comboSchool.setEditable(true);
-        AutoCompleteDecorator.decorate(comboSchool, new ObjectToStringConverter() {
-            @Override
-            public String getPreferredStringForItem(Object o) {
-                return ((School)o).getName();
-            }
-        });
+        AutoCompleteDecorator.decorate(comboSchool);
         refreshSchools();
 
         int min = 9999;
@@ -277,14 +271,14 @@ class AddContestantDialog extends BaseDialog {
     private void refreshSchools() {
         comboSchool.setModel(new DefaultComboBoxModel<>(new School[]{new School(0, "")}));
         try {
-            Database.get().getSchoolDao().queryBuilder().orderBy(School.COLUMN_NAME,true).query().forEach(comboSchool::addItem);
+            Database.get().getSchoolDao().queryBuilder().orderBy(School.COLUMN_NAME, true).query().forEach(comboSchool::addItem);
         } catch (SQLException ex) {
             Logger.getLogger(AddContestantDialog.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     private void buttonSaveActionPerformed(java.awt.event.ActionEvent evt) {
-        Contestant contestantOld = contestant;
+        Contestant contestantOld = new Contestant(contestant);
 
         contestant.setName((textName.getText()).trim());
         contestant.setSchool((School) comboSchool.getSelectedItem());
@@ -306,8 +300,14 @@ class AddContestantDialog extends BaseDialog {
             if (contestant.getNumber() < 1) {
                 throw new Exception("Adjon meg rajtszámot!");
             }
+            if (contestant.getAgeGroup() == null) {
+                throw new Exception("Nem választott korcsoportot!");
+            }
 
-            Contestant numberConflict = Database.get().getContestantDao().queryBuilder().where().eq(Contestant.COLUMN_NUMBER, contestant.getNumber()).queryForFirst();
+            Contestant numberConflict = Database.get().getContestantDao().queryBuilder().where()
+                    .eq(Contestant.COLUMN_NUMBER, contestant.getNumber()).and()
+                    .ne(Contestant.COLUMN_ID, contestant.getId())
+                    .queryForFirst();
             if (numberConflict != null) {
                 throw new Exception("Ez a rajtszám már ki van osztva!\nNév: " + numberConflict.getName());
             }
@@ -321,7 +321,7 @@ class AddContestantDialog extends BaseDialog {
                 textName.setText("");
                 spinnerNumber.setValue(((int) spinnerNumber.getValue()) + 1);
             } else {
-                if (contestant.getAge() != contestantOld.getAge() || !contestant.getSex().equals(contestantOld.getSex()) || contestant.getAgeGroup() != contestantOld.getAgeGroup()) {
+                if (contestant.getAge() != contestantOld.getAge() || !contestant.getSex().equals(contestantOld.getSex()) || !contestant.getAgeGroup().equals(contestantOld.getAgeGroup())) {
                     if (0 == JOptionPane.showOptionDialog(this, "Ha megváltoztatja a versenyző korát, vagy nemét, az eredménye törlődik!", "Figyelem!", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[]{"Rendben", "Mégsem"}, null)) {
                         contestant.setPosition(0);
                     } else {
@@ -365,7 +365,7 @@ class AddContestantDialog extends BaseDialog {
                     }
                 }
 
-                Database.get().getContestantDao().update(contestant);
+                Database.get().getContestantDao().createOrUpdate(contestant);
                 this.dispose();
             }
             textName.requestFocus();
