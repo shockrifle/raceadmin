@@ -397,8 +397,8 @@ class AddContestantDialog extends BaseDialog {
     private void spinnerAgeStateChanged(javax.swing.event.ChangeEvent evt) {
         int age = (int) spinnerAge.getValue();
         for (int i = 0; i < comboAgeGroup.getItemCount(); i++) {
-            AgeGroup k = (comboAgeGroup.getItemAt(i));
-            if (k.getMinimum() <= age && age <= k.getMaximum()) {
+            AgeGroup ageGroup = (comboAgeGroup.getItemAt(i));
+            if (ageGroup.includes(age)) {
                 comboAgeGroup.setSelectedIndex(i);
             }
         }

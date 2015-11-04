@@ -1,6 +1,6 @@
 package hu.danielb.raceadmin.ui;
 
-import hu.danielb.raceadmin.database.DatabaseOld;
+import hu.danielb.raceadmin.database.Database;
 import hu.danielb.raceadmin.entity.PrintHeader;
 
 import java.awt.*;
@@ -13,10 +13,16 @@ class AddPrintHeaderDialog extends BaseDialog {
     private javax.swing.JTextArea textText;
     private javax.swing.JTextField textName;
 
+    private PrintHeader printHeader;
+
     public AddPrintHeaderDialog(Frame owner) {
         super(owner);
         initComponents();
         setLocationRelativeTo(owner);
+
+        if (printHeader == null) {
+            printHeader = new PrintHeader();
+        }
     }
 
     private void initComponents() {
@@ -97,14 +103,18 @@ class AddPrintHeaderDialog extends BaseDialog {
 
     private void buttonSaveActionPerformed(java.awt.event.ActionEvent evt) {
         try {
-            if (textName.getText().trim().isEmpty()) {
+            printHeader.setName(textName.getText().trim());
+            printHeader.setText(textText.getText().trim());
+
+            if (printHeader.getName().isEmpty()) {
                 throw new Exception("Nem adott meg nevet!");
             }
-            if (textText.getText().trim().isEmpty()) {
+            if (printHeader.getText().isEmpty()) {
                 throw new Exception("Nem adott meg szöveget!");
             }
 
-            DatabaseOld.runSql("insert into " + PrintHeader.TABLE + " (" + PrintHeader.COLUMN_NAME + "," + PrintHeader.COLUMN_TEXT + ") values(?,?)", DatabaseOld.UPDATE, textName.getText().trim(), textText.getText().trim());
+            Database.get().getPrintHeaderDao().createOrUpdate(printHeader);
+
             this.dispose();
         } catch (SQLException ex) {
             Logger.getLogger(AddPrintHeaderDialog.class.getName()).log(Level.SEVERE, null, ex);

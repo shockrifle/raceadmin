@@ -64,6 +64,10 @@ public class AgeGroup {
         this.maximum = maximum;
     }
 
+    public boolean includes(int age) {
+        return minimum <= age && age <= maximum;
+    }
+
     @Override
     public String toString() {
         return name;
