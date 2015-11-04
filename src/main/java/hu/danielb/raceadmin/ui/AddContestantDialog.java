@@ -335,9 +335,9 @@ class AddContestantDialog extends BaseDialog {
                                 .where()
                                 .eq(Contestant.COLUMN_SEX, contestantOld.getSex()).and()
                                 .eq(Contestant.COLUMN_AGE_GROUP_ID, contestantOld.getAgeGroup().getId()).and()
-                                .ge(Contestant.COLUMN_POSITION, contestantOld.getPosition()).and()
-                                .ne(Contestant.COLUMN_POSITION,0).and()
-                                .lt(Contestant.COLUMN_POSITION,contestantOld.getPosition())
+                                .ge(Contestant.COLUMN_POSITION, contestant.getPosition()).and()
+                                .lt(Contestant.COLUMN_POSITION, contestantOld.getPosition() == 0 ? 9999 : contestantOld.getPosition()).and()
+                                .ne(Contestant.COLUMN_POSITION, 0)
                                 .query().forEach(contestant1 -> {
                             contestant1.setPosition(contestant1.getPosition() + 1);
                             try {
@@ -347,7 +347,21 @@ class AddContestantDialog extends BaseDialog {
                             }
                         });
                     } else if ((0 < contestantOld.getPosition() && contestantOld.getPosition() < contestant.getPosition()) || contestant.getPosition() == 0) {
-
+                        Database.get().getContestantDao().queryBuilder()
+                                .where()
+                                .eq(Contestant.COLUMN_SEX, contestantOld.getSex()).and()
+                                .eq(Contestant.COLUMN_AGE_GROUP_ID, contestantOld.getAgeGroup().getId()).and()
+                                .gt(Contestant.COLUMN_POSITION, contestantOld.getPosition()).and()
+                                .le(Contestant.COLUMN_POSITION, contestant.getPosition() == 0 ? 9999 : contestant.getPosition()).and()
+                                .ne(Contestant.COLUMN_POSITION, 0)
+                                .query().forEach(contestant1 -> {
+                            contestant1.setPosition(contestant1.getPosition() - 1);
+                            try {
+                                Database.get().getContestantDao().update(contestant1);
+                            } catch (SQLException e) {
+                                e.printStackTrace();
+                            }
+                        });
                     }
                 }
 
@@ -368,12 +382,9 @@ class AddContestantDialog extends BaseDialog {
     }
 
     private void buttonNewActionPerformed(java.awt.event.ActionEvent evt) {
-        new AddSchoolDialog(this).addSaveListener(new AddSchoolDialog.SaveListener() {
-            @Override
-            public void onSave(School newSchool) {
-                refreshSchools();
-                comboSchool.setSelectedItem(newSchool);
-            }
+        new AddSchoolDialog(this).addSaveListener(newSchool -> {
+            refreshSchools();
+            comboSchool.setSelectedItem(newSchool);
         }).setVisible(true);
 
     }
