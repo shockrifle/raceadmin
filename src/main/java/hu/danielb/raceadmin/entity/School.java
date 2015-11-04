@@ -10,14 +10,16 @@ public class School {
     public static final String TABLE = "school";
     public static final String COLUMN_ID = "id";
     public static final String COLUMN_NAME = "name";
+    public static final String COLUMN_SHORT_NAME = "short_name";
+    public static final String COLUMN_SETTLEMENT = "settlement";
 
-    @DatabaseField(generatedId = true)
+    @DatabaseField(generatedId = true, columnName = COLUMN_ID)
     private int id;
-    @DatabaseField
+    @DatabaseField(columnName = COLUMN_NAME)
     private String name;
-    @DatabaseField(columnName = "short_name")
+    @DatabaseField(columnName = COLUMN_SHORT_NAME)
     private String shortName;
-    @DatabaseField(columnName = "settlement")
+    @DatabaseField(columnName = COLUMN_SETTLEMENT)
     private String settlement;
 
     public School() {
@@ -58,6 +60,10 @@ public class School {
 
     public void setSettlement(String settlement) {
         this.settlement = settlement;
+    }
+
+    public String getShortNameWithSettlement(){
+        return shortName + ", " + settlement;
     }
 
     @Override

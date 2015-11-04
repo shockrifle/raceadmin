@@ -6,19 +6,20 @@ import hu.danielb.raceadmin.database.dao.BaseDaoWithListener;
 
 @DatabaseTable(tableName = "age_group", daoClass = BaseDaoWithListener.class)
 public class AgeGroup {
+
     public static final String TABLE = "age_group";
     public static final String COLUMN_ID = "id";
     public static final String COLUMN_NAME = "name";
     public static final String COLUMN_MINIMUM = "minimum";
     public static final String COLUMN_MAXIMUM = "maximum";
 
-    @DatabaseField(generatedId = true)
+    @DatabaseField(generatedId = true, columnName = COLUMN_ID)
     private int id;
-    @DatabaseField
+    @DatabaseField(columnName = COLUMN_NAME)
     private String name;
-    @DatabaseField
+    @DatabaseField(columnName = COLUMN_MINIMUM)
     private int minimum;
-    @DatabaseField
+    @DatabaseField(columnName = COLUMN_MAXIMUM)
     private int maximum;
 
     public AgeGroup() {
@@ -61,10 +62,6 @@ public class AgeGroup {
 
     public void setMaximum(int maximum) {
         this.maximum = maximum;
-    }
-
-    public boolean includes(int age) {
-        return minimum <= age && age <= maximum;
     }
 
     @Override

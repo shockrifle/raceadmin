@@ -152,9 +152,7 @@ class AddAgeGroupDialog extends BaseDialog {
             if (overlaps.isEmpty()) {
                 if (ageGroup.getId() != 0) {
                     if (0 == JOptionPane.showOptionDialog(this, "Ha megválzotatja a korosztályt, az eddigi eredmények elvesznek!\nBiztos ezt akarja?", "Figyelem!", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[]{"Igen", "Nem"}, null)) {
-
                         Database.get().getAgeGroupDao().createOrUpdate(ageGroup);
-
                         Database.get().getContestantDao().queryForAll().forEach(contestant -> {
                             contestant.setPosition(0);
                             updateContestantAgeGroup(contestant, ageGroupOld, ageGroup);

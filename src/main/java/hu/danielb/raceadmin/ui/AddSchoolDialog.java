@@ -8,11 +8,13 @@ import java.awt.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 class AddSchoolDialog extends BaseDialog {
 
+    List<SaveListener> listeners =  new ArrayList<>();
 
     private javax.swing.JTextField textName;
 
@@ -84,6 +86,7 @@ class AddSchoolDialog extends BaseDialog {
         ArrayList<String> toCheck = new ArrayList<>();
         ArrayList<String> checked = new ArrayList<>();
         String checkStatement = "select * from " + School.TABLE + " where " + School.COLUMN_NAME + " like ''";
+
         for (String name : names) {
             String tempName = name;
             tempName = tempName.replaceAll("iskola", "")
@@ -141,6 +144,15 @@ class AddSchoolDialog extends BaseDialog {
             Logger.getLogger(AddSchoolDialog.class.getName()).log(Level.SEVERE, null, ex);
         }
 
+        listeners.forEach(listener -> listener.onSave(new School()));
     }
 
+    public AddSchoolDialog addSaveListener(SaveListener listener){
+        listeners.add(listener);
+        return this;
+    }
+
+    public  interface SaveListener {
+        public void onSave(School newSchool);
+    }
 }

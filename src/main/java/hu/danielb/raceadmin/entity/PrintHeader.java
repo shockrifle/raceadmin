@@ -7,16 +7,15 @@ import hu.danielb.raceadmin.database.dao.BaseDaoWithListener;
 @DatabaseTable(tableName = "print_header", daoClass = BaseDaoWithListener.class)
 public class PrintHeader {
 
-    public static final String TABLE = "print_header";
     public static final String COLUMN_ID = "id";
     public static final String COLUMN_NAME = "name";
     public static final String COLUMN_TEXT = "text";
 
-    @DatabaseField(generatedId = true)
+    @DatabaseField(generatedId = true, columnName = COLUMN_ID)
     private int id;
-    @DatabaseField
+    @DatabaseField(columnName = COLUMN_NAME)
     private String name;
-    @DatabaseField
+    @DatabaseField(columnName = COLUMN_TEXT)
     private String text;
 
     public PrintHeader() {

@@ -17,21 +17,21 @@ public class Contestant {
     public static final String COLUMN_SCHOOL_ID = "school_id";
     public static final String COLUMN_AGE = "age";
 
-    @DatabaseField(generatedId = true)
+    @DatabaseField(generatedId = true, columnName = COLUMN_ID)
     private int id;
-    @DatabaseField
+    @DatabaseField(columnName = COLUMN_POSITION)
     private int position;
-    @DatabaseField
+    @DatabaseField(columnName = COLUMN_NAME)
     private String name;
-    @DatabaseField
+    @DatabaseField(columnName = COLUMN_SEX)
     private String sex;
-    @DatabaseField
+    @DatabaseField(columnName = COLUMN_NUMBER)
     private int number;
-    @DatabaseField(foreign = true, foreignAutoRefresh = true, columnName = "age_group_id")
+    @DatabaseField(foreign = true, foreignAutoRefresh = true, columnName = COLUMN_AGE_GROUP_ID)
     private AgeGroup ageGroup;
-    @DatabaseField(foreign = true, foreignAutoRefresh = true, foreignAutoCreate = true, columnName = "school_id")
+    @DatabaseField(foreign = true, foreignAutoRefresh = true, foreignAutoCreate = true, columnName = COLUMN_SCHOOL_ID)
     private School school;
-    @DatabaseField
+    @DatabaseField(columnName = COLUMN_AGE)
     private int age;
 
     public Contestant() {

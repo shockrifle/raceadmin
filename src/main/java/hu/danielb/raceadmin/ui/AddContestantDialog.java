@@ -1,17 +1,20 @@
 package hu.danielb.raceadmin.ui;
 
-import hu.danielb.raceadmin.database.DatabaseOld;
+import hu.danielb.raceadmin.database.Database;
 import hu.danielb.raceadmin.entity.AgeGroup;
 import hu.danielb.raceadmin.entity.Contestant;
 import hu.danielb.raceadmin.entity.School;
 import hu.danielb.raceadmin.util.Constants;
 import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
+import org.jdesktop.swingx.autocomplete.ObjectToStringConverter;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 import java.awt.*;
-import java.awt.event.*;
-import java.sql.ResultSet;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -109,81 +112,41 @@ class AddContestantDialog extends BaseDialog {
         setModalityType(java.awt.Dialog.ModalityType.APPLICATION_MODAL);
         setResizable(false);
 
-        AutoCompleteDecorator.decorate(comboSchool);
-        comboSchool.setModel(new javax.swing.DefaultComboBoxModel<>(new School[]{new School(0, "")}));
-        try {
-            ResultSet rs = DatabaseOld.runSql("select * from " + School.TABLE + " order by " + School.COLUMN_NAME);
-            while (rs.next()) {
-                comboSchool.addItem(new School(rs.getInt(School.COLUMN_ID), rs.getString(School.COLUMN_NAME)));
+        comboSchool.setEditable(true);
+        AutoCompleteDecorator.decorate(comboSchool, new ObjectToStringConverter() {
+            @Override
+            public String getPreferredStringForItem(Object o) {
+                return ((School)o).getName();
             }
-        } catch (SQLException ex) {
-            Logger.getLogger(AddContestantDialog.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        });
+        refreshSchools();
 
         int min = 9999;
         int max = 0;
         try {
-            ResultSet rs = DatabaseOld.runSql("select * from " + AgeGroup.TABLE);
-            while (rs.next()) {
-                if (rs.getInt(AgeGroup.COLUMN_MINIMUM) < min) min = rs.getInt(AgeGroup.COLUMN_MINIMUM);
-                if (rs.getInt(AgeGroup.COLUMN_MAXIMUM) > max) max = rs.getInt(AgeGroup.COLUMN_MAXIMUM);
-            }
+            String[] minMax = Database.get().getAgeGroupDao().queryBuilder().selectRaw("MIN(" + AgeGroup.COLUMN_MINIMUM + ")", "MAX(" + AgeGroup.COLUMN_MAXIMUM + ")").queryRawFirst();
+            min = Integer.parseInt(minMax[0]);
+            max = Integer.parseInt(minMax[1]);
         } catch (SQLException ex) {
             Logger.getLogger(AddContestantDialog.class.getName()).log(Level.SEVERE, null, ex);
         }
         SpinnerNumberModel spinnerModelNumber = new SpinnerNumberModel(min, min, max, 1);
         spinnerAge.setModel(spinnerModelNumber);
-        spinnerAge.addChangeListener(AddContestantDialog.this::jSpinner2StateChanged);
+        spinnerAge.addChangeListener(AddContestantDialog.this::spinnerAgeStateChanged);
 
         spinnerModelNumber = new SpinnerNumberModel(1, 1, 9999, 1);
         spinnerNumber.setModel(spinnerModelNumber);
         spinnerNumber.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
-                jSpinner1FocusGained(evt);
+                spinnerNumberFocusGained(evt);
             }
         });
 
-        radioBoy.addKeyListener(new KeyListener() {
-                                    @Override
-                                    public void keyPressed(KeyEvent e) {
-                                        if (e.getKeyChar() == KeyEvent.VK_ENTER) {
-                                            radioGirl.requestFocus();
-                                        }
-                                    }
-
-                                    @Override
-                                    public void keyReleased(KeyEvent e) {
-                                    }
-
-                                    @Override
-                                    public void keyTyped(KeyEvent e) {
-                                    }
-
-                                }
-        );
         buttonGroupSex.add(radioBoy);
         radioBoy.setText("Fiu");
         radioBoy.setActionCommand(Constants.BOY);
         buttonGroupSex.add(radioBoy);
 
-        radioGirl.addKeyListener(new KeyListener() {
-                                     @Override
-                                     public void keyPressed(KeyEvent e) {
-                                         if (e.getKeyChar() == KeyEvent.VK_ENTER) {
-                                             buttonSave.requestFocus();
-                                         }
-                                     }
-
-                                     @Override
-                                     public void keyReleased(KeyEvent e) {
-                                     }
-
-                                     @Override
-                                     public void keyTyped(KeyEvent e) {
-                                     }
-
-                                 }
-        );
         buttonGroupSex.add(radioGirl);
         radioGirl.setText("Lány");
         radioGirl.setActionCommand(Constants.GIRL);
@@ -220,10 +183,7 @@ class AddContestantDialog extends BaseDialog {
 
         comboAgeGroup.setModel(new javax.swing.DefaultComboBoxModel<>(new AgeGroup[]{new AgeGroup(0, "", 0, 0)}));
         try {
-            ResultSet rs = DatabaseOld.runSql("select * from " + AgeGroup.TABLE + " order by " + AgeGroup.COLUMN_NAME);
-            while (rs.next()) {
-                comboAgeGroup.addItem(new AgeGroup(rs.getInt(AgeGroup.COLUMN_ID), rs.getString(AgeGroup.COLUMN_NAME), rs.getInt(AgeGroup.COLUMN_MINIMUM), rs.getInt(AgeGroup.COLUMN_MAXIMUM)));
-            }
+            Database.get().getAgeGroupDao().queryForAll().forEach(comboAgeGroup::addItem);
         } catch (SQLException ex) {
             Logger.getLogger(AddContestantDialog.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -314,102 +274,84 @@ class AddContestantDialog extends BaseDialog {
         pack();
     }
 
+    private void refreshSchools() {
+        comboSchool.setModel(new DefaultComboBoxModel<>(new School[]{new School(0, "")}));
+        try {
+            Database.get().getSchoolDao().queryBuilder().orderBy(School.COLUMN_NAME,true).query().forEach(comboSchool::addItem);
+        } catch (SQLException ex) {
+            Logger.getLogger(AddContestantDialog.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
     private void buttonSaveActionPerformed(java.awt.event.ActionEvent evt) {
-        String name = (textName.getText()).trim();
-        int school = ((School) comboSchool.getSelectedItem()).getId();
-        int age = ((Integer) spinnerAge.getValue());
-        int ageGroupId = ((AgeGroup) comboAgeGroup.getSelectedItem()).getId();
-        int number = ((Integer) spinnerNumber.getValue());
-        String sex = "";
-        int position = (Integer) spinnerPosition.getValue();
+        Contestant contestantOld = contestant;
+
+        contestant.setName((textName.getText()).trim());
+        contestant.setSchool((School) comboSchool.getSelectedItem());
+        contestant.setAge((Integer) spinnerAge.getValue());
+        contestant.setAgeGroup((AgeGroup) comboAgeGroup.getSelectedItem());
+        contestant.setNumber((Integer) spinnerNumber.getValue());
+        contestant.setPosition((Integer) spinnerPosition.getValue());
+        contestant.setSex("");
         if (buttonGroupSex.getSelection() != null) {
-            sex = buttonGroupSex.getSelection().getActionCommand();
+            contestant.setSex(buttonGroupSex.getSelection().getActionCommand());
         }
         try {
-            if (name.length() < 3) {
+            if (contestant.getName().length() < 3) {
                 throw new Exception("Adjon meg nevet!");
             }
-            if (school < 1) {
+            if (contestant.getSchool() == null) {
                 throw new Exception("Válasszon iskolát!");
             }
-            if (number < 1) {
+            if (contestant.getNumber() < 1) {
                 throw new Exception("Adjon meg rajtszámot!");
             }
-            ResultSet rs = DatabaseOld.runSql("select * from " + Contestant.TABLE + " where " +
-                    Contestant.COLUMN_NUMBER + " = ? and " +
-                    Contestant.COLUMN_ID + " != ?", DatabaseOld.QUERRY, String.valueOf(number), contestant != null ? String.valueOf(contestant.getId()) : "-1");
-            if (rs.next()) {
-                throw new Exception("Már létezik versenyző ezzel a rajtszámmal!\nNév: " + rs.getString(Contestant.COLUMN_NAME));
+
+            Contestant numberConflict = Database.get().getContestantDao().queryBuilder().where().eq(Contestant.COLUMN_NUMBER, contestant.getNumber()).queryForFirst();
+            if (numberConflict != null) {
+                throw new Exception("Ez a rajtszám már ki van osztva!\nNév: " + numberConflict.getName());
             }
 
-            if (sex.isEmpty()) {
+            if (contestant.getSex().isEmpty()) {
                 throw new Exception("Nem választott nemet!");
             }
-            if (contestant == null) {
-                DatabaseOld.runSql("insert into " + Contestant.TABLE + " (" +
-                                Contestant.COLUMN_POSITION + "," +
-                                Contestant.COLUMN_NAME + "," +
-                                Contestant.COLUMN_SEX + "," +
-                                Contestant.COLUMN_NUMBER + "," +
-                                Contestant.COLUMN_AGE_GROUP_ID + "," +
-                                Contestant.COLUMN_SCHOOL_ID + "," +
-                                Contestant.COLUMN_AGE + ") "
-                                + "values(?,?,?,?,?,?,?)",
-                        DatabaseOld.UPDATE, String.valueOf(position), name, sex, String.valueOf(number), String.valueOf(ageGroupId), String.valueOf(school), String.valueOf(age));
 
+            if (contestant.getId() == 0) {
+                Database.get().getContestantDao().create(contestant);
                 textName.setText("");
                 spinnerNumber.setValue(((int) spinnerNumber.getValue()) + 1);
             } else {
-
-                if (age != contestant.getAge() || !sex.equals(contestant.getSex()) || ageGroupId != contestant.getAgeGroup().getId()) {
+                if (contestant.getAge() != contestantOld.getAge() || !contestant.getSex().equals(contestantOld.getSex()) || contestant.getAgeGroup() != contestantOld.getAgeGroup()) {
                     if (0 == JOptionPane.showOptionDialog(this, "Ha megváltoztatja a versenyző korát, vagy nemét, az eredménye törlődik!", "Figyelem!", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[]{"Rendben", "Mégsem"}, null)) {
-                        position = 0;
+                        contestant.setPosition(0);
                     } else {
                         throw new Exception("Nem lettek mentve az adatok.");
                     }
                 }
 
-                if (position != contestant.getPosition()) {
-                    if ((0 < position && position < contestant.getPosition()) || contestant.getPosition() == 0) {
-                        DatabaseOld.runSql("update " + Contestant.TABLE + " set " +
-                                        Contestant.COLUMN_POSITION + " = " + Contestant.COLUMN_POSITION + "+1 where " +
-                                        Contestant.COLUMN_POSITION + " >= ? and " +
-                                        Contestant.COLUMN_POSITION + " < ? and " +
-                                        Contestant.COLUMN_POSITION + " != 0 and " +
-                                        Contestant.COLUMN_SEX + " = ? and " +
-                                        Contestant.COLUMN_AGE_GROUP_ID + " = ?",
-                                DatabaseOld.UPDATE, String.valueOf(position), String.valueOf(contestant.getPosition() != 0 ? contestant.getPosition() : 9999), contestant.getSex(), String.valueOf(contestant.getAgeGroup().getId()));
-                    } else if ((0 < contestant.getPosition() && contestant.getPosition() < position) || position == 0) {
-                        DatabaseOld.runSql("update " + Contestant.TABLE + " set " +
-                                        Contestant.COLUMN_POSITION + " = " + Contestant.COLUMN_POSITION + "-1 where " +
-                                        Contestant.COLUMN_POSITION + " > ? and " +
-                                        Contestant.COLUMN_POSITION + " <= ? and " +
-                                        Contestant.COLUMN_POSITION + " != 0 and " +
-                                        Contestant.COLUMN_SEX + " = ? and " +
-                                        Contestant.COLUMN_AGE_GROUP_ID + " = ?",
-                                DatabaseOld.UPDATE, String.valueOf(contestant.getPosition()), String.valueOf(position != 0 ? position : 9999), contestant.getSex(), String.valueOf(contestant.getAgeGroup().getId()));
+                if (contestant.getPosition() != contestantOld.getPosition()) {
+                    if ((0 < contestant.getPosition() && contestant.getPosition() < contestantOld.getPosition()) || contestantOld.getPosition() == 0) {
+                        Database.get().getContestantDao().queryBuilder()
+                                .where()
+                                .eq(Contestant.COLUMN_SEX, contestantOld.getSex()).and()
+                                .eq(Contestant.COLUMN_AGE_GROUP_ID, contestantOld.getAgeGroup().getId()).and()
+                                .ge(Contestant.COLUMN_POSITION, contestantOld.getPosition()).and()
+                                .ne(Contestant.COLUMN_POSITION,0).and()
+                                .lt(Contestant.COLUMN_POSITION,contestantOld.getPosition())
+                                .query().forEach(contestant1 -> {
+                            contestant1.setPosition(contestant1.getPosition() + 1);
+                            try {
+                                Database.get().getContestantDao().update(contestant1);
+                            } catch (SQLException e) {
+                                e.printStackTrace();
+                            }
+                        });
+                    } else if ((0 < contestantOld.getPosition() && contestantOld.getPosition() < contestant.getPosition()) || contestant.getPosition() == 0) {
+
                     }
                 }
 
-                DatabaseOld.runSql("update " + Contestant.TABLE + " set "
-                                + Contestant.COLUMN_POSITION + " = ?, "
-                                + Contestant.COLUMN_NAME + " = ?, "
-                                + Contestant.COLUMN_SEX + " = ?, "
-                                + Contestant.COLUMN_NUMBER + " = ?, "
-                                + Contestant.COLUMN_AGE_GROUP_ID + " = ?,"
-                                + Contestant.COLUMN_SCHOOL_ID + " = ?,"
-                                + Contestant.COLUMN_AGE + " = ? "
-                                + "where " + Contestant.COLUMN_ID + " = ?",
-                        DatabaseOld.UPDATE,
-                        String.valueOf(position),
-                        name,
-                        sex,
-                        String.valueOf(number),
-                        String.valueOf(ageGroupId),
-                        String.valueOf(school),
-                        String.valueOf(age),
-                        String.valueOf(contestant.getId()));
-
+                Database.get().getContestantDao().update(contestant);
                 this.dispose();
             }
             textName.requestFocus();
@@ -426,24 +368,22 @@ class AddContestantDialog extends BaseDialog {
     }
 
     private void buttonNewActionPerformed(java.awt.event.ActionEvent evt) {
-        new AddSchoolDialog(this).setVisible(true);
-        comboSchool.setModel(new DefaultComboBoxModel<>(new School[]{new School(0, "")}));
-        try {
-            ResultSet rs = DatabaseOld.runSql("select * from " + School.TABLE + " order by " + School.COLUMN_NAME);
-            while (rs.next()) {
-                comboSchool.addItem(new School(rs.getInt(School.COLUMN_ID), rs.getString(School.COLUMN_NAME)));
+        new AddSchoolDialog(this).addSaveListener(new AddSchoolDialog.SaveListener() {
+            @Override
+            public void onSave(School newSchool) {
+                refreshSchools();
+                comboSchool.setSelectedItem(newSchool);
             }
-        } catch (SQLException ex) {
-            Logger.getLogger(AddContestantDialog.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        }).setVisible(true);
+
     }
 
     @SuppressWarnings("UnusedParameters")
-    private void jSpinner1FocusGained(java.awt.event.FocusEvent evt) {
+    private void spinnerNumberFocusGained(java.awt.event.FocusEvent evt) {
         ((JSpinner.DefaultEditor) spinnerNumber.getEditor()).getTextField().selectAll();
     }
 
-    private void jSpinner2StateChanged(javax.swing.event.ChangeEvent evt) {
+    private void spinnerAgeStateChanged(javax.swing.event.ChangeEvent evt) {
         int age = (int) spinnerAge.getValue();
         for (int i = 0; i < comboAgeGroup.getItemCount(); i++) {
             AgeGroup k = (comboAgeGroup.getItemAt(i));
