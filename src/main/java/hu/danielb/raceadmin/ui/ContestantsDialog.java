@@ -156,7 +156,7 @@ public class ContestantsDialog extends BaseDialog {
     }
 
     private void comboSchoolsActionPerformed(java.awt.event.ActionEvent evt) {
-        filter = ((School) comboSchools.getSelectedItem()).getName();
+        filter = ((School) comboSchools.getSelectedItem()).getName().toLowerCase();
         loadData();
     }
 
