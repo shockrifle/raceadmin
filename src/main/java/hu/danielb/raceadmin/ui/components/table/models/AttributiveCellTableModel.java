@@ -16,6 +16,10 @@ public class AttributiveCellTableModel<T> extends BaseTableModel<T> {
         super(columnIdentifiers, data);
     }
 
+    public AttributiveCellTableModel(List<String> columnIdentifiers, List<T> data, int dataSize) {
+        super(columnIdentifiers, data, dataSize);
+    }
+
     @Override
     public void setDataVector(Vector newData, Vector columnNames) {
         dataVector = new Vector(0);

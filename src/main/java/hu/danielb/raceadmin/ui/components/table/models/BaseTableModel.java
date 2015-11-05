@@ -8,11 +8,15 @@ public class BaseTableModel<T> extends DefaultTableModel {
     List<T> data;
 
     public BaseTableModel(List<String> columnIdentifiers, List<T> data) {
-        super(new Vector<>(columnIdentifiers),data.size());
+        this(columnIdentifiers, data, data.size());
+    }
+
+    public BaseTableModel(List<String> columnIdentifiers, List<T> data, int dataSize) {
+        super(new Vector<>(columnIdentifiers), dataSize);
         this.data = data;
     }
 
-    public T getDataAt(int row){
+    public T getDataAt(int row) {
         return data.get(row);
     }
 }

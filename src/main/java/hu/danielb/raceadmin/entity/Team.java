@@ -56,10 +56,10 @@ public class Team implements Comparable {
             return 0;
         }
         if (other.getPoints(memberCount) > this.getPoints(memberCount)) {
-            return 1;
+            return -1;
         } else if (other.getPoints(memberCount) == this.getPoints(memberCount)) {
             return compareTo(other, memberCount - 1);
         }
-        return -1;
+        return 1;
     }
 }

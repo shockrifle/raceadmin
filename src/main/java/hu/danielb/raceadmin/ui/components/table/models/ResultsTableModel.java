@@ -7,37 +7,34 @@ import java.util.List;
 
 public class ResultsTableModel extends AttributiveCellTableModel<Contestant> {
 
-    public static final int COLUMN_CONTESTANT_ID = 0;
-    public static final int COLUMN_POSITION = 1;
-    public static final int COLUMN_NUMBER = 2;
-    public static final int COLUMN_NAME = 3;
-    public static final int COLUMN_SCHOOL_NAME = 4;
 
     public ResultsTableModel(List<Contestant> data) {
-        super(Arrays.asList("", "Helyezés", "Rajtszám", "Név", "Iskola"), data);
+        super(Arrays.asList("Helyezés", "Rajtszám", "Név", "Iskola"), data);
     }
 
     @Override
     public Object getValueAt(int row, int column) {
-        switch (column) {
-            case COLUMN_CONTESTANT_ID:
-                return data.get(row).getId();
-            case COLUMN_POSITION:
-                return data.get(row).getPosition();
-            case COLUMN_NAME:
-                return data.get(row).getName();
-            case COLUMN_NUMBER:
-                return data.get(row).getNumber();
-            case COLUMN_SCHOOL_NAME:
-                return data.get(row).getSchool().getName();
-            default:
-                return null;
-        }
+        if (column == Column.POSITION.ordinal())
+            return data.get(row).getPosition();
+        if (column == Column.NAME.ordinal())
+            return data.get(row).getName();
+        if (column == Column.NUMBER.ordinal())
+            return data.get(row).getNumber();
+        if (column == Column.SCHOOL_NAME.ordinal())
+            return data.get(row).getSchool().getName();
+        return null;
     }
 
     @Override
     public boolean isCellEditable(int row, int column) {
         return false;
+    }
+
+    public enum Column {
+        POSITION,
+        NUMBER,
+        NAME,
+        SCHOOL_NAME
     }
 
 }

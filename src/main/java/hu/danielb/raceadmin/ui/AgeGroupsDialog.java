@@ -1,7 +1,6 @@
 package hu.danielb.raceadmin.ui;
 
 import hu.danielb.raceadmin.database.Database;
-import hu.danielb.raceadmin.entity.AgeGroup;
 import hu.danielb.raceadmin.ui.components.ButtonEditor;
 import hu.danielb.raceadmin.ui.components.ButtonRenderer;
 import hu.danielb.raceadmin.ui.components.table.models.AgeGroupTableModel;
@@ -9,8 +8,6 @@ import hu.danielb.raceadmin.ui.components.table.models.AgeGroupTableModel;
 import javax.swing.*;
 import java.awt.*;
 import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.Vector;
 
 public class AgeGroupsDialog extends BaseDialog {
 
@@ -52,7 +49,7 @@ public class AgeGroupsDialog extends BaseDialog {
     }
 
     private void editButtonActionPerformed(java.awt.event.ActionEvent evt) {
-        new AddAgeGroupDialog(this,((AgeGroupTableModel)tableAgeGroups.getModel()).getDataAt(evt.getID())).setVisible(true);
+        new AddAgeGroupDialog(this, ((AgeGroupTableModel) tableAgeGroups.getModel()).getDataAt(evt.getID())).setVisible(true);
     }
 
     private void loadData() {
@@ -63,11 +60,8 @@ public class AgeGroupsDialog extends BaseDialog {
             e.printStackTrace();
         }
 
-        tableAgeGroups.getColumnModel().getColumn(AgeGroupTableModel.COLUMN_ID).setMaxWidth(0);
-        tableAgeGroups.getColumnModel().getColumn(AgeGroupTableModel.COLUMN_ID).setMinWidth(0);
-        tableAgeGroups.getColumnModel().getColumn(AgeGroupTableModel.COLUMN_ID).setPreferredWidth(0);
-        tableAgeGroups.getColumnModel().getColumn(AgeGroupTableModel.COLUMN_EDIT).setCellRenderer(new ButtonRenderer());
-        tableAgeGroups.getColumnModel().getColumn(AgeGroupTableModel.COLUMN_EDIT).setCellEditor(new ButtonEditor(
+        tableAgeGroups.getColumnModel().getColumn(AgeGroupTableModel.Column.EDIT.ordinal()).setCellRenderer(new ButtonRenderer());
+        tableAgeGroups.getColumnModel().getColumn(AgeGroupTableModel.Column.EDIT.ordinal()).setCellEditor(new ButtonEditor(
                 AgeGroupsDialog.this::editButtonActionPerformed).addEditingStoppedListener(
                 AgeGroupsDialog.this::loadData));
         tableAgeGroups.getTableHeader().setReorderingAllowed(false);

@@ -472,9 +472,9 @@ public class MainFrame extends javax.swing.JFrame {
             for (int j = 0; j < Team.MAX_MEMBERS; j++) {
                 rowsArray[j] = i + j;
             }
-            cellAtt.combine(rowsArray, new int[]{1});
-            cellAtt.combine(rowsArray, new int[]{2});
-            cellAtt.combine(rowsArray, new int[]{6});
+            cellAtt.combine(rowsArray, new int[]{TeamResultsTableModel.Column.POSITION.ordinal()});
+            cellAtt.combine(rowsArray, new int[]{TeamResultsTableModel.Column.POINTS.ordinal()});
+            cellAtt.combine(rowsArray, new int[]{TeamResultsTableModel.Column.SCHOOL_NAME.ordinal()});
         }
 
         jt.clearSelection();
@@ -519,14 +519,13 @@ public class MainFrame extends javax.swing.JFrame {
         JTable currentTable = tables.get(tableName);
 
         currentTable.setModel(new TeamResultsTableModel(data));
-        setColumnWidth(currentTable, 0, 0);
-        setColumnWidth(currentTable, 1, 60);
-        setColumnWidth(currentTable, 2, 60);
-        setColumnWidth(currentTable, 3, 60);
-        setColumnWidth(currentTable, 4, 60);
-        setColumnWidth(currentTable, 5, 180);
+        setColumnWidth(currentTable, TeamResultsTableModel.Column.POSITION.ordinal(), 60);
+        setColumnWidth(currentTable, TeamResultsTableModel.Column.POINTS.ordinal(), 60);
+        setColumnWidth(currentTable, TeamResultsTableModel.Column.INDIVIDUAL_POSITION.ordinal(), 60);
+        setColumnWidth(currentTable, TeamResultsTableModel.Column.NUMBER.ordinal(), 60);
+        setColumnWidth(currentTable, TeamResultsTableModel.Column.NAME.ordinal(), 180);
 
-        setUpTable(currentTable);
+        setupTable(currentTable);
     }
 
     private void addContestantDataToTable(String tableName, List<Contestant> data) {
@@ -534,15 +533,14 @@ public class MainFrame extends javax.swing.JFrame {
         JTable currentTable = tables.get(tableName);
 
         currentTable.setModel(new ResultsTableModel(data));
-        setColumnWidth(currentTable, ResultsTableModel.COLUMN_CONTESTANT_ID, 0);
-        setColumnWidth(currentTable, ResultsTableModel.COLUMN_POSITION, 80);
-        setColumnWidth(currentTable, ResultsTableModel.COLUMN_NUMBER, 80);
-        setColumnWidth(currentTable, ResultsTableModel.COLUMN_NAME, 180);
+        setColumnWidth(currentTable, ResultsTableModel.Column.POSITION.ordinal(), 80);
+        setColumnWidth(currentTable, ResultsTableModel.Column.NUMBER.ordinal(), 80);
+        setColumnWidth(currentTable, ResultsTableModel.Column.NAME.ordinal(), 180);
 
-        setUpTable(currentTable);
+        setupTable(currentTable);
     }
 
-    private void setUpTable(JTable table) {
+    private void setupTable(JTable table) {
         table.getTableHeader().setReorderingAllowed(false);
         table.getTableHeader().setResizingAllowed(false);
         for (int i = 0; i < table.getColumnCount(); i++) {

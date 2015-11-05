@@ -30,7 +30,7 @@ public class ContestantsDialog extends BaseDialog {
     private javax.swing.JTable tableContestants;
     private javax.swing.JTextField textSearch;
 
-    private int sortBy = ContestantTableModel.COLUMN_NAME;
+    private ContestantTableModel.Column sortBy = ContestantTableModel.Column.NAME;
     private boolean sortBackwards = false;
     private String filter = "";
 
@@ -46,8 +46,8 @@ public class ContestantsDialog extends BaseDialog {
             @Override
             public void mouseClicked(MouseEvent e) {
                 int columnAtPoint = tableContestants.columnAtPoint(e.getPoint());
-                sortBackwards = sortBy == columnAtPoint && !sortBackwards;
-                sortBy = columnAtPoint;
+                sortBackwards = sortBy.ordinal() == columnAtPoint && !sortBackwards;
+                sortBy = ContestantTableModel.Column.values()[columnAtPoint];
                 loadData();
             }
         });
@@ -181,25 +181,25 @@ public class ContestantsDialog extends BaseDialog {
             data = data.stream().sorted((o1, o2) -> {
                 int bigger = 0;
                 switch (sortBy) {
-                    case ContestantTableModel.COLUMN_POSITION:
+                    case POSITION:
                         bigger = Integer.compare(o1.getPosition(), o2.getPosition());
                         break;
-                    case ContestantTableModel.COLUMN_NAME:
+                    case NAME:
                         bigger = o1.getName().compareTo(o2.getName());
                         break;
-                    case ContestantTableModel.COLUMN_NUMBER:
+                    case NUMBER:
                         bigger = Integer.compare(o1.getNumber(), o2.getNumber());
                         break;
-                    case ContestantTableModel.COLUMN_AGE:
+                    case AGE:
                         bigger = Integer.compare(o1.getAge(), o2.getAge());
                         break;
-                    case ContestantTableModel.COLUMN_AGE_GROUP_NAME:
+                    case AGE_GROUP_NAME:
                         bigger = o1.getAgeGroup().getName().compareTo(o2.getAgeGroup().getName());
                         break;
-                    case ContestantTableModel.COLUMN_SCHOOL_NAME:
+                    case SCHOOL_NAME:
                         bigger = o1.getSchool().getName().compareTo(o2.getSchool().getName());
                         break;
-                    case ContestantTableModel.COLUMN_SEX:
+                    case SEX:
                         bigger = o1.getSex().compareTo(o2.getSex());
                         break;
                     default:
@@ -218,17 +218,14 @@ public class ContestantsDialog extends BaseDialog {
     private void loadData(List<Contestant> data) {
 
         tableContestants.setModel(new ContestantTableModel(data).setSortBy(sortBy).setSortBackwards(sortBackwards));
-        setColumnWidth(ContestantTableModel.COLUMN_CONTESTANT_ID, 0);
-        setColumnWidth(ContestantTableModel.COLUMN_SCHOOL_ID, 0);
-        setColumnWidth(ContestantTableModel.COLUMN_AGE_GROUP_ID, 0);
-        setColumnWidth(ContestantTableModel.COLUMN_POSITION, 60);
-        setColumnWidth(ContestantTableModel.COLUMN_NUMBER, 60);
-        setColumnWidth(ContestantTableModel.COLUMN_AGE, 70);
-        setColumnWidth(ContestantTableModel.COLUMN_AGE_GROUP_NAME, 85);
-        setColumnWidth(ContestantTableModel.COLUMN_SEX, 40);
-        setColumnWidth(ContestantTableModel.COLUMN_EDIT, 90);
-        tableContestants.getColumnModel().getColumn(ContestantTableModel.COLUMN_EDIT).setCellRenderer(new ButtonRenderer());
-        tableContestants.getColumnModel().getColumn(ContestantTableModel.COLUMN_EDIT).setCellEditor(
+        setColumnWidth(ContestantTableModel.Column.POSITION.ordinal(), 60);
+        setColumnWidth(ContestantTableModel.Column.NUMBER.ordinal(), 60);
+        setColumnWidth(ContestantTableModel.Column.AGE.ordinal(), 70);
+        setColumnWidth(ContestantTableModel.Column.AGE_GROUP_NAME.ordinal(), 85);
+        setColumnWidth(ContestantTableModel.Column.SEX.ordinal(), 40);
+        setColumnWidth(ContestantTableModel.Column.EDIT.ordinal(), 90);
+        tableContestants.getColumnModel().getColumn(ContestantTableModel.Column.EDIT.ordinal()).setCellRenderer(new ButtonRenderer());
+        tableContestants.getColumnModel().getColumn(ContestantTableModel.Column.EDIT.ordinal()).setCellEditor(
                 new ButtonEditor(ContestantsDialog.this::editButtonActionPerformed)
                         .addEditingStoppedListener(ContestantsDialog.this::loadData));
         tableContestants.getTableHeader().setReorderingAllowed(false);
