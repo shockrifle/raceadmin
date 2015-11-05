@@ -577,20 +577,12 @@ public class MainFrame extends javax.swing.JFrame {
 
 
     private List<Contestant> getByAgeGroupAndSex(int ageGroupId, String sex) throws SQLException {
-        List<Contestant> contestants = Database.get().getContestantDao().queryBuilder()
+        return Database.get().getContestantDao().queryBuilder()
                 .where()
                 .eq(Contestant.COLUMN_AGE_GROUP_ID, ageGroupId).and()
-                .eq(Contestant.COLUMN_SEX, sex).and()
-                .gt(Contestant.COLUMN_POSITION, 0)
-                .query();
-        contestants.addAll(Database.get().getContestantDao().queryBuilder()
-                .where()
-                .eq(Contestant.COLUMN_AGE_GROUP_ID, ageGroupId).and()
-                .eq(Contestant.COLUMN_SEX, sex).and()
-                .eq(Contestant.COLUMN_POSITION, 0)
-                .query());
-
-        return contestants;
+                .eq(Contestant.COLUMN_SEX, sex)
+                .query()
+                .stream().sorted((o1, o2) -> Integer.compare(o1.getPosition(), o2.getPosition())).collect(Collectors.toList());
     }
 
     public class Category {
