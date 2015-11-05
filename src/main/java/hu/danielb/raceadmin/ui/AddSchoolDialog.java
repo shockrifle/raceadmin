@@ -14,9 +14,11 @@ import java.util.logging.Logger;
 
 class AddSchoolDialog extends BaseDialog {
 
-    List<SaveListener> listeners =  new ArrayList<>();
+    List<SaveListener> listeners = new ArrayList<>();
 
     private javax.swing.JTextField textName;
+    private javax.swing.JTextField textShortName;
+    private javax.swing.JTextField textSettlement;
 
     private School school;
 
@@ -32,8 +34,12 @@ class AddSchoolDialog extends BaseDialog {
 
     private void initComponents() {
 
+        JLabel labelShortName = new JLabel();
         JLabel labelName = new JLabel();
+        JLabel labelSettlement = new JLabel();
         textName = new javax.swing.JTextField();
+        textShortName = new javax.swing.JTextField();
+        textSettlement = new javax.swing.JTextField();
         JButton buttonCancel = new JButton();
         JButton buttonSave = new JButton();
 
@@ -42,6 +48,8 @@ class AddSchoolDialog extends BaseDialog {
         setResizable(false);
 
         labelName.setText("Iskola név:");
+        labelShortName.setText("Rövid név:");
+        labelSettlement.setText("Település:");
 
         buttonCancel.setText("Mégse");
         buttonCancel.addActionListener(AddSchoolDialog.this::buttonCancelActionPerformed);
@@ -54,11 +62,23 @@ class AddSchoolDialog extends BaseDialog {
         layout.setHorizontalGroup(
                 layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(layout.createSequentialGroup()
+                                        .addContainerGap()
+                                        .addComponent(labelName)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(textName, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        ).addGroup(layout.createSequentialGroup()
                                 .addContainerGap()
-                                .addComponent(labelName)
+                                .addComponent(labelShortName)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(textName, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                                .addComponent(textShortName, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                ).addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(labelSettlement)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(textSettlement, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                 .addComponent(buttonSave)
@@ -73,6 +93,12 @@ class AddSchoolDialog extends BaseDialog {
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                         .addComponent(labelName)
                                         .addComponent(textName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE).addComponent(labelShortName)
+                                        .addComponent(textShortName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE).addComponent(labelSettlement)
+                                        .addComponent(textSettlement, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                         .addComponent(buttonCancel)
@@ -95,11 +121,12 @@ class AddSchoolDialog extends BaseDialog {
 
         for (String name : names) {
             String tempName = name;
-            tempName = tempName.replaceAll("iskola", "")
-                    .replaceAll("Iskola", "")
+            tempName = tempName.toLowerCase()
+                    .replaceAll("\\.", "")
+                    .replaceAll("iskola", "")
                     .replaceAll("isk", "")
-                    .replaceAll("Isk", "")
-                    .replaceAll("ISK", "");
+                    .replaceAll("általános", "")
+                    .replaceAll("ált", "");
             if (tempName.length() > 2) {
                 checkStatement += " or ";
                 toCheck.add("%" + tempName + "%");
@@ -153,12 +180,12 @@ class AddSchoolDialog extends BaseDialog {
         listeners.forEach(listener -> listener.onSave(new School()));
     }
 
-    public AddSchoolDialog addSaveListener(SaveListener listener){
+    public AddSchoolDialog addSaveListener(SaveListener listener) {
         listeners.add(listener);
         return this;
     }
 
-    public  interface SaveListener {
+    public interface SaveListener {
         void onSave(School newSchool);
     }
 }
