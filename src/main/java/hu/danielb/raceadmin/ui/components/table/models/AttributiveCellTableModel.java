@@ -1,21 +1,19 @@
-package hu.danielb.raceadmin.ui.components.table;
+package hu.danielb.raceadmin.ui.components.table.models;
+
+import hu.danielb.raceadmin.ui.components.table.CellAttribute;
+import hu.danielb.raceadmin.ui.components.table.DefaultCellAttribute;
 
 import javax.swing.event.TableModelEvent;
-import javax.swing.table.DefaultTableModel;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Vector;
 
-@SuppressWarnings("unchecked")
-public class AttributiveCellTableModel extends DefaultTableModel {
+public class AttributiveCellTableModel<T> extends BaseTableModel<T> {
 
     private CellAttribute cellAtt;
 
-    public AttributiveCellTableModel(Vector<? extends Vector<String>> data, Vector<? extends String> columnNames) {
-        setDataVector(data, columnNames);
-    }
-
-    public AttributiveCellTableModel(Object[][] data, Object[] columnNames) {
-        setDataVector(data, columnNames);
+    public AttributiveCellTableModel(List<String> columnIdentifiers, List<T> data) {
+        super(columnIdentifiers, data);
     }
 
     @Override
@@ -31,6 +29,7 @@ public class AttributiveCellTableModel extends DefaultTableModel {
                 TableModelEvent.ALL_COLUMNS, TableModelEvent.INSERT));
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void addColumn(Object columnName, Vector columnData) {
         if (columnName == null) {
@@ -55,6 +54,7 @@ public class AttributiveCellTableModel extends DefaultTableModel {
         fireTableStructureChanged();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void addRow(Vector rowData) {
         Vector newData = null;
@@ -71,6 +71,7 @@ public class AttributiveCellTableModel extends DefaultTableModel {
                 TableModelEvent.ALL_COLUMNS, TableModelEvent.INSERT));
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void insertRow(int row, Vector rowData) {
         if (rowData == null) {

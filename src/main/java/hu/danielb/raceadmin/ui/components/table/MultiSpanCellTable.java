@@ -1,5 +1,7 @@
 package hu.danielb.raceadmin.ui.components.table;
 
+import hu.danielb.raceadmin.ui.components.table.models.AttributiveCellTableModel;
+
 import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.table.TableColumn;

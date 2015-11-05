@@ -5,7 +5,7 @@ import hu.danielb.raceadmin.entity.Contestant;
 import java.util.Arrays;
 import java.util.List;
 
-public class ResultsTableModel extends BaseTableModel<Contestant> {
+public class ResultsTableModel extends AttributiveCellTableModel<Contestant> {
 
     public static final int COLUMN_CONTESTANT_ID = 0;
     public static final int COLUMN_POSITION = 1;

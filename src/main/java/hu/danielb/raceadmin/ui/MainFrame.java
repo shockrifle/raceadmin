@@ -6,13 +6,14 @@ import hu.danielb.raceadmin.database.DatabaseOld;
 import hu.danielb.raceadmin.entity.AgeGroup;
 import hu.danielb.raceadmin.entity.Contestant;
 import hu.danielb.raceadmin.entity.PrintHeader;
-import hu.danielb.raceadmin.entity.School;
+import hu.danielb.raceadmin.entity.Team;
 import hu.danielb.raceadmin.ui.components.GenericTabbedPane;
 import hu.danielb.raceadmin.ui.components.PrintHeaderMenuItem;
-import hu.danielb.raceadmin.ui.components.table.AttributiveCellTableModel;
 import hu.danielb.raceadmin.ui.components.table.CellSpan;
 import hu.danielb.raceadmin.ui.components.table.MultiSpanCellTable;
+import hu.danielb.raceadmin.ui.components.table.models.AttributiveCellTableModel;
 import hu.danielb.raceadmin.ui.components.table.models.ResultsTableModel;
+import hu.danielb.raceadmin.ui.components.table.models.TeamResultsTableModel;
 import hu.danielb.raceadmin.util.Constants;
 import hu.danielb.raceadmin.util.Printer;
 import net.sf.jxls.exception.ParsePropertyException;
@@ -25,7 +26,6 @@ import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.print.PrinterException;
 import java.io.*;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.List;
@@ -44,9 +44,6 @@ import java.util.stream.Collectors;
 
 public class MainFrame extends javax.swing.JFrame {
 
-    public static final String COLUMN_AGE_GROUP_ID = "age_group_id";
-    public static final String COLUMN_SCHOOL_ID = "school_id";
-    public static final String COLUMN_SCHOOL_NAME = "school_name";
     private Map<String, JTable> tables;
     private String[] headerString;
     private JDialog startupScreen;
@@ -258,47 +255,26 @@ public class MainFrame extends javax.swing.JFrame {
                     }
                     Category boyAgeGroup = new Category();
                     result.add(boyAgeGroup);
-                    boyAgeGroup.individual.name = ageGroup.getName() + " " + "Fiú, egyéni";
-                    boyAgeGroup.team.name = ageGroup.getName() + " " + "Fiú, csapat";
+                    boyAgeGroup.individualCategory.name = ageGroup.getName() + " " + "Fiú, egyéni";
+                    boyAgeGroup.teamCategory.name = ageGroup.getName() + " " + "Fiú, csapat";
 
                     List<Contestant> contestants = getByAgeGroupAndSex(ageGroup.getId(), Constants.BOY);
-                    contestants.forEach(boyAgeGroup.individual.contestants::add);
+                    contestants.forEach(boyAgeGroup.individualCategory.contestants::add);
 
                     contestants = getByAgeGroupAndSex(ageGroup.getId(), Constants.BOY);
-                    contestants.forEach(contestant -> {
-                        if (contestant.getPosition() > 0) {
-                            Vector<Vector<String>> data = new Vector<>();
-                            data.add(new Vector<>(Arrays.asList(new String[]{
-                                    String.valueOf(contestant.getId()),
-                                    String.valueOf(contestant.getPosition()),
-                                    String.valueOf(contestant.getNumber()),
-                                    contestant.getName(),
-                                    contestant.getSchool().getName()})));
-                            boyAgeGroup.team.teams.addAll(makeTeams(data));
-                        }
-                    });
+                    boyAgeGroup.teamCategory.teams.addAll(makeTeams(contestants.stream().filter(contestant1 -> contestant1.getPosition() > 0).collect(Collectors.toList())));
 
                     Category girlAgeGroup = new Category();
                     result.add(girlAgeGroup);
-                    girlAgeGroup.individual.name = ageGroup.getName() + " " + "Lány, egyéni";
-                    girlAgeGroup.team.name = ageGroup.getName() + " " + "Lány, csapat";
+                    girlAgeGroup.individualCategory.name = ageGroup.getName() + " " + "Lány, egyéni";
+                    girlAgeGroup.teamCategory.name = ageGroup.getName() + " " + "Lány, csapat";
 
                     contestants = getByAgeGroupAndSex(ageGroup.getId(), Constants.GIRL);
-                    contestants.forEach(girlAgeGroup.individual.contestants::add);
+                    contestants.forEach(girlAgeGroup.individualCategory.contestants::add);
 
                     contestants = getByAgeGroupAndSex(ageGroup.getId(), Constants.GIRL);
-                    contestants.forEach(contestant -> {
-                        if (contestant.getPosition() > 0) {
-                            Vector<Vector<String>> data = new Vector<>();
-                            data.add(new Vector<>(Arrays.asList(new String[]{
-                                    String.valueOf(contestant.getId()),
-                                    String.valueOf(contestant.getPosition()),
-                                    String.valueOf(contestant.getNumber()),
-                                    contestant.getName(),
-                                    contestant.getSchool().getName()})));
-                            girlAgeGroup.team.teams.addAll(makeTeams(data));
-                        }
-                    });
+                    girlAgeGroup.teamCategory.teams.addAll(makeTeams(contestants.stream().filter(contestant1 -> contestant1.getPosition() > 0).collect(Collectors.toList())));
+
                 } catch (SQLException ex) {
                     Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
                 } catch (IOException e) {
@@ -462,171 +438,119 @@ public class MainFrame extends javax.swing.JFrame {
     private void loadTable(String sex, AgeGroup ageGroup) {
         try {
             List<Contestant> contestants = getByAgeGroupAndSex(ageGroup.getId(), sex);
-            Vector<Vector<String>> data = new Vector<>();
-            Vector<Vector<String>> disq = new Vector<>();
+            List<Contestant> data = new ArrayList<>();
+            List<Contestant> disqualified = new ArrayList<>();
             contestants.forEach(contestant -> {
                 if (contestant.getPosition() > 0) {
-                    data.add(new Vector<>(Arrays.asList(new String[]{
-                            String.valueOf(contestant.getId()),
-                            String.valueOf(contestant.getPosition()),
-                            String.valueOf(contestant.getNumber()),
-                            contestant.getName(),
-                            contestant.getSchool().getName()})));
+                    data.add(contestant);
                 } else {
-                    data.add(new Vector<>(Arrays.asList(new String[]{
-                            String.valueOf(contestant.getId()),
-                            "",
-                            String.valueOf(contestant.getNumber()),
-                            contestant.getName(),
-                            contestant.getSchool().getName()})));
+                    disqualified.add(contestant);
                 }
-
             });
 
-            if (!data.isEmpty() || !disq.isEmpty()) {
+            if (!data.isEmpty() || !disqualified.isEmpty()) {
                 loadTeams(sex, ageGroup, data);
 
-                data.addAll(disq);
+                data.addAll(disqualified);
 
-                addDataToTable(String.valueOf(ageGroup.getId()) + sex, data);
+                addContestantDataToTable(String.valueOf(ageGroup.getId()) + sex, data);
             }
         } catch (SQLException ex) {
             Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    private void loadTeams(String sex, AgeGroup ageGroup, Vector<Vector<String>> data) {
+    private void loadTeams(String sex, AgeGroup ageGroup, List<Contestant> data) {
 
-        List<hu.danielb.raceadmin.entity.Team> teams = makeTeams(data);
-        Vector<Vector<String>> teamData = new Vector<>();
-        try {
-            for (int i = 0; i < teams.size(); i++) {
-                for (int j = 0; j < teams.get(i).getMembers().size(); j++) {
-                    ResultSet rs;
-                    rs = DatabaseOld.runSql("select Contestant.*,School.name as " + COLUMN_SCHOOL_NAME + " from " + Contestant.TABLE + " inner join " + School.TABLE + " on Contestant." + COLUMN_SCHOOL_ID + "=School.id where Contestant.id = ?", DatabaseOld.QUERRY, String.valueOf(teams.get(i).getMembers().get(j).getId()));
-                    while (rs.next()) {
-                        teamData.add(new Vector<>(Arrays.asList(
-                                new String[]{String.valueOf(rs.getInt("id")),
-                                        String.valueOf(i + 1),
-                                        String.valueOf(teams.get(i).getPoints(4)),
-                                        String.valueOf(rs.getInt("position")),
-                                        String.valueOf(rs.getInt("number")),
-                                        rs.getString("name"),
-                                        rs.getString(COLUMN_SCHOOL_NAME)})));
-                    }
-
-                }
+        List<Team> teams = makeTeams(data);
+        String tableName = String.valueOf(ageGroup.getId()) + getTeamConst(sex);
+        addTeamDataToTable(tableName, teams);
+        JTable jt = tables.get(tableName);
+        CellSpan cellAtt = (CellSpan) ((AttributiveCellTableModel) jt.getModel()).getCellAttribute();
+        for (int i = 0; i < (teams.size() * Team.MAX_MEMBERS); i = i + Team.MAX_MEMBERS) {
+            int[] rowsArray = new int[Team.MAX_MEMBERS];
+            for (int j = 0; j < Team.MAX_MEMBERS; j++) {
+                rowsArray[j] = i + j;
             }
-            String tableName = String.valueOf(ageGroup.getId()) + getTeamConst(sex);
-            addDataToTable(tableName, teamData);
-            JTable jt = tables.get(tableName);
-            CellSpan cellAtt = (CellSpan) ((AttributiveCellTableModel) jt.getModel()).getCellAttribute();
-            for (int i = 0; i < (teams.size() * 4); i = i + 4) {
-                cellAtt.combine(new int[]{i, i + 1, i + 2, i + 3}, new int[]{1});
-                cellAtt.combine(new int[]{i, i + 1, i + 2, i + 3}, new int[]{2});
-                cellAtt.combine(new int[]{i, i + 1, i + 2, i + 3}, new int[]{6});
-            }
-
-            jt.clearSelection();
-            jt.revalidate();
-            jt.repaint();
-
-        } catch (SQLException ex) {
-            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+            cellAtt.combine(rowsArray, new int[]{1});
+            cellAtt.combine(rowsArray, new int[]{2});
+            cellAtt.combine(rowsArray, new int[]{6});
         }
+
+        jt.clearSelection();
+        jt.revalidate();
+        jt.repaint();
+
+
     }
 
-    private List<hu.danielb.raceadmin.entity.Team> makeTeams(Vector<Vector<String>> data) {
-        HashMap<String, hu.danielb.raceadmin.entity.Team> tmp = new HashMap<>();
-        for (Vector<String> data1 : data) {
+    private List<Team> makeTeams(List<Contestant> data) {
+        HashMap<String, Team> teams = new HashMap<>();
+        for (Contestant contestant : data) {
             boolean added = false;
             int n = 0;
             do {
-                String sch = data1.get(4) + n;
-                if (tmp.containsKey(sch)) {
-                    if (!tmp.get(sch).isFull()) {
-                        tmp.get(sch).addMember(new Contestant(
-                                Integer.parseInt(data1.get(0)),
-                                Integer.parseInt(data1.get(1).isEmpty() ? "0" : data1.get(1)),
-                                data1.get(3),
-                                "",
-                                Integer.parseInt(data1.get(2)),
-                                new AgeGroup(0, "", 0, 0),
-                                new School(0, data1.get(4)), 0));
+                String teamName = contestant.getSchool().getName() + n;
+                if (teams.containsKey(teamName)) {
+                    if (!teams.get(teamName).isFull()) {
+                        teams.get(teamName).addMember(contestant);
                         added = true;
                     } else {
                         n++;
                     }
                 } else {
-                    tmp.put(sch, new hu.danielb.raceadmin.entity.Team(sch));
-                    tmp.get(sch).addMember(new Contestant(
-                            Integer.parseInt(data1.get(0)),
-                            Integer.parseInt(data1.get(1).isEmpty() ? "0" : data1.get(1)),
-                            data1.get(3),
-                            "",
-                            Integer.parseInt(data1.get(2)),
-                            new AgeGroup(0, "", 0, 0),
-                            new School(0, data1.get(4)), 0));
+                    teams.put(teamName, new Team(teamName));
+                    teams.get(teamName).addMember(contestant);
                     added = true;
                 }
             } while (!added);
         }
 
-        List<hu.danielb.raceadmin.entity.Team> teams = tmp.entrySet().stream().filter(entry -> entry.getValue().isFull()).map(Map.Entry::getValue).collect(Collectors.toList());
 
-        boolean swapped;
-
-        do {
-            swapped = false;
-            for (int i = 1; i < teams.size(); i++) {
-                if (teams.get(i).lowerThan(teams.get(i - 1))) {
-                    hu.danielb.raceadmin.entity.Team t = teams.get(i - 1);
-                    teams.set(i - 1, teams.get(i));
-                    teams.set(i, t);
-                    swapped = true;
-                }
-            }
-        } while (swapped);
-
-        return teams;
+        return teams.entrySet().stream()
+                .filter(entry -> entry.getValue().isFull())
+                .map(Map.Entry::getValue).collect(Collectors.toList())
+                .stream()
+                .sorted().collect(Collectors.toList());
     }
 
-    private void addDataToTable(String tableName, Vector<Vector<String>> data) {
-        DefaultTableCellRenderer dtcr = new DefaultTableCellRenderer();
-        dtcr.setHorizontalAlignment(SwingConstants.CENTER);
+    private void addTeamDataToTable(String tableName, List<Team> data) {
 
         JTable currentTable = tables.get(tableName);
-        if (tableName.contains(Constants.BOYTEAM) || tableName.contains(Constants.GIRLTEAM)) {
-            currentTable.setModel(new AttributiveCellTableModel(data, new Vector<>(Arrays.asList(new String[]{"", "Helyezés", "Pontszám", "Egyéni", "Rajtszám", "Név", "School"}))) {
-                @Override
-                public boolean isCellEditable(int rowIndex, int colIndex) {
-                    return false;
-                }
-            });
-            setColumnWidth(currentTable, 0, 0);
-            setColumnWidth(currentTable, 1, 60);
-            setColumnWidth(currentTable, 2, 60);
-            setColumnWidth(currentTable, 3, 60);
-            setColumnWidth(currentTable, 4, 60);
-            setColumnWidth(currentTable, 5, 180);
-        } else {
-            currentTable.setModel(new AttributiveCellTableModel(data, new Vector<>(Arrays.asList(new String[]{"", "Helyezés", "Rajtszám", "Név", "School"}))) {
-                @Override
-                public boolean isCellEditable(int rowIndex, int colIndex) {
-                    return false;
-                }
-            });
-            setColumnWidth(currentTable, ResultsTableModel.COLUMN_CONTESTANT_ID, 0);
-            setColumnWidth(currentTable, ResultsTableModel.COLUMN_POSITION, 80);
-            setColumnWidth(currentTable, ResultsTableModel.COLUMN_NUMBER, 80);
-            setColumnWidth(currentTable, ResultsTableModel.COLUMN_NAME, 180);
+
+        currentTable.setModel(new TeamResultsTableModel(data));
+        setColumnWidth(currentTable, 0, 0);
+        setColumnWidth(currentTable, 1, 60);
+        setColumnWidth(currentTable, 2, 60);
+        setColumnWidth(currentTable, 3, 60);
+        setColumnWidth(currentTable, 4, 60);
+        setColumnWidth(currentTable, 5, 180);
+
+        setUpTable(currentTable);
+    }
+
+    private void addContestantDataToTable(String tableName, List<Contestant> data) {
+
+        JTable currentTable = tables.get(tableName);
+
+        currentTable.setModel(new ResultsTableModel(data));
+        setColumnWidth(currentTable, ResultsTableModel.COLUMN_CONTESTANT_ID, 0);
+        setColumnWidth(currentTable, ResultsTableModel.COLUMN_POSITION, 80);
+        setColumnWidth(currentTable, ResultsTableModel.COLUMN_NUMBER, 80);
+        setColumnWidth(currentTable, ResultsTableModel.COLUMN_NAME, 180);
+
+        setUpTable(currentTable);
+    }
+
+    private void setUpTable(JTable table) {
+        table.getTableHeader().setReorderingAllowed(false);
+        table.getTableHeader().setResizingAllowed(false);
+        for (int i = 0; i < table.getColumnCount(); i++) {
+            DefaultTableCellRenderer cellRenderer = new DefaultTableCellRenderer();
+            cellRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+            table.getColumnModel().getColumn(i).setCellRenderer(cellRenderer);
         }
-        currentTable.getTableHeader().setReorderingAllowed(false);
-        currentTable.getTableHeader().setResizingAllowed(false);
-        for (int i = 0; i < currentTable.getColumnCount(); i++) {
-            currentTable.getColumnModel().getColumn(i).setCellRenderer(dtcr);
-        }
-        currentTable.setEnabled(false);
+        table.setEnabled(false);
     }
 
     private String getTeamConst(String sex) {
@@ -671,12 +595,12 @@ public class MainFrame extends javax.swing.JFrame {
 
     public class Category {
 
-        Individual individual = new Individual();
-        Team team = new Team();
+        IndividualCategory individualCategory = new IndividualCategory();
+        TeamCategory teamCategory = new TeamCategory();
 
     }
 
-    public class Individual {
+    public class IndividualCategory {
 
         String name = "";
         List<Contestant> contestants = new ArrayList<>();
@@ -685,23 +609,15 @@ public class MainFrame extends javax.swing.JFrame {
             return name;
         }
 
-        public void setName(String name) {
-            this.name = name;
-        }
-
     }
 
-    public class Team {
+    public class TeamCategory {
 
         String name = "";
-        List<hu.danielb.raceadmin.entity.Team> teams = new ArrayList<>();
+        List<Team> teams = new ArrayList<>();
 
         public String getName() {
             return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
         }
 
     }

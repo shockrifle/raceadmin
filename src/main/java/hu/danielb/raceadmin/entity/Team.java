@@ -2,22 +2,28 @@ package hu.danielb.raceadmin.entity;
 
 import java.util.ArrayList;
 
-public class Team {
+public class Team implements Comparable {
 
-    String name;
-    ArrayList<Contestant> members;
+    public static final int MAX_MEMBERS = 4;
 
-    public Team(String n) {
-        name = n;
+    private String name;
+    private ArrayList<Contestant> members;
+
+    public Team(String name) {
+        this.name = name;
         members = new ArrayList<>();
     }
 
-    public void addMember(Contestant m) {
-        members.add(m);
+    public void addMember(Contestant contestant) {
+        members.add(contestant);
     }
 
     public ArrayList<Contestant> getMembers() {
         return members;
+    }
+
+    public int getPoints() {
+        return getPoints(MAX_MEMBERS);
     }
 
     public int getPoints(int to) {
@@ -31,26 +37,29 @@ public class Team {
         return sum;
     }
 
-    public boolean lowerThan(Team t) {
-        if (t.getPoints(4) > this.getPoints(4)) {
-            return true;
-        } else if (t.getPoints(4) == this.getPoints(4)) {
-            if (t.getPoints(3) > this.getPoints(3)) {
-                return true;
-            } else if (t.getPoints(3) == this.getPoints(3)) {
-                if (t.getPoints(2) > this.getPoints(2)) {
-                    return true;
-                } else if (t.getPoints(2) == this.getPoints(2)) {
-                    if (t.getPoints(1) > this.getPoints(1)) {
-                        return true;
-                    }
-                }
-            }
-        }
-        return false;
+    public String getName() {
+        return name;
     }
 
     public boolean isFull() {
-        return members.size() >= 4;
+        return members.size() >= MAX_MEMBERS;
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        Team other = (Team) o;
+        return compareTo(other, MAX_MEMBERS);
+    }
+
+    private int compareTo(Team other, int memberCount) {
+        if (memberCount <= 0) {
+            return 0;
+        }
+        if (other.getPoints(memberCount) > this.getPoints(memberCount)) {
+            return 1;
+        } else if (other.getPoints(memberCount) == this.getPoints(memberCount)) {
+            return compareTo(other, memberCount - 1);
+        }
+        return -1;
     }
 }
