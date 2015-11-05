@@ -58,7 +58,7 @@ class AddContestantDialog extends BaseDialog {
             textName.setText(contestant.getName());
             comboSchool.setSelectedItem(contestant.getSchool());
             spinnerAge.setValue(contestant.getAge());
-            spinnerAgeStateChanged(null);
+            comboAgeGroup.setSelectedItem(contestant.getAgeGroup());
             spinnerNumber.setValue(contestant.getNumber());
             if (Constants.BOY.equals(contestant.getSex())) {
                 radioBoy.setSelected(true);
@@ -66,6 +66,7 @@ class AddContestantDialog extends BaseDialog {
                 radioGirl.setSelected(true);
             }
         }
+        spinnerAge.addChangeListener(AddContestantDialog.this::spinnerAgeStateChanged);
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowOpened(WindowEvent e) {
@@ -126,7 +127,6 @@ class AddContestantDialog extends BaseDialog {
         }
         SpinnerNumberModel spinnerModelNumber = new SpinnerNumberModel(min, min, max, 1);
         spinnerAge.setModel(spinnerModelNumber);
-        spinnerAge.addChangeListener(AddContestantDialog.this::spinnerAgeStateChanged);
 
         spinnerModelNumber = new SpinnerNumberModel(1, 1, 9999, 1);
         spinnerNumber.setModel(spinnerModelNumber);
