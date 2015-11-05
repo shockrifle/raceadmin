@@ -12,6 +12,7 @@ import hu.danielb.raceadmin.ui.components.PrintHeaderMenuItem;
 import hu.danielb.raceadmin.ui.components.table.AttributiveCellTableModel;
 import hu.danielb.raceadmin.ui.components.table.CellSpan;
 import hu.danielb.raceadmin.ui.components.table.MultiSpanCellTable;
+import hu.danielb.raceadmin.ui.components.table.models.ResultsTableModel;
 import hu.danielb.raceadmin.util.Constants;
 import hu.danielb.raceadmin.util.Printer;
 import net.sf.jxls.exception.ParsePropertyException;
@@ -217,9 +218,9 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void menuItemPrintActionPerformed(java.awt.event.ActionEvent evt) {
         if (headerString != null && headerString.length > 0) {
-            GenericTabbedPane ktab = (GenericTabbedPane) ageGroupPane.getComponentAt(ageGroupPane.getSelectedIndex());
-            AgeGroup ageGroup = (AgeGroup) ktab.getData();
-            GenericTabbedPane.Tab tab = ktab.getTab(ktab.getSelectedIndex());
+            GenericTabbedPane ageGroupTab = (GenericTabbedPane) ageGroupPane.getComponentAt(ageGroupPane.getSelectedIndex());
+            AgeGroup ageGroup = (AgeGroup) ageGroupTab.getData();
+            GenericTabbedPane.Tab tab = ageGroupTab.getTab(ageGroupTab.getSelectedIndex());
 
             try {
                 if (tab.getId() == Constants.BOYTEAM || tab.getId() == Constants.GIRLTEAM) {
@@ -243,66 +244,73 @@ public class MainFrame extends javax.swing.JFrame {
     }
 
     private void menuItemExportActionPerformed(java.awt.event.ActionEvent evt) {
+
+        List<Category> result = new ArrayList<>();
+
         try {
-
-            List<Category> result = new ArrayList<>();
-
-            ResultSet ageGroupResultSet = DatabaseOld.runSql("select * from " + AgeGroup.TABLE);
-            while (ageGroupResultSet.next()) {
-                File exportDir = new File(exportsPath);
-                if (!exportDir.exists()) {
-                    if (!exportDir.mkdirs()) {
-                        throw new IOException("Cannot create directory for exports at: " + exportDir.getAbsolutePath());
+            Database.get().getAgeGroupDao().queryForAll().stream().sorted((o1, o2) -> Integer.compare(o1.getMinimum(), o2.getMinimum())).forEach(ageGroup -> {
+                try {
+                    File exportDir = new File(exportsPath);
+                    if (!exportDir.exists()) {
+                        if (!exportDir.mkdirs()) {
+                            throw new IOException("Cannot create directory for exports at: " + exportDir.getAbsolutePath());
+                        }
                     }
+                    Category boyAgeGroup = new Category();
+                    result.add(boyAgeGroup);
+                    boyAgeGroup.individual.name = ageGroup.getName() + " " + "Fiú, egyéni";
+                    boyAgeGroup.team.name = ageGroup.getName() + " " + "Fiú, csapat";
+
+                    List<Contestant> contestants = getByAgeGroupAndSex(ageGroup.getId(), Constants.BOY);
+                    contestants.forEach(boyAgeGroup.individual.contestants::add);
+
+                    contestants = getByAgeGroupAndSex(ageGroup.getId(), Constants.BOY);
+                    contestants.forEach(contestant -> {
+                        if (contestant.getPosition() > 0) {
+                            Vector<Vector<String>> data = new Vector<>();
+                            data.add(new Vector<>(Arrays.asList(new String[]{
+                                    String.valueOf(contestant.getId()),
+                                    String.valueOf(contestant.getPosition()),
+                                    String.valueOf(contestant.getNumber()),
+                                    contestant.getName(),
+                                    contestant.getSchool().getName()})));
+                            boyAgeGroup.team.teams.addAll(makeTeams(data));
+                        }
+                    });
+
+                    Category girlAgeGroup = new Category();
+                    result.add(girlAgeGroup);
+                    girlAgeGroup.individual.name = ageGroup.getName() + " " + "Lány, egyéni";
+                    girlAgeGroup.team.name = ageGroup.getName() + " " + "Lány, csapat";
+
+                    contestants = getByAgeGroupAndSex(ageGroup.getId(), Constants.GIRL);
+                    contestants.forEach(girlAgeGroup.individual.contestants::add);
+
+                    contestants = getByAgeGroupAndSex(ageGroup.getId(), Constants.GIRL);
+                    contestants.forEach(contestant -> {
+                        if (contestant.getPosition() > 0) {
+                            Vector<Vector<String>> data = new Vector<>();
+                            data.add(new Vector<>(Arrays.asList(new String[]{
+                                    String.valueOf(contestant.getId()),
+                                    String.valueOf(contestant.getPosition()),
+                                    String.valueOf(contestant.getNumber()),
+                                    contestant.getName(),
+                                    contestant.getSchool().getName()})));
+                            girlAgeGroup.team.teams.addAll(makeTeams(data));
+                        }
+                    });
+                } catch (SQLException ex) {
+                    Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-                Category boyAgeGroup = new Category();
-                result.add(boyAgeGroup);
-                boyAgeGroup.individual.name = ageGroupResultSet.getString(AgeGroup.COLUMN_NAME) + " " + "Fiú, egyéni";
-                boyAgeGroup.team.name = ageGroupResultSet.getString(AgeGroup.COLUMN_NAME) + " " + "Fiú, csapat";
-                Category girlAgeGroup = new Category();
-                result.add(girlAgeGroup);
-                girlAgeGroup.individual.name = ageGroupResultSet.getString(AgeGroup.COLUMN_NAME) + " " + "Lány, egyéni";
-                girlAgeGroup.team.name = ageGroupResultSet.getString(AgeGroup.COLUMN_NAME) + " " + "Lány, csapat";
-
-                List<Contestant> contestants = getByAgeGroupAndSex(ageGroupResultSet.getInt(AgeGroup.COLUMN_ID), Constants.BOY);
-                contestants.forEach(boyAgeGroup.individual.contestants::add);
-
-                contestants = getByAgeGroupAndSex(ageGroupResultSet.getInt(AgeGroup.COLUMN_ID), Constants.GIRL);
-                contestants.forEach(girlAgeGroup.individual.contestants::add);
+            });
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
 
-                contestants = getByAgeGroupAndSex(ageGroupResultSet.getInt(AgeGroup.COLUMN_ID), Constants.BOY);
-
-                contestants.forEach(contestant -> {
-                    if (contestant.getPosition() > 0) {
-                        Vector<Vector<String>> data = new Vector<>();
-                        data.add(new Vector<>(Arrays.asList(new String[]{
-                                String.valueOf(contestant.getId()),
-                                String.valueOf(contestant.getPosition()),
-                                String.valueOf(contestant.getNumber()),
-                                contestant.getName(),
-                                contestant.getSchool().getName()})));
-                        boyAgeGroup.team.teams.addAll(makeTeams(data));
-                    }
-                });
-
-
-                contestants = getByAgeGroupAndSex(ageGroupResultSet.getInt(AgeGroup.COLUMN_ID), Constants.GIRL);
-                contestants.forEach(contestant -> {
-                    if (contestant.getPosition() > 0) {
-                        Vector<Vector<String>> data = new Vector<>();
-                        data.add(new Vector<>(Arrays.asList(new String[]{
-                                String.valueOf(contestant.getId()),
-                                String.valueOf(contestant.getPosition()),
-                                String.valueOf(contestant.getNumber()),
-                                contestant.getName(),
-                                contestant.getSchool().getName()})));
-                        girlAgeGroup.team.teams.addAll(makeTeams(data));
-                    }
-                });
-
-            }
-
+        try {
             Map<String, List> beans = new HashMap<>();
             beans.put("eredmenyek", result);
             XLSTransformer transformer = new XLSTransformer();
@@ -310,7 +318,7 @@ public class MainFrame extends javax.swing.JFrame {
             OutputStream os = new FileOutputStream(file);
             InputStream template = getClass().getResourceAsStream("/templates/egyeni_template.xls");
             transformer.transformXLS(template, beans).write(os);
-        } catch (SQLException | IOException | ParsePropertyException | InvalidFormatException ex) {
+        } catch (IOException | ParsePropertyException | InvalidFormatException ex) {
             Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -397,51 +405,40 @@ public class MainFrame extends javax.swing.JFrame {
     private void initPane() {
         ageGroupPane.removeAll();
         try {
-            ResultSet rs = DatabaseOld.runSql("select * from " + AgeGroup.TABLE);
-            while (rs.next()) {
-                GenericTabbedPane<AgeGroup> jtp = new GenericTabbedPane<>(new AgeGroup(rs.getInt("id"), rs.getString("name"), rs.getInt("minimum"), rs.getInt("maximum")));
-                String ageGroupId = String.valueOf(rs.getInt("id"));
+            Database.get().getAgeGroupDao().queryForAll().stream().sorted((o1, o2) -> Integer.compare(o1.getMinimum(), o2.getMinimum())).forEach(ageGroup -> {
+                GenericTabbedPane<AgeGroup> ageGroupTab = new GenericTabbedPane<>(ageGroup);
+                String ageGroupId = String.valueOf(ageGroup.getId());
 
-                jtp.setPreferredSize(new Dimension(ageGroupPane.getHeight(), ageGroupPane.getWidth()));
+                ageGroupTab.setPreferredSize(new Dimension(ageGroupPane.getHeight(), ageGroupPane.getWidth()));
 
-                jtp.addTab(Constants.BOY, "Fiú", createTable(ageGroupId + Constants.BOY, new Dimension(jtp.getHeight(), jtp.getWidth())));
-                jtp.addTab(Constants.GIRL, "Lány", createTable(ageGroupId + Constants.GIRL, new Dimension(jtp.getHeight(), jtp.getWidth())));
-                jtp.addTab(Constants.BOYTEAM, "Fiú Csapat", createTable(ageGroupId + Constants.BOYTEAM, new Dimension(jtp.getHeight(), jtp.getWidth())));
-                jtp.addTab(Constants.GIRLTEAM, "Lány Csapat", createTable(ageGroupId + Constants.GIRLTEAM, new Dimension(jtp.getHeight(), jtp.getWidth())));
+                ageGroupTab.addTab(Constants.BOY, "Fiú", createTable(ageGroupId + Constants.BOY, new Dimension(ageGroupTab.getHeight(), ageGroupTab.getWidth())));
+                ageGroupTab.addTab(Constants.GIRL, "Lány", createTable(ageGroupId + Constants.GIRL, new Dimension(ageGroupTab.getHeight(), ageGroupTab.getWidth())));
+                ageGroupTab.addTab(Constants.BOYTEAM, "Fiú Csapat", createTable(ageGroupId + Constants.BOYTEAM, new Dimension(ageGroupTab.getHeight(), ageGroupTab.getWidth())));
+                ageGroupTab.addTab(Constants.GIRLTEAM, "Lány Csapat", createTable(ageGroupId + Constants.GIRLTEAM, new Dimension(ageGroupTab.getHeight(), ageGroupTab.getWidth())));
 
-                ageGroupPane.addTab(rs.getString("name"), jtp);
-            }
+                ageGroupPane.addTab(ageGroup.getName(), ageGroupTab);
+            });
         } catch (SQLException ex) {
             Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     private JScrollPane createTable(String name, Dimension size) {
-        DefaultTableCellRenderer dtcr = new DefaultTableCellRenderer();
-        dtcr.setHorizontalAlignment(SwingConstants.CENTER);
 
-        MultiSpanCellTable jt = new MultiSpanCellTable(
-                new AttributiveCellTableModel(new String[][]{{"", "", "", "", ""}}, new String[]{"", "Helyezés", "Rajtszám", "Név", "School"})) {
-            @Override
-            public boolean isCellEditable(int rowIndex, int colIndex) {
-                return false;
-            }
-        };
-        jt.getTableHeader().setReorderingAllowed(false);
-        jt.getTableHeader().setResizingAllowed(false);
+        MultiSpanCellTable currentTable = new MultiSpanCellTable(new ResultsTableModel(new ArrayList<>()));
+        currentTable.getTableHeader().setReorderingAllowed(false);
+        currentTable.getTableHeader().setResizingAllowed(false);
 
-        for (int i = 0; i < jt.getColumnCount(); i++) {
-            jt.getColumnModel().getColumn(i).setCellRenderer(dtcr);
+        for (int i = 0; i < currentTable.getColumnCount(); i++) {
+            DefaultTableCellRenderer cellRenderer = new DefaultTableCellRenderer();
+            cellRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+            currentTable.getColumnModel().getColumn(i).setCellRenderer(cellRenderer);
         }
-        setColumnWidth(jt, 0, 0);
-        setColumnWidth(jt, 1, 25);
-        setColumnWidth(jt, 2, 75);
-        setColumnWidth(jt, 3, 25);
 
-        JScrollPane jspF = new JScrollPane(jt);
-        jspF.setPreferredSize(size);
-        tables.put(name, jt);
-        return jspF;
+        JScrollPane tableScrollPane = new JScrollPane(currentTable);
+        tableScrollPane.setPreferredSize(size);
+        tables.put(name, currentTable);
+        return tableScrollPane;
     }
 
     private void loadData() {
@@ -449,10 +446,7 @@ public class MainFrame extends javax.swing.JFrame {
             @Override
             public void run() {
                 try {
-                    ResultSet rs = DatabaseOld.runSql("select * from " + AgeGroup.TABLE + "");
-                    while (rs.next()) {
-                        updateData(new AgeGroup(rs.getInt("id"), rs.getString("name"), rs.getInt("minimum"), rs.getInt("maximum")));
-                    }
+                    Database.get().getAgeGroupDao().queryForAll().stream().sorted((o1, o2) -> Integer.compare(o1.getMinimum(), o2.getMinimum())).forEach(MainFrame.this::updateData);
                 } catch (SQLException ex) {
                     Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -622,10 +616,10 @@ public class MainFrame extends javax.swing.JFrame {
                     return false;
                 }
             });
-            setColumnWidth(currentTable, 0, 0);
-            setColumnWidth(currentTable, 1, 80);
-            setColumnWidth(currentTable, 2, 80);
-            setColumnWidth(currentTable, 3, 180);
+            setColumnWidth(currentTable, ResultsTableModel.COLUMN_CONTESTANT_ID, 0);
+            setColumnWidth(currentTable, ResultsTableModel.COLUMN_POSITION, 80);
+            setColumnWidth(currentTable, ResultsTableModel.COLUMN_NUMBER, 80);
+            setColumnWidth(currentTable, ResultsTableModel.COLUMN_NAME, 180);
         }
         currentTable.getTableHeader().setReorderingAllowed(false);
         currentTable.getTableHeader().setResizingAllowed(false);
@@ -661,13 +655,13 @@ public class MainFrame extends javax.swing.JFrame {
     private List<Contestant> getByAgeGroupAndSex(int ageGroupId, String sex) throws SQLException {
         List<Contestant> contestants = Database.get().getContestantDao().queryBuilder()
                 .where()
-                .eq(AgeGroup.COLUMN_ID, ageGroupId).and()
+                .eq(Contestant.COLUMN_AGE_GROUP_ID, ageGroupId).and()
                 .eq(Contestant.COLUMN_SEX, sex).and()
                 .gt(Contestant.COLUMN_POSITION, 0)
                 .query();
         contestants.addAll(Database.get().getContestantDao().queryBuilder()
                 .where()
-                .eq(AgeGroup.COLUMN_ID, ageGroupId).and()
+                .eq(Contestant.COLUMN_AGE_GROUP_ID, ageGroupId).and()
                 .eq(Contestant.COLUMN_SEX, sex).and()
                 .eq(Contestant.COLUMN_POSITION, 0)
                 .query());
