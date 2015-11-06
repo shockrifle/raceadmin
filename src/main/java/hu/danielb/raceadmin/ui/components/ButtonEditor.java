@@ -11,7 +11,7 @@ import java.util.List;
 
 public class ButtonEditor extends DefaultCellEditor {
 
-    protected JButton button;
+    private JButton button;
     private String label;
     private boolean isPushed;
     private ActionListener listener;

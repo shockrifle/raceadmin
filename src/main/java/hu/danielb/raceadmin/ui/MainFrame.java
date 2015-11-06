@@ -2,7 +2,6 @@ package hu.danielb.raceadmin.ui;
 
 
 import hu.danielb.raceadmin.database.Database;
-import hu.danielb.raceadmin.database.DatabaseOld;
 import hu.danielb.raceadmin.entity.AgeGroup;
 import hu.danielb.raceadmin.entity.Contestant;
 import hu.danielb.raceadmin.entity.PrintHeader;
@@ -220,7 +219,7 @@ public class MainFrame extends javax.swing.JFrame {
             GenericTabbedPane.Tab tab = ageGroupTab.getTab(ageGroupTab.getSelectedIndex());
 
             try {
-                if (tab.getId() == Constants.BOYTEAM || tab.getId() == Constants.GIRLTEAM) {
+                if (tab.getId() == Constants.BOY_TEAM || tab.getId() == Constants.GIRL_TEAM) {
                     new Printer(ageGroup.getName() + ", " + tab.getTitle(), tables.get(ageGroup.getId() + (String) tab.getId()), headerString, true);
                 } else {
                     new Printer(ageGroup.getName() + ", " + tab.getTitle(), tables.get(ageGroup.getId() + (String) tab.getId()), headerString);
@@ -322,19 +321,11 @@ public class MainFrame extends javax.swing.JFrame {
             new Thread() {
                 @Override
                 public void run() {
-                    try {
-                        DatabaseOld.connect();
+                    tables = new HashMap<>();
+                    initComponents();
+                    loadData();
 
-                        tables = new HashMap<>();
-                        initComponents();
-                        loadData();
-
-                        startupScreen.dispose();
-                    } catch (SQLException ex) {
-                        warn("Hiba az adatok betöltése közben!");
-                        Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
-                        System.exit(1);
-                    }
+                    startupScreen.dispose();
                 }
             }.start();
             startupScreen.setVisible(true);
@@ -389,8 +380,8 @@ public class MainFrame extends javax.swing.JFrame {
 
                 ageGroupTab.addTab(Constants.BOY, "Fiú", createTable(ageGroupId + Constants.BOY, new Dimension(ageGroupTab.getHeight(), ageGroupTab.getWidth())));
                 ageGroupTab.addTab(Constants.GIRL, "Lány", createTable(ageGroupId + Constants.GIRL, new Dimension(ageGroupTab.getHeight(), ageGroupTab.getWidth())));
-                ageGroupTab.addTab(Constants.BOYTEAM, "Fiú Csapat", createTable(ageGroupId + Constants.BOYTEAM, new Dimension(ageGroupTab.getHeight(), ageGroupTab.getWidth())));
-                ageGroupTab.addTab(Constants.GIRLTEAM, "Lány Csapat", createTable(ageGroupId + Constants.GIRLTEAM, new Dimension(ageGroupTab.getHeight(), ageGroupTab.getWidth())));
+                ageGroupTab.addTab(Constants.BOY_TEAM, "Fiú Csapat", createTable(ageGroupId + Constants.BOY_TEAM, new Dimension(ageGroupTab.getHeight(), ageGroupTab.getWidth())));
+                ageGroupTab.addTab(Constants.GIRL_TEAM, "Lány Csapat", createTable(ageGroupId + Constants.GIRL_TEAM, new Dimension(ageGroupTab.getHeight(), ageGroupTab.getWidth())));
 
                 ageGroupPane.addTab(ageGroup.getName(), ageGroupTab);
             });
@@ -554,9 +545,9 @@ public class MainFrame extends javax.swing.JFrame {
     private String getTeamConst(String sex) {
         switch (sex) {
             case Constants.BOY:
-                return Constants.BOYTEAM;
+                return Constants.BOY_TEAM;
             case Constants.GIRL:
-                return Constants.GIRLTEAM;
+                return Constants.GIRL_TEAM;
             default:
                 throw new AssertionError();
         }

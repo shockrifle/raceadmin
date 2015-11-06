@@ -14,7 +14,7 @@ import java.util.logging.Logger;
 
 class AddSchoolDialog extends BaseDialog {
 
-    List<SaveListener> listeners = new ArrayList<>();
+    private List<SaveListener> listeners = new ArrayList<>();
 
     private javax.swing.JTextField textName;
     private javax.swing.JTextField textShortName;

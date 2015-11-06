@@ -4,18 +4,18 @@ import java.awt.*;
 
 public class DefaultCellAttribute implements CellAttribute, CellSpan {
 
-    protected int rowSize;
-    protected int columnSize;
-    protected int[][][] span;
-    protected Color[][] foreground;
-    protected Color[][] background;
-    protected Font[][] font;
+    private int rowSize;
+    private int columnSize;
+    private int[][][] span;
+    private Color[][] foreground;
+    private Color[][] background;
+    private Font[][] font;
 
     public DefaultCellAttribute(int numRows, int numColumns) {
         setSize(new Dimension(numColumns, numRows));
     }
 
-    protected void initValue() {
+    private void initValue() {
         for (int i = 0; i < span.length; i++) {
             for (int j = 0; j < span[i].length; j++) {
                 span[i][j][COLUMN] = 1;
@@ -146,12 +146,12 @@ public class DefaultCellAttribute implements CellAttribute, CellSpan {
         initValue();
     }
 
-    protected boolean isOutOfBounds(int row, int column) {
+    private boolean isOutOfBounds(int row, int column) {
         return (row < 0) || (rowSize <= row)
                 || (column < 0) || (columnSize <= column);
     }
 
-    protected boolean isOutOfBounds(int[] rows, int[] columns) {
+    private boolean isOutOfBounds(int[] rows, int[] columns) {
         for (int row : rows) {
             if ((row < 0) || (rowSize <= row)) {
                 return true;

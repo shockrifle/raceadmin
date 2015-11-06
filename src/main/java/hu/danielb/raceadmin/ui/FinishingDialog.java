@@ -1,16 +1,15 @@
 package hu.danielb.raceadmin.ui;
 
-import hu.danielb.raceadmin.database.DatabaseOld;
+import com.j256.ormlite.dao.GenericRawResults;
+import hu.danielb.raceadmin.database.Database;
 import hu.danielb.raceadmin.entity.AgeGroup;
 import hu.danielb.raceadmin.entity.Contestant;
-import hu.danielb.raceadmin.entity.School;
 import hu.danielb.raceadmin.ui.listeners.FinishingListener;
 import hu.danielb.raceadmin.util.Constants;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,12 +17,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class FinishingDialog extends BaseDialog {
 
-    public static final String COLUMN_POS = "pos";
-    private HashMap<Integer, Integer> positionBoy;
-    private HashMap<Integer, Integer> positionGirl;
+    private HashMap<AgeGroup, Positions> positionsForAgeGroup;
     private HashMap<Integer, Contestant> contestants;
     private List<FinishingListener> listeners;
 
@@ -31,8 +29,6 @@ public class FinishingDialog extends BaseDialog {
 //    Contestant contestantTest;
 //    private Timer timer;
 
-    @SuppressWarnings("FieldCanBeLocal")
-    private javax.swing.JButton buttonEnd;
     private javax.swing.JLabel labelContestantName;
     private javax.swing.JLabel labelSchoolName;
     private javax.swing.JLabel labelMessage;
@@ -49,54 +45,27 @@ public class FinishingDialog extends BaseDialog {
     private void init() {
         initComponents();
 
-        positionBoy = new HashMap<>();
-        positionGirl = new HashMap<>();
+        positionsForAgeGroup = new HashMap<>();
         contestants = new HashMap<>();
         listeners = new ArrayList<>();
-        HashMap<Integer, AgeGroup> ageGroups = new HashMap<>();
-        HashMap<Integer, School> schools = new HashMap<>();
-        ResultSet rs;
         try {
-            rs = DatabaseOld.runSql("select * from " + AgeGroup.TABLE);
-            while (rs.next()) {
-                ageGroups.put(rs.getInt(AgeGroup.COLUMN_ID),
-                        new AgeGroup(rs.getInt(AgeGroup.COLUMN_ID),
-                                rs.getString(AgeGroup.COLUMN_NAME),
-                                rs.getInt(AgeGroup.COLUMN_MINIMUM),
-                                rs.getInt(AgeGroup.COLUMN_MAXIMUM)));
-                positionBoy.put(rs.getInt(AgeGroup.COLUMN_ID), 1);
-                positionGirl.put(rs.getInt(AgeGroup.COLUMN_ID), 1);
-            }
+            Database.get().getAgeGroupDao().queryForAll().stream().sorted().collect(Collectors.toList())
+                    .forEach(ageGroup -> positionsForAgeGroup.put(ageGroup, new Positions()));
 
-            rs = DatabaseOld.runSql("select * from " + School.TABLE);
-            while (rs.next()) {
-                schools.put(rs.getInt(School.COLUMN_ID),
-                        new School(rs.getInt(School.COLUMN_ID),
-                                rs.getString(School.COLUMN_NAME)));
-            }
-            rs = DatabaseOld.runSql("select " + Contestant.COLUMN_SEX + ", " +
-                    Contestant.COLUMN_AGE_GROUP_ID + ",count(*) as " +
-                    COLUMN_POS + " from " + Contestant.TABLE + " where " +
-                    Contestant.COLUMN_POSITION + " > 0  group by " +
-                    Contestant.COLUMN_SEX + "," + Contestant.COLUMN_AGE_GROUP_ID);
-            while (rs.next()) {
-                if (rs.getString(Contestant.COLUMN_SEX).equals(Constants.BOY)) {
-                    positionBoy.put(rs.getInt(Contestant.COLUMN_AGE_GROUP_ID), rs.getInt(COLUMN_POS) + 1);
-                } else {
-                    positionGirl.put(rs.getInt(Contestant.COLUMN_AGE_GROUP_ID), rs.getInt(COLUMN_POS) + 1);
+            positionsForAgeGroup.entrySet().forEach(entry -> {
+                try {
+                    GenericRawResults<String[]> maximums = Database.get().getContestantDao().queryBuilder().selectRaw(Contestant.COLUMN_SEX + ", MAX(" + Contestant.COLUMN_POSITION + ")").groupBy(Contestant.COLUMN_SEX)
+                            .where().eq(Contestant.COLUMN_AGE_GROUP_ID, entry.getKey().getId()).queryRaw();
+                    Positions positions = new Positions();
+                    maximums.forEach(max -> positions.positions.put(max[0], Integer.parseInt(max[1]) + 1));
+                    entry.setValue(positions);
+                } catch (SQLException e) {
+                    e.printStackTrace();
                 }
-            }
-            rs = DatabaseOld.runSql("select * from " + Contestant.TABLE + " where " + Contestant.COLUMN_POSITION + " = 0");
-            while (rs.next()) {
-                int id = rs.getInt(Contestant.COLUMN_ID);
-                String name = rs.getString(Contestant.COLUMN_NAME);
-                String sex = rs.getString(Contestant.COLUMN_SEX);
-                int number = rs.getInt(Contestant.COLUMN_NUMBER);
-                int ageGroupId = rs.getInt(Contestant.COLUMN_AGE_GROUP_ID);
-                int schoolId = rs.getInt(Contestant.COLUMN_SCHOOL_ID);
-                int age = rs.getInt(Contestant.COLUMN_AGE);
-                contestants.put(number, new Contestant(id, 0, name, sex, number, ageGroups.get(ageGroupId), schools.get(schoolId), age));
-            }
+            });
+
+            List<Contestant> query = Database.get().getContestantDao().queryBuilder().where().eq(Contestant.COLUMN_POSITION, 0).query();
+            query.forEach(contestant -> contestants.put(contestant.getNumber(), contestant));
 
         } catch (SQLException ex) {
             Logger.getLogger(FinishingDialog.class.getName()).log(Level.SEVERE, null, ex);
@@ -105,13 +74,13 @@ public class FinishingDialog extends BaseDialog {
 
     private void initComponents() {
 
-        buttonEnd = new javax.swing.JButton();
         textNumber = new javax.swing.JTextField();
         labelContestantName = new javax.swing.JLabel();
         labelSchoolName = new javax.swing.JLabel();
         labelMessage = new javax.swing.JLabel();
         labelAgeGroupName = new javax.swing.JLabel();
         labelPositionValue = new javax.swing.JLabel();
+        JButton buttonEnd = new JButton();
         JLabel labelName = new JLabel();
         JLabel labelSchool = new JLabel();
         JLabel labelPosition = new JLabel();
@@ -253,11 +222,11 @@ public class FinishingDialog extends BaseDialog {
         if (contestant != null) {
             labelContestantName.setText(contestant.getName());
             labelSchoolName.setText(contestant.getSchool().getName());
+            labelPositionValue.setText(String.valueOf(positionsForAgeGroup.get(contestant.getAgeGroup()).positions.get(contestant.getSex())));
+
             if (contestant.getSex().equals(Constants.BOY)) {
-                labelPositionValue.setText(String.valueOf(positionBoy.get(contestant.getAgeGroup().getId())));
                 labelAgeGroupName.setText(contestant.getAgeGroup().getName() + " Fiú");
             } else {
-                labelPositionValue.setText(String.valueOf(positionGirl.get(contestant.getAgeGroup().getId())));
                 labelAgeGroupName.setText(contestant.getAgeGroup().getName() + " Lány");
             }
 
@@ -271,16 +240,10 @@ public class FinishingDialog extends BaseDialog {
             if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
                 if (contestant != null) {
                     try {
-                        int nextpos;
-                        if (contestant.getSex().equals(Constants.BOY)) {
-                            nextpos = positionBoy.get(contestant.getAgeGroup().getId());
-                            DatabaseOld.runSql("update " + Contestant.TABLE + " set " + Contestant.COLUMN_POSITION + " = ? where " + Contestant.COLUMN_ID + " = ?", DatabaseOld.UPDATE, String.valueOf(nextpos), String.valueOf(contestant.getId()));
-                            positionBoy.put(contestant.getAgeGroup().getId(), nextpos + 1);
-                        } else {
-                            nextpos = positionGirl.get(contestant.getAgeGroup().getId());
-                            DatabaseOld.runSql("update " + Contestant.TABLE + " set " + Contestant.COLUMN_POSITION + " = ? where " + Contestant.COLUMN_ID + " = ?", DatabaseOld.UPDATE, String.valueOf(nextpos), String.valueOf(contestant.getId()));
-                            positionGirl.put(contestant.getAgeGroup().getId(), nextpos + 1);
-                        }
+                        int nextPos = positionsForAgeGroup.get(contestant.getAgeGroup()).positions.get(contestant.getSex());
+                        contestant.setPosition(nextPos);
+                        Database.get().getContestantDao().update(contestant);
+                        positionsForAgeGroup.get(contestant.getAgeGroup()).positions.put(contestant.getSex(), nextPos + 1);
                     } catch (SQLException ex) {
                         Logger.getLogger(FinishingDialog.class.getName()).log(Level.SEVERE, null, ex);
                     }
@@ -388,4 +351,13 @@ public class FinishingDialog extends BaseDialog {
         listeners.add(l);
     }
 
+
+    private class Positions {
+        Map<String, Integer> positions = new HashMap<>();
+
+        public Positions() {
+            positions.put(Constants.BOY, 1);
+            positions.put(Constants.GIRL, 1);
+        }
+    }
 }

@@ -13,7 +13,7 @@ import java.util.Collection;
 import java.util.List;
 
 public class BaseDaoWithListener<T, ID> extends BaseDaoImpl<T, ID> {
-    List<DatabaseListener> listeners;
+    private List<DatabaseListener> listeners;
 
     public BaseDaoWithListener(ConnectionSource connectionSource, Class<T> dataClass) throws SQLException {
         super(connectionSource, dataClass);

@@ -5,9 +5,8 @@ import com.j256.ormlite.table.DatabaseTable;
 import hu.danielb.raceadmin.database.dao.BaseDaoWithListener;
 
 @DatabaseTable(tableName = "age_group", daoClass = BaseDaoWithListener.class)
-public class AgeGroup {
+public class AgeGroup implements Comparable<AgeGroup> {
 
-    public static final String TABLE = "age_group";
     public static final String COLUMN_ID = "id";
     public static final String COLUMN_NAME = "name";
     public static final String COLUMN_MINIMUM = "minimum";
@@ -95,5 +94,10 @@ public class AgeGroup {
     @Override
     public int hashCode() {
         return getId();
+    }
+
+    @Override
+    public int compareTo(AgeGroup o) {
+        return Integer.compare(this.getMinimum(), o.getMinimum());
     }
 }

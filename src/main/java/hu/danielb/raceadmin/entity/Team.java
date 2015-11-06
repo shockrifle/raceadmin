@@ -26,7 +26,7 @@ public class Team implements Comparable {
         return getPoints(MAX_MEMBERS);
     }
 
-    public int getPoints(int to) {
+    private int getPoints(int to) {
         if (to > members.size()) {
             to = members.size();
         }

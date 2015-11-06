@@ -7,7 +7,6 @@ import hu.danielb.raceadmin.database.dao.BaseDaoWithListener;
 @DatabaseTable(tableName = "contestant", daoClass = BaseDaoWithListener.class)
 public class Contestant {
 
-    public static final String TABLE = "contestant";
     public static final String COLUMN_ID = "id";
     public static final String COLUMN_POSITION = "position";
     public static final String COLUMN_NAME = "name";

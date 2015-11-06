@@ -19,6 +19,7 @@ import java.util.Properties;
 public class Database {
 
     private static Database database;
+    @SuppressWarnings("FieldCanBeLocal")
     private final Backup backup;
     private Dao<AgeGroup, Integer> ageGroupDao;
     private Dao<Contestant, Integer> contestantDao;
