@@ -1,11 +1,11 @@
 package hu.danielb.raceadmin.ui;
 
-import hu.danielb.raceadmin.database.DatabaseOld;
+import com.j256.ormlite.stmt.Where;
+import hu.danielb.raceadmin.database.Database;
 import hu.danielb.raceadmin.entity.School;
 
 import javax.swing.*;
 import java.awt.*;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -115,40 +115,27 @@ class AddSchoolDialog extends BaseDialog {
 
     private void buttonSaveActionPerformed(java.awt.event.ActionEvent evt) {
         String[] names = textName.getText().split(" ");
-        ArrayList<String> toCheck = new ArrayList<>();
         ArrayList<String> checked = new ArrayList<>();
-        String checkStatement = "select * from " + School.TABLE + " where " + School.COLUMN_NAME + " like ''";
-
-        for (String name : names) {
-            String tempName = name;
-            tempName = tempName.toLowerCase()
-                    .replaceAll("\\.", "")
-                    .replaceAll("iskola", "")
-                    .replaceAll("isk", "")
-                    .replaceAll("általános", "")
-                    .replaceAll("ált", "");
-            if (tempName.length() > 2) {
-                checkStatement += " or ";
-                toCheck.add("%" + tempName + "%");
-                toCheck.add(tempName);
-                checkStatement += School.COLUMN_NAME + " like ? or ? like '%'||" + School.COLUMN_NAME + "||'%'";
-            }
-        }
-        System.out.println(checkStatement);
-        ResultSet rs;
         try {
-            rs = DatabaseOld.runSql(checkStatement, DatabaseOld.QUERRY, toCheck);
-            while (rs.next()) {
-                checked.add(rs.getString(School.COLUMN_NAME));
-            }
-            if (checked.isEmpty()) {
-                try {
-                    DatabaseOld.runSql("insert into " + School.TABLE + " (" + School.COLUMN_NAME + ") values (?)", DatabaseOld.UPDATE, textName.getText());
-                    message("Új iskola hozzáadva");
-                    dispose();
-                } catch (SQLException ex) {
-                    Logger.getLogger(AddSchoolDialog.class.getName()).log(Level.SEVERE, null, ex);
+            Where<School, Integer> where = Database.get().getSchoolDao().queryBuilder().where();
+
+            for (int i = 0; i < names.length; i++) {
+                String tempName = names[i];
+                tempName = tempName.toLowerCase()
+                        .replaceAll("\\.", "")
+                        .replaceAll("iskola", "")
+                        .replaceAll("általános", "");
+                if (tempName.length() > 2) {
+                    if (i > 0) {
+                        where.or();
+                    }
+                    where.like(School.COLUMN_NAME, tempName);
                 }
+            }
+            where.query().forEach(school1 -> checked.add(school1.getName()));
+
+            if (checked.isEmpty()) {
+                saveSchool();
             } else {
                 String msg = "Hasonló névvel már léteznek a következő iskolák: \n";
                 for (String aChecked : checked) {
@@ -161,13 +148,7 @@ class AddSchoolDialog extends BaseDialog {
                         dispose();
                         break;
                     case 1:
-                        try {
-                            DatabaseOld.runSql("insert into " + School.TABLE + " (" + School.COLUMN_NAME + ") values (?)", DatabaseOld.UPDATE, textName.getText());
-                        } catch (SQLException ex) {
-                            Logger.getLogger(AddSchoolDialog.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                        message("Új iskola hozzáadva");
-                        dispose();
+                        saveSchool();
                         break;
                     default:
                         break;
@@ -178,6 +159,19 @@ class AddSchoolDialog extends BaseDialog {
         }
 
         listeners.forEach(listener -> listener.onSave(new School()));
+    }
+
+    private void saveSchool() {
+        school.setName(textName.getText());
+        school.setShortName(textShortName.getText());
+        school.setSettlement(textSettlement.getText());
+        try {
+            Database.get().getSchoolDao().createOrUpdate(school);
+            message("Új iskola hozzáadva");
+            dispose();
+        } catch (SQLException ex) {
+            Logger.getLogger(AddSchoolDialog.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     public AddSchoolDialog addSaveListener(SaveListener listener) {
