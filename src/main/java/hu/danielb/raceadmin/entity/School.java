@@ -15,11 +15,11 @@ public class School {
     @DatabaseField(generatedId = true, columnName = COLUMN_ID)
     private int id;
     @DatabaseField(columnName = COLUMN_NAME)
-    private String name;
+    private String name = "";
     @DatabaseField(columnName = COLUMN_SHORT_NAME)
-    private String shortName;
+    private String shortName = "";
     @DatabaseField(columnName = COLUMN_SETTLEMENT)
-    private String settlement;
+    private String settlement = "";
 
     public School() {
     }

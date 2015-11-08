@@ -15,7 +15,7 @@ public class AgeGroup implements Comparable<AgeGroup> {
     @DatabaseField(generatedId = true, columnName = COLUMN_ID)
     private int id;
     @DatabaseField(columnName = COLUMN_NAME)
-    private String name;
+    private String name = "";
     @DatabaseField(columnName = COLUMN_MINIMUM)
     private int minimum;
     @DatabaseField(columnName = COLUMN_MAXIMUM)

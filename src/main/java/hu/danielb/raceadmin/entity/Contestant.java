@@ -27,9 +27,9 @@ public class Contestant {
     @DatabaseField(columnName = COLUMN_NUMBER)
     private int number;
     @DatabaseField(foreign = true, foreignAutoRefresh = true, columnName = COLUMN_AGE_GROUP_ID)
-    private AgeGroup ageGroup;
+    private AgeGroup ageGroup = new AgeGroup();
     @DatabaseField(foreign = true, foreignAutoRefresh = true, foreignAutoCreate = true, columnName = COLUMN_SCHOOL_ID)
-    private School school;
+    private School school = new School();
     @DatabaseField(columnName = COLUMN_AGE)
     private int age;
 
