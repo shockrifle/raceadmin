@@ -3,6 +3,7 @@ package hu.danielb.raceadmin.database;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -40,7 +41,7 @@ public class Backup {
             public void run() {
                 try {
                     backup(backupsPath, fileName, timeFormat);
-                } catch (IOException ex) {
+                } catch (IOException | SQLException ex) {
                     ex.printStackTrace();
                 }
             }
@@ -53,7 +54,7 @@ public class Backup {
         return this;
     }
 
-    synchronized public void backup(String backupsPath, String fileName, String timeFormat) throws IOException {
+    synchronized public void backup(String backupsPath, String fileName, String timeFormat) throws IOException, SQLException {
         if (!Database.get().isBackedUp()) {
             DateFormat f = new SimpleDateFormat(timeFormat);
             File dir = new File(backupsPath);

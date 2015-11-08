@@ -27,34 +27,33 @@ public class Database {
     private Dao<School, Integer> schoolDao;
     private boolean backedUp = true;
 
-    private Database() {
+    private Database() throws SQLException {
         System.setProperty(LocalLog.LOCAL_LOG_LEVEL_PROPERTY, "ERROR");
         connect();
         backup = new Backup().start();
     }
 
-    public static Database get() {
+    public static Database get() throws SQLException {
         if (database == null) database = new Database();
         return database;
     }
 
-    private void connect() {
+    private void connect() throws SQLException {
 
-        try {
             Properties properties = new Properties();
+        try {
             properties.load(this.getClass().getResourceAsStream("/project.properties"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
-            String databaseUrl = "jdbc:sqlite:";
+        String databaseUrl = "jdbc:sqlite:";
             String databaseFile = properties.getProperty("database");
 
             ConnectionSource connectionSource = new JdbcConnectionSource(databaseUrl + databaseFile);
 
             initDaos(connectionSource);
             createTables(connectionSource);
-
-        } catch (SQLException | IOException e) {
-            e.printStackTrace();
-        }
     }
 
     private void initDaos(ConnectionSource connectionSource) throws SQLException {

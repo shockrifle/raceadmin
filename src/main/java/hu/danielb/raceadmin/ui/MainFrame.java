@@ -317,7 +317,7 @@ public class MainFrame extends javax.swing.JFrame {
         startupScreen = new StartupScreen(this, true, properties.getProperty("version"));
         exportsPath = properties.getProperty("exports-path");
         try {
-            Class.forName("org.sqlite.JDBC");
+            Database.get();
             new Thread() {
                 @Override
                 public void run() {
@@ -329,9 +329,9 @@ public class MainFrame extends javax.swing.JFrame {
                 }
             }.start();
             startupScreen.setVisible(true);
-        } catch (ClassNotFoundException ex) {
-            warn("Hiba az adatok betöltése közben!");
-            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SQLException e) {
+            warn("Hiba az adatok betöltése közben!:\n" + e.getLocalizedMessage());
+            e.printStackTrace();
             System.exit(1);
         }
     }
