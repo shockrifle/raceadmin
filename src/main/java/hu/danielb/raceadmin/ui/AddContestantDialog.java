@@ -101,6 +101,7 @@ class AddContestantDialog extends BaseDialog {
         spinnerPosition = new javax.swing.JSpinner();
         comboAgeGroup = new javax.swing.JComboBox<>();
         JButton buttonSave = new javax.swing.JButton();
+        JButton buttonDelete = new JButton();
         JButton buttonEnd = new JButton();
         JButton buttonNew = new JButton();
         JLabel labelName = new JLabel();
@@ -151,6 +152,12 @@ class AddContestantDialog extends BaseDialog {
         buttonSave.setText("Mentés");
         buttonSave.addActionListener(AddContestantDialog.this::buttonSaveActionPerformed);
 
+        buttonDelete.setText("Törlés");
+        buttonDelete.addActionListener(AddContestantDialog.this::buttonDeleteActionPerformed);
+        if (contestant == null) {
+            buttonDelete.setVisible(false);
+        }
+
         buttonEnd.setText("Vége");
         buttonEnd.addActionListener(AddContestantDialog.this::buttonEndActionPerformed);
 
@@ -196,6 +203,8 @@ class AddContestantDialog extends BaseDialog {
                                         .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                                                 .addGap(0, 0, Short.MAX_VALUE)
                                                 .addComponent(buttonSave)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(buttonDelete)
                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                                 .addComponent(buttonEnd))
                                         .addGroup(layout.createSequentialGroup()
@@ -263,7 +272,8 @@ class AddContestantDialog extends BaseDialog {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 32, Short.MAX_VALUE)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                         .addComponent(buttonEnd)
-                                        .addComponent(buttonSave))
+                                        .addComponent(buttonSave)
+                                        .addComponent(buttonDelete))
                                 .addContainerGap())
         );
 
@@ -334,37 +344,9 @@ class AddContestantDialog extends BaseDialog {
 
                 if (contestant.getPosition() != contestantOld.getPosition()) {
                     if ((0 < contestant.getPosition() && contestant.getPosition() < contestantOld.getPosition()) || contestantOld.getPosition() == 0) {
-                        Database.get().getContestantDao().queryBuilder()
-                                .where()
-                                .eq(Contestant.COLUMN_SEX, contestantOld.getSex()).and()
-                                .eq(Contestant.COLUMN_AGE_GROUP_ID, contestantOld.getAgeGroup().getId()).and()
-                                .ge(Contestant.COLUMN_POSITION, contestant.getPosition()).and()
-                                .lt(Contestant.COLUMN_POSITION, contestantOld.getPosition() == 0 ? 9999 : contestantOld.getPosition()).and()
-                                .ne(Contestant.COLUMN_POSITION, 0)
-                                .query().forEach(contestant1 -> {
-                            contestant1.setPosition(contestant1.getPosition() + 1);
-                            try {
-                                Database.get().getContestantDao().update(contestant1);
-                            } catch (SQLException e) {
-                                e.printStackTrace();
-                            }
-                        });
+                        moveForward(contestantOld, contestant.getPosition());
                     } else if ((0 < contestantOld.getPosition() && contestantOld.getPosition() < contestant.getPosition()) || contestant.getPosition() == 0) {
-                        Database.get().getContestantDao().queryBuilder()
-                                .where()
-                                .eq(Contestant.COLUMN_SEX, contestantOld.getSex()).and()
-                                .eq(Contestant.COLUMN_AGE_GROUP_ID, contestantOld.getAgeGroup().getId()).and()
-                                .gt(Contestant.COLUMN_POSITION, contestantOld.getPosition()).and()
-                                .le(Contestant.COLUMN_POSITION, contestant.getPosition() == 0 ? 9999 : contestant.getPosition()).and()
-                                .ne(Contestant.COLUMN_POSITION, 0)
-                                .query().forEach(contestant1 -> {
-                            contestant1.setPosition(contestant1.getPosition() - 1);
-                            try {
-                                Database.get().getContestantDao().update(contestant1);
-                            } catch (SQLException e) {
-                                e.printStackTrace();
-                            }
-                        });
+                        moveBack(contestantOld, contestant.getPosition());
                     }
                 }
 
@@ -377,6 +359,57 @@ class AddContestantDialog extends BaseDialog {
             Logger.getLogger(AddContestantDialog.class.getName()).log(Level.SEVERE, null, ex);
         } catch (Exception ex) {
             warn(ex.getMessage());
+        }
+    }
+
+    private void moveBack(Contestant contestantOld, int newPosition) throws SQLException {
+        newPosition = newPosition == 0 ? Integer.MAX_VALUE : newPosition;
+        Database.get().getContestantDao().queryBuilder()
+                .where()
+                .eq(Contestant.COLUMN_SEX, contestantOld.getSex()).and()
+                .eq(Contestant.COLUMN_AGE_GROUP_ID, contestantOld.getAgeGroup().getId()).and()
+                .gt(Contestant.COLUMN_POSITION, contestantOld.getPosition()).and()
+                .le(Contestant.COLUMN_POSITION, newPosition).and()
+                .ne(Contestant.COLUMN_POSITION, 0)
+                .query().forEach(contestant1 -> {
+            contestant1.setPosition(contestant1.getPosition() - 1);
+            try {
+                Database.get().getContestantDao().update(contestant1);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    private void moveForward(Contestant contestantOld, int newPosition) throws SQLException {
+        int oldPosition = contestantOld.getPosition() == 0 ? Integer.MAX_VALUE : contestantOld.getPosition();
+        Database.get().getContestantDao().queryBuilder()
+                .where()
+                .eq(Contestant.COLUMN_SEX, contestantOld.getSex()).and()
+                .eq(Contestant.COLUMN_AGE_GROUP_ID, contestantOld.getAgeGroup().getId()).and()
+                .ge(Contestant.COLUMN_POSITION, newPosition).and()
+                .lt(Contestant.COLUMN_POSITION, oldPosition).and()
+                .ne(Contestant.COLUMN_POSITION, 0)
+                .query().forEach(contestant1 -> {
+            contestant1.setPosition(contestant1.getPosition() + 1);
+            try {
+                Database.get().getContestantDao().update(contestant1);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+
+    private void buttonDeleteActionPerformed(java.awt.event.ActionEvent evt) {
+        if (0 == JOptionPane.showOptionDialog(this, "Biztosan törli?", "Figyelem!", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[]{"Igen", "Mégsem"}, null)) {
+            Contestant contestantOld = new Contestant(contestant);
+            try {
+                moveBack(contestantOld, 0);
+                Database.get().getContestantDao().delete(contestant);
+                this.dispose();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
     }
 
