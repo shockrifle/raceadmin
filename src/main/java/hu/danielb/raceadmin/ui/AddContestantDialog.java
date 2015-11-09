@@ -320,6 +320,7 @@ class AddContestantDialog extends BaseDialog {
 
             if (contestant.getId() == 0) {
                 Database.get().getContestantDao().create(contestant);
+                contestant = new Contestant();
                 textName.setText("");
                 spinnerNumber.setValue(((int) spinnerNumber.getValue()) + 1);
             } else {
