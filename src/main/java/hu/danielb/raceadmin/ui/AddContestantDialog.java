@@ -65,6 +65,8 @@ class AddContestantDialog extends BaseDialog {
             } else {
                 radioGirl.setSelected(true);
             }
+        } else {
+            contestant = new Contestant();
         }
         spinnerAge.addChangeListener(AddContestantDialog.this::spinnerAgeStateChanged);
         addWindowListener(new WindowAdapter() {
