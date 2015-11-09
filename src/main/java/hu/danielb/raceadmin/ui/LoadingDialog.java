@@ -1,15 +1,12 @@
 package hu.danielb.raceadmin.ui;
 
-public class LoadingDialog extends javax.swing.JDialog implements Runnable {
+public class LoadingDialog extends javax.swing.JDialog {
 
-    public LoadingDialog(java.awt.Dialog parent, boolean modal) {
-        super(parent, modal);
-        initComponents();
-        this.setLocationRelativeTo(parent);
-    }
+    String message = "";
 
-    public LoadingDialog(java.awt.Frame parent, boolean modal) {
-        super(parent, modal);
+    public LoadingDialog(java.awt.Frame parent, String message) {
+        super(parent, true);
+        this.message = message;
         initComponents();
         this.setLocationRelativeTo(parent);
     }
@@ -25,7 +22,7 @@ public class LoadingDialog extends javax.swing.JDialog implements Runnable {
         setResizable(false);
         setUndecorated(true);
 
-        labelMessage.setText("Módosítások végrehajtás. Kérem várjon.");
+        labelMessage.setText(message);
 
         progress.setIndeterminate(true);
         progress.setMaximumSize(new java.awt.Dimension(145, 15));
@@ -52,10 +49,5 @@ public class LoadingDialog extends javax.swing.JDialog implements Runnable {
         );
 
         pack();
-    }
-
-    @Override
-    public void run() {
-        this.setVisible(true);
     }
 }

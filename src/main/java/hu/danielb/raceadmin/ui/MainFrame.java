@@ -15,9 +15,8 @@ import hu.danielb.raceadmin.ui.components.table.models.ResultsTableModel;
 import hu.danielb.raceadmin.ui.components.table.models.TeamResultsTableModel;
 import hu.danielb.raceadmin.util.Constants;
 import hu.danielb.raceadmin.util.Printer;
-import net.sf.jxls.exception.ParsePropertyException;
-import net.sf.jxls.transformer.XLSTransformer;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.jxls.common.Context;
+import org.jxls.util.JxlsHelper;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -26,6 +25,7 @@ import java.awt.*;
 import java.awt.print.PrinterException;
 import java.io.*;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 import java.util.logging.Level;
@@ -39,7 +39,6 @@ import java.util.stream.Collectors;
 //TODO: iskolalista
 //TODO: iskola legördülő ne csak az elején keressen
 //TODO: nevek nagybetűvel kezdése
-//TODO: iskola rövidített név
 
 public class MainFrame extends javax.swing.JFrame {
 
@@ -126,6 +125,7 @@ public class MainFrame extends javax.swing.JFrame {
         menuItemPrint.addActionListener(MainFrame.this::menuItemPrintActionPerformed);
         menuFile.add(menuItemPrint);
 
+        menuItemExport.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_E, java.awt.event.InputEvent.CTRL_MASK));
         menuItemExport.setText("Export");
         menuItemExport.addActionListener(MainFrame.this::menuItemExportActionPerformed);
         menuFile.add(menuItemExport);
@@ -241,61 +241,61 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void menuItemExportActionPerformed(java.awt.event.ActionEvent evt) {
 
-        List<Category> result = new ArrayList<>();
+        LoadingDialog dialog = new LoadingDialog(this, "Exportálás...");
+        new Thread() {
+            @Override
+            public void run() {
+                List<Category> results = new ArrayList<>();
 
-        try {
-            Database.get().getAgeGroupDao().queryForAll().stream().sorted((o1, o2) -> Integer.compare(o1.getMinimum(), o2.getMinimum())).forEach(ageGroup -> {
                 try {
-                    File exportDir = new File(exportsPath);
-                    if (!exportDir.exists()) {
-                        if (!exportDir.mkdirs()) {
-                            throw new IOException("Cannot create directory for exports at: " + exportDir.getAbsolutePath());
+                    Database.get().getAgeGroupDao().queryForAll().stream().sorted((o1, o2) -> Integer.compare(o1.getMinimum(), o2.getMinimum())).forEach(ageGroup -> {
+                        try {
+                            File exportDir = new File(exportsPath);
+                            if (!exportDir.exists()) {
+                                if (!exportDir.mkdirs()) {
+                                    throw new IOException("Cannot create directory for exports at: " + exportDir.getAbsolutePath());
+                                }
+                            }
+                            Category boyAgeGroup = new Category();
+                            results.add(boyAgeGroup);
+                            boyAgeGroup.individualCategory.name = ageGroup.getName() + " " + "Fiú, egyéni";
+                            boyAgeGroup.teamCategory.name = ageGroup.getName() + " " + "Fiú, csapat";
+
+                            boyAgeGroup.individualCategory.contestants = getByAgeGroupAndSex(ageGroup.getId(), Constants.BOY);
+                            boyAgeGroup.teamCategory.teams.addAll(makeTeams(boyAgeGroup.individualCategory.contestants.stream().filter(contestant1 -> contestant1.getPosition() > 0).collect(Collectors.toList())));
+
+                            Category girlAgeGroup = new Category();
+                            results.add(girlAgeGroup);
+                            girlAgeGroup.individualCategory.name = ageGroup.getName() + " " + "Lány, egyéni";
+                            girlAgeGroup.teamCategory.name = ageGroup.getName() + " " + "Lány, csapat";
+
+                            girlAgeGroup.individualCategory.contestants = getByAgeGroupAndSex(ageGroup.getId(), Constants.GIRL);
+                            girlAgeGroup.teamCategory.teams.addAll(makeTeams(girlAgeGroup.individualCategory.contestants.stream().filter(contestant1 -> contestant1.getPosition() > 0).collect(Collectors.toList())));
+
+                        } catch (SQLException ex) {
+                            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+                        } catch (IOException e) {
+                            e.printStackTrace();
                         }
+                    });
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+
+                try (InputStream is = getClass().getResourceAsStream("/templates/egyeni_template.xlsx")) {
+                    try (OutputStream os = new FileOutputStream(exportsPath + File.separator + "export" + new SimpleDateFormat("_HH.mm.ss").format(new Date()) + ".xlsx")) {
+                        Context context = new Context();
+                        context.putVar("results", results);
+                        JxlsHelper.getInstance().processTemplate(is, os, context);
                     }
-                    Category boyAgeGroup = new Category();
-                    result.add(boyAgeGroup);
-                    boyAgeGroup.individualCategory.name = ageGroup.getName() + " " + "Fiú, egyéni";
-                    boyAgeGroup.teamCategory.name = ageGroup.getName() + " " + "Fiú, csapat";
-
-                    List<Contestant> contestants = getByAgeGroupAndSex(ageGroup.getId(), Constants.BOY);
-                    contestants.forEach(boyAgeGroup.individualCategory.contestants::add);
-
-                    contestants = getByAgeGroupAndSex(ageGroup.getId(), Constants.BOY);
-                    boyAgeGroup.teamCategory.teams.addAll(makeTeams(contestants.stream().filter(contestant1 -> contestant1.getPosition() > 0).collect(Collectors.toList())));
-
-                    Category girlAgeGroup = new Category();
-                    result.add(girlAgeGroup);
-                    girlAgeGroup.individualCategory.name = ageGroup.getName() + " " + "Lány, egyéni";
-                    girlAgeGroup.teamCategory.name = ageGroup.getName() + " " + "Lány, csapat";
-
-                    contestants = getByAgeGroupAndSex(ageGroup.getId(), Constants.GIRL);
-                    contestants.forEach(girlAgeGroup.individualCategory.contestants::add);
-
-                    contestants = getByAgeGroupAndSex(ageGroup.getId(), Constants.GIRL);
-                    girlAgeGroup.teamCategory.teams.addAll(makeTeams(contestants.stream().filter(contestant1 -> contestant1.getPosition() > 0).collect(Collectors.toList())));
-
-                } catch (SQLException ex) {
-                    Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-            });
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+                dialog.dispose();
+            }
+        }.start();
+        dialog.setVisible(true);
 
-
-        try {
-            Map<String, List> beans = new HashMap<>();
-            beans.put("eredmenyek", result);
-            XLSTransformer transformer = new XLSTransformer();
-            File file = new File(exportsPath + File.separator + "export.xls");
-            OutputStream os = new FileOutputStream(file);
-            InputStream template = getClass().getResourceAsStream("/templates/egyeni_template.xls");
-            transformer.transformXLS(template, beans).write(os);
-        } catch (IOException | ParsePropertyException | InvalidFormatException ex) {
-            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
-        }
     }
 
     private void positionToCenter() {
@@ -428,22 +428,9 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void loadTable(String sex, AgeGroup ageGroup) {
         try {
-            List<Contestant> contestants = getByAgeGroupAndSex(ageGroup.getId(), sex);
-            List<Contestant> data = new ArrayList<>();
-            List<Contestant> disqualified = new ArrayList<>();
-            contestants.forEach(contestant -> {
-                if (contestant.getPosition() > 0) {
-                    data.add(contestant);
-                } else {
-                    disqualified.add(contestant);
-                }
-            });
-
-            if (!data.isEmpty() || !disqualified.isEmpty()) {
-                loadTeams(sex, ageGroup, data);
-
-                data.addAll(disqualified);
-
+            List<Contestant> data = getByAgeGroupAndSex(ageGroup.getId(), sex);
+            if (!data.isEmpty()) {
+                loadTeams(sex, ageGroup, data.stream().filter(contestant -> contestant.getPosition() > 0).collect(Collectors.toList()));
                 addContestantDataToTable(String.valueOf(ageGroup.getId()) + sex, data);
             }
         } catch (SQLException ex) {
@@ -566,21 +553,38 @@ public class MainFrame extends javax.swing.JFrame {
 
 
     private List<Contestant> getByAgeGroupAndSex(int ageGroupId, String sex) throws SQLException {
-        return Database.get().getContestantDao().queryBuilder()
+        List<Contestant> contestants = Database.get().getContestantDao().queryBuilder()
                 .where()
                 .eq(Contestant.COLUMN_AGE_GROUP_ID, ageGroupId).and()
-                .eq(Contestant.COLUMN_SEX, sex)
+                .eq(Contestant.COLUMN_SEX, sex).and()
+                .ne(Contestant.COLUMN_POSITION, 0)
                 .query()
                 .stream().sorted((o1, o2) -> Integer.compare(o1.getPosition(), o2.getPosition())).collect(Collectors.toList());
+        contestants.addAll(Database.get().getContestantDao().queryBuilder()
+                .where()
+                .eq(Contestant.COLUMN_AGE_GROUP_ID, ageGroupId).and()
+                .eq(Contestant.COLUMN_SEX, sex).and()
+                .eq(Contestant.COLUMN_POSITION, 0)
+                .query());
+        return contestants;
     }
 
+    @SuppressWarnings("unused")
     public class Category {
 
         IndividualCategory individualCategory = new IndividualCategory();
         TeamCategory teamCategory = new TeamCategory();
 
+        public IndividualCategory getIndividualCategory() {
+            return individualCategory;
+        }
+
+        public TeamCategory getTeamCategory() {
+            return teamCategory;
+        }
     }
 
+    @SuppressWarnings("unused")
     public class IndividualCategory {
 
         String name = "";
@@ -590,8 +594,12 @@ public class MainFrame extends javax.swing.JFrame {
             return name;
         }
 
+        public List<Contestant> getContestants() {
+            return contestants;
+        }
     }
 
+    @SuppressWarnings("unused")
     public class TeamCategory {
 
         String name = "";
@@ -601,5 +609,8 @@ public class MainFrame extends javax.swing.JFrame {
             return name;
         }
 
+        public List<Team> getTeams() {
+            return teams;
+        }
     }
 }
