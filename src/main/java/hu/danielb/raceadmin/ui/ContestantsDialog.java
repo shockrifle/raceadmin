@@ -84,7 +84,14 @@ public class ContestantsDialog extends BaseDialog {
 
         comboSchools.setModel(new javax.swing.DefaultComboBoxModel<>(new School[]{new School(0, "")}));
         try {
-            Database.get().getSchoolDao().queryBuilder().orderBy(School.COLUMN_NAME, true).query().forEach(comboSchools::addItem);
+            Database.get().getSchoolDao().queryBuilder().orderBy(School.COLUMN_NAME, true).query().forEach(school -> {
+                try {
+                    if (Database.get().getContestantDao().queryForEq(Contestant.COLUMN_SCHOOL_ID, school.getId()).size() > 0)
+                        comboSchools.addItem(school);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            });
         } catch (SQLException ex) {
             Logger.getLogger(AddContestantDialog.class.getName()).log(Level.SEVERE, null, ex);
         }
