@@ -45,7 +45,7 @@ public class Backup {
                     ex.printStackTrace();
                 }
             }
-        }, backupInterval, backupInterval);
+        }, 0, backupInterval);
         return this;
     }
 

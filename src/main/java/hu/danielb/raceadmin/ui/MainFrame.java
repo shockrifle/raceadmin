@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 //TODO: régi adatok újrafelhasználása rajtszám elvételével
 //TODO: iskolalista
 //TODO: iskola legördülő ne csak az elején keressen
+//TODO: versenyzőlistán iskola külön szűrő
 //TODO: nevek nagybetűvel kezdése
 
 public class MainFrame extends javax.swing.JFrame {

@@ -25,7 +25,7 @@ public class Database {
     private Dao<Contestant, Integer> contestantDao;
     private Dao<PrintHeader, Integer> printHeaderDao;
     private Dao<School, Integer> schoolDao;
-    private boolean backedUp = true;
+    private boolean backedUp = false;
 
     private Database() throws SQLException {
         System.setProperty(LocalLog.LOCAL_LOG_LEVEL_PROPERTY, "ERROR");
