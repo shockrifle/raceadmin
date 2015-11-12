@@ -57,7 +57,9 @@ public class FinishingDialog extends BaseDialog {
                     GenericRawResults<String[]> maximums = Database.get().getContestantDao().queryBuilder().selectRaw(Contestant.COLUMN_SEX + ", MAX(" + Contestant.COLUMN_POSITION + ")").groupBy(Contestant.COLUMN_SEX)
                             .where().eq(Contestant.COLUMN_AGE_GROUP_ID, entry.getKey().getId()).queryRaw();
                     Positions positions = new Positions();
-                    maximums.forEach(max -> positions.positions.put(max[0], Integer.parseInt(max[1]) + 1));
+                    maximums.forEach(max ->
+                                    positions.positions.put(max[0], Integer.parseInt(max[1]) + 1)
+                    );
                     entry.setValue(positions);
                 } catch (SQLException e) {
                     e.printStackTrace();

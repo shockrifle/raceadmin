@@ -98,6 +98,6 @@ public class AgeGroup implements Comparable<AgeGroup> {
 
     @Override
     public int compareTo(AgeGroup o) {
-        return Integer.compare(this.getMinimum(), o.getMinimum());
+        return Integer.compare(o.getMinimum(), this.getMinimum());
     }
 }

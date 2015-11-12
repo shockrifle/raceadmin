@@ -22,6 +22,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
 import java.awt.*;
+import java.awt.event.ActionEvent;
 import java.awt.print.PrinterException;
 import java.io.*;
 import java.sql.SQLException;
@@ -40,6 +41,9 @@ import java.util.stream.Collectors;
 //TODO: iskola legördülő ne csak az elején keressen
 //TODO: versenyzőlistán iskola külön szűrő
 //TODO: nevek nagybetűvel kezdése
+//TODO: csapat létszám korosztály szerint
+//TODO: beérkezőknél korosztályváltás figyelmeztetés, checkboxal kapcsolható
+//TODO: i18n
 
 public class MainFrame extends javax.swing.JFrame {
 
@@ -51,6 +55,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JMenu menuPrintHeader;
     private javax.swing.JTabbedPane ageGroupPane;
     private String exportsPath;
+    private boolean showDisqualified = false;
 
     public MainFrame() {
         try {
@@ -90,6 +95,7 @@ public class MainFrame extends javax.swing.JFrame {
         JMenuItem menuItemContestants = new JMenuItem();
         JMenu menuSettings = new JMenu();
         menuPrintHeader = new javax.swing.JMenu();
+        JCheckBoxMenuItem menuItemShowDisqualified = new JCheckBoxMenuItem();
         JMenuBar menuBar = new JMenuBar();
         JPanel jPanel4 = new JPanel();
 
@@ -165,6 +171,11 @@ public class MainFrame extends javax.swing.JFrame {
         loadPrintHeaders();
         menuSettings.add(menuPrintHeader);
 
+        menuItemShowDisqualified.setText("Csak helyezettek mutatása");
+        menuItemShowDisqualified.addActionListener(MainFrame.this::menuItemShowDisqualifiedActionPerformed);
+        menuItemShowDisqualified.setState(!showDisqualified);
+        menuSettings.add(menuItemShowDisqualified);
+
         menuBar.add(menuSettings);
 
         setJMenuBar(menuBar);
@@ -185,6 +196,12 @@ public class MainFrame extends javax.swing.JFrame {
         );
 
         pack();
+    }
+
+    private void menuItemShowDisqualifiedActionPerformed(ActionEvent actionEvent) {
+        showDisqualified = !showDisqualified;
+        ((JCheckBoxMenuItem) actionEvent.getSource()).setState(!showDisqualified);
+        loadData();
     }
 
     private void menuItemAgeGroupsActionPerformed(java.awt.event.ActionEvent evt) {
@@ -249,7 +266,7 @@ public class MainFrame extends javax.swing.JFrame {
                 List<Category> results = new ArrayList<>();
 
                 try {
-                    Database.get().getAgeGroupDao().queryForAll().stream().sorted((o1, o2) -> Integer.compare(o1.getMinimum(), o2.getMinimum())).forEach(ageGroup -> {
+                    Database.get().getAgeGroupDao().queryForAll().stream().sorted().forEach(ageGroup -> {
                         try {
                             File exportDir = new File(exportsPath);
                             if (!exportDir.exists()) {
@@ -373,7 +390,7 @@ public class MainFrame extends javax.swing.JFrame {
     private void initPane() {
         ageGroupPane.removeAll();
         try {
-            Database.get().getAgeGroupDao().queryForAll().stream().sorted((o1, o2) -> Integer.compare(o1.getMinimum(), o2.getMinimum())).forEach(ageGroup -> {
+            Database.get().getAgeGroupDao().queryForAll().stream().sorted().forEach(ageGroup -> {
                 GenericTabbedPane<AgeGroup> ageGroupTab = new GenericTabbedPane<>(ageGroup);
                 String ageGroupId = String.valueOf(ageGroup.getId());
 
@@ -561,12 +578,14 @@ public class MainFrame extends javax.swing.JFrame {
                 .ne(Contestant.COLUMN_POSITION, 0)
                 .query()
                 .stream().sorted((o1, o2) -> Integer.compare(o1.getPosition(), o2.getPosition())).collect(Collectors.toList());
-        contestants.addAll(Database.get().getContestantDao().queryBuilder()
-                .where()
-                .eq(Contestant.COLUMN_AGE_GROUP_ID, ageGroupId).and()
-                .eq(Contestant.COLUMN_SEX, sex).and()
-                .eq(Contestant.COLUMN_POSITION, 0)
-                .query());
+        if (showDisqualified) {
+            contestants.addAll(Database.get().getContestantDao().queryBuilder()
+                    .where()
+                    .eq(Contestant.COLUMN_AGE_GROUP_ID, ageGroupId).and()
+                    .eq(Contestant.COLUMN_SEX, sex).and()
+                    .eq(Contestant.COLUMN_POSITION, 0)
+                    .query());
+        }
         return contestants;
     }
 
