@@ -12,3 +12,4 @@ out/
 backups/
 exports/
 *.db
+*csv

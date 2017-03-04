@@ -2,10 +2,7 @@ package hu.danielb.raceadmin.ui;
 
 
 import hu.danielb.raceadmin.database.Database;
-import hu.danielb.raceadmin.entity.AgeGroup;
-import hu.danielb.raceadmin.entity.Contestant;
-import hu.danielb.raceadmin.entity.PrintHeader;
-import hu.danielb.raceadmin.entity.Team;
+import hu.danielb.raceadmin.entity.*;
 import hu.danielb.raceadmin.ui.components.GenericTabbedPane;
 import hu.danielb.raceadmin.ui.components.PrintHeaderMenuItem;
 import hu.danielb.raceadmin.ui.components.table.CellSpan;
@@ -15,16 +12,21 @@ import hu.danielb.raceadmin.ui.components.table.models.ResultsTableModel;
 import hu.danielb.raceadmin.ui.components.table.models.TeamResultsTableModel;
 import hu.danielb.raceadmin.util.Constants;
 import hu.danielb.raceadmin.util.Printer;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
 import org.jxls.common.Context;
 import org.jxls.util.JxlsHelper;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.print.PrinterException;
 import java.io.*;
+import java.nio.charset.Charset;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -86,6 +88,7 @@ public class MainFrame extends javax.swing.JFrame {
         buttonFinisher = new javax.swing.JButton();
         JMenu menuFile = new JMenu();
         JMenuItem menuItemPrint = new JMenuItem();
+        JMenuItem menuItemImport = new JMenuItem();
         JMenuItem menuItemExport = new JMenuItem();
         JMenuItem menuItemExit = new JMenuItem();
         JMenu menuEdit = new JMenu();
@@ -131,6 +134,11 @@ public class MainFrame extends javax.swing.JFrame {
         menuItemPrint.setText("Nyomtatás");
         menuItemPrint.addActionListener(MainFrame.this::menuItemPrintActionPerformed);
         menuFile.add(menuItemPrint);
+
+        menuItemImport.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_I, java.awt.event.InputEvent.CTRL_MASK));
+        menuItemImport.setText("Import");
+        menuItemImport.addActionListener(MainFrame.this::menuItemImportActionPerformed);
+        menuFile.add(menuItemImport);
 
         menuItemExport.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_E, java.awt.event.InputEvent.CTRL_MASK));
         menuItemExport.setText("Export");
@@ -255,6 +263,76 @@ public class MainFrame extends javax.swing.JFrame {
         ContestantsDialog dial = new ContestantsDialog(this);
         dial.setVisible(true);
         loadData();
+    }
+
+    private void menuItemImportActionPerformed(java.awt.event.ActionEvent evt) {
+
+        final JFileChooser fc = new JFileChooser(System.getProperty("user.dir"));
+        fc.setAcceptAllFileFilterUsed(false);
+        fc.addChoosableFileFilter(new FileNameExtensionFilter("csv", "csv"));
+        int returnVal = fc.showOpenDialog(this);
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            File file = fc.getSelectedFile();
+
+            LoadingDialog dialog = new LoadingDialog(this, "Importálás...");
+            new Thread() {
+                @Override
+                public void run() {
+                    CSVRecord rowToLogError = null;
+                    List<Contestant> contestants = new ArrayList<>();
+                    try {
+                        CSVParser parse = CSVParser.parse(file, Charset.defaultCharset(),
+                                CSVFormat.newFormat(';').withHeader());
+                        List<CSVRecord> records = parse.getRecords();
+                        dialog.setMax(records.size() * 2);
+                        Map<Integer, Integer> numbers = new HashMap<>(records.size());
+                        for (CSVRecord row : records) {
+                            rowToLogError = row;
+                            AgeGroup ageGroup = Database.get().getAgeGroupDao().queryForId(Integer.parseInt(row.get(Contestant.COLUMN_AGE_GROUP_ID)));
+                            School school = Database.get().getSchoolDao().queryForId(Integer.parseInt(row.get(Contestant.COLUMN_SCHOOL_ID)));
+                            int number = Integer.parseInt(row.get(Contestant.COLUMN_NUMBER));
+                            int count = numbers.get(number) != null ? numbers.get(number) : 0;
+                            int existsWithNumber = Database.get().getContestantDao().queryForEq(Contestant.COLUMN_NUMBER, number).size();
+                            if (existsWithNumber > 0 || ++count > 1) {
+                                throw new IllegalArgumentException("Már létezik versenyző ezzel a számmal!");
+                            }
+                            numbers.put(number, count);
+                            if (school == null) {
+                                throw new IllegalArgumentException("Iskola nem található!");
+                            }
+                            if (ageGroup == null) {
+                                throw new IllegalArgumentException("Korosztály nem található!");
+                            }
+
+                            contestants.add(new Contestant(
+                                    0,
+                                    0,
+                                    row.get(Contestant.COLUMN_NAME),
+                                    row.get(Contestant.COLUMN_SEX),
+                                    number,
+                                    ageGroup,
+                                    school,
+                                    Integer.parseInt(row.get(Contestant.COLUMN_AGE))));
+
+                            dialog.progress();
+                        }
+                        for (Contestant contestant : contestants) {
+                            Database.get().getContestantDao().create(contestant);
+                            dialog.progress();
+                        }
+                    } catch (SQLException | IOException | IllegalArgumentException e) {
+                        e.printStackTrace();
+                        warn("Hiba történ importálás közben:\n" +
+                                e.getLocalizedMessage() + "\nHiba helye\n" +
+                                (rowToLogError != null ? rowToLogError.getRecordNumber() : "") +
+                                ": " + (rowToLogError != null ? rowToLogError.toMap() : ""));
+                    }
+
+                    dialog.dispose();
+                }
+            }.start();
+            dialog.setVisible(true);
+        }
     }
 
     private void menuItemExportActionPerformed(java.awt.event.ActionEvent evt) {
