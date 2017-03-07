@@ -2,9 +2,11 @@ package hu.danielb.raceadmin.ui;
 
 
 import hu.danielb.raceadmin.database.Database;
-import hu.danielb.raceadmin.entity.*;
+import hu.danielb.raceadmin.entity.AgeGroup;
+import hu.danielb.raceadmin.entity.Contestant;
+import hu.danielb.raceadmin.entity.School;
+import hu.danielb.raceadmin.entity.Team;
 import hu.danielb.raceadmin.ui.components.GenericTabbedPane;
-import hu.danielb.raceadmin.ui.components.PrintHeaderMenuItem;
 import hu.danielb.raceadmin.ui.components.table.CellSpan;
 import hu.danielb.raceadmin.ui.components.table.MultiSpanCellTable;
 import hu.danielb.raceadmin.ui.components.table.models.AttributiveCellTableModel;
@@ -23,7 +25,6 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.print.PrinterException;
 import java.io.*;
 import java.nio.charset.Charset;
@@ -52,12 +53,9 @@ public class MainFrame extends javax.swing.JFrame {
     private Map<String, JTable> tables;
     private String[] headerString;
     private JDialog startupScreen;
-    private javax.swing.ButtonGroup buttonGroup2;
     private javax.swing.JButton buttonFinisher;
-    private javax.swing.JMenu menuPrintHeader;
     private javax.swing.JTabbedPane ageGroupPane;
     private String exportsPath;
-    private boolean showDisqualified = false;
 
     public MainFrame() {
         try {
@@ -83,7 +81,6 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void initComponents() {
 
-        buttonGroup2 = new javax.swing.ButtonGroup();
         ageGroupPane = new javax.swing.JTabbedPane();
         buttonFinisher = new javax.swing.JButton();
         JMenu menuFile = new JMenu();
@@ -96,9 +93,7 @@ public class MainFrame extends javax.swing.JFrame {
         JMenuItem menuItemFinisher = new JMenuItem();
         JMenuItem menuItemAgeGroups = new JMenuItem();
         JMenuItem menuItemContestants = new JMenuItem();
-        JMenu menuSettings = new JMenu();
-        menuPrintHeader = new javax.swing.JMenu();
-        JCheckBoxMenuItem menuItemShowDisqualified = new JCheckBoxMenuItem();
+        JMenuItem menuItemSettings = new JMenuItem();
         JMenuBar menuBar = new JMenuBar();
         JPanel jPanel4 = new JPanel();
 
@@ -171,20 +166,11 @@ public class MainFrame extends javax.swing.JFrame {
         menuItemContestants.addActionListener(MainFrame.this::menuItemContestantsActionPerformed);
         menuEdit.add(menuItemContestants);
 
+        menuItemSettings.setText("Beállítások");
+        menuItemSettings.addActionListener(MainFrame.this::menuItemSettingsActionPerformed);
+        menuEdit.add(menuItemSettings);
+
         menuBar.add(menuEdit);
-
-        menuSettings.setText("Beállítások");
-
-        menuPrintHeader.setText("Nyomtatási Fejléc");
-        loadPrintHeaders();
-        menuSettings.add(menuPrintHeader);
-
-        menuItemShowDisqualified.setText("Csak helyezettek mutatása");
-        menuItemShowDisqualified.addActionListener(MainFrame.this::menuItemShowDisqualifiedActionPerformed);
-        menuItemShowDisqualified.setState(!showDisqualified);
-        menuSettings.add(menuItemShowDisqualified);
-
-        menuBar.add(menuSettings);
 
         setJMenuBar(menuBar);
 
@@ -204,12 +190,6 @@ public class MainFrame extends javax.swing.JFrame {
         );
 
         pack();
-    }
-
-    private void menuItemShowDisqualifiedActionPerformed(ActionEvent actionEvent) {
-        showDisqualified = !showDisqualified;
-        ((JCheckBoxMenuItem) actionEvent.getSource()).setState(!showDisqualified);
-        loadData();
     }
 
     private void menuItemAgeGroupsActionPerformed(java.awt.event.ActionEvent evt) {
@@ -262,6 +242,12 @@ public class MainFrame extends javax.swing.JFrame {
     private void menuItemContestantsActionPerformed(java.awt.event.ActionEvent evt) {
         ContestantsDialog dial = new ContestantsDialog(this);
         dial.setVisible(true);
+        loadData();
+    }
+
+    private void menuItemSettingsActionPerformed(java.awt.event.ActionEvent evt) {
+        SettingsDialog dialog = new SettingsDialog(this);
+        dialog.setVisible(true);
         loadData();
     }
 
@@ -429,39 +415,6 @@ public class MainFrame extends javax.swing.JFrame {
             warn("Hiba az adatok betöltése közben!:\n" + e.getLocalizedMessage());
             e.printStackTrace();
             System.exit(1);
-        }
-    }
-
-    private void loadPrintHeaders() {
-        MenuElement[] elements = menuPrintHeader.getSubElements();
-        for (MenuElement element : elements) {
-            MenuElement[] menuElement = element.getSubElements();
-            for (MenuElement menuElement1 : menuElement) {
-                buttonGroup2.remove((JMenuItem) menuElement1);
-            }
-        }
-        menuPrintHeader.removeAll();
-
-        try {
-            Database.get().getPrintHeaderDao().queryForAll().forEach(printHeader -> {
-                PrintHeaderMenuItem<PrintHeader> item = new PrintHeaderMenuItem<>(printHeader);
-                item.addActionListener(e -> headerString = ((PrintHeader) ((PrintHeaderMenuItem) e.getSource()).getData()).getText().split("\n"));
-                buttonGroup2.add(item);
-                menuPrintHeader.add(item);
-                buttonGroup2.setSelected(item.getModel(), true);
-                headerString = item.getData().getText().split("\n");
-
-            });
-
-            JMenuItem edit = new JMenuItem("Új");
-            edit.addActionListener(e -> {
-                AddPrintHeaderDialog addPrintHeaderDialog = new AddPrintHeaderDialog(MainFrame.this);
-                addPrintHeaderDialog.setVisible(true);
-                loadPrintHeaders();
-            });
-            menuPrintHeader.add(edit);
-        } catch (SQLException ex) {
-            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -656,7 +609,7 @@ public class MainFrame extends javax.swing.JFrame {
                 .ne(Contestant.COLUMN_POSITION, 0)
                 .query()
                 .stream().sorted((o1, o2) -> Integer.compare(o1.getPosition(), o2.getPosition())).collect(Collectors.toList());
-        if (showDisqualified) {
+        if (Database.get().getSettingDao().getShowDisqualified()) {
             contestants.addAll(Database.get().getContestantDao().queryBuilder()
                     .where()
                     .eq(Contestant.COLUMN_AGE_GROUP_ID, ageGroupId).and()

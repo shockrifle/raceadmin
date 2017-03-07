@@ -7,10 +7,8 @@ import com.j256.ormlite.logger.LocalLog;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 import hu.danielb.raceadmin.database.dao.BaseDaoWithListener;
-import hu.danielb.raceadmin.entity.AgeGroup;
-import hu.danielb.raceadmin.entity.Contestant;
-import hu.danielb.raceadmin.entity.PrintHeader;
-import hu.danielb.raceadmin.entity.School;
+import hu.danielb.raceadmin.database.dao.SettingDao;
+import hu.danielb.raceadmin.entity.*;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -25,6 +23,7 @@ public class Database {
     private Dao<Contestant, Integer> contestantDao;
     private Dao<PrintHeader, Integer> printHeaderDao;
     private Dao<School, Integer> schoolDao;
+    private Dao<Setting, String> settingDao;
     private boolean backedUp = false;
 
     private Database() throws SQLException {
@@ -40,7 +39,7 @@ public class Database {
 
     private void connect() throws SQLException {
 
-            Properties properties = new Properties();
+        Properties properties = new Properties();
         try {
             properties.load(this.getClass().getResourceAsStream("/project.properties"));
         } catch (IOException e) {
@@ -48,12 +47,12 @@ public class Database {
         }
 
         String databaseUrl = "jdbc:sqlite:";
-            String databaseFile = properties.getProperty("database");
+        String databaseFile = properties.getProperty("database");
 
-            ConnectionSource connectionSource = new JdbcConnectionSource(databaseUrl + databaseFile);
+        ConnectionSource connectionSource = new JdbcConnectionSource(databaseUrl + databaseFile);
 
-            initDaos(connectionSource);
-            createTables(connectionSource);
+        initDaos(connectionSource);
+        createTables(connectionSource);
     }
 
     private void initDaos(ConnectionSource connectionSource) throws SQLException {
@@ -61,11 +60,14 @@ public class Database {
         contestantDao = DaoManager.createDao(connectionSource, Contestant.class);
         printHeaderDao = DaoManager.createDao(connectionSource, PrintHeader.class);
         schoolDao = DaoManager.createDao(connectionSource, School.class);
+        settingDao = DaoManager.createDao(connectionSource, Setting.class);
+
 
         ((BaseDaoWithListener) ageGroupDao).addListener(() -> backedUp = false);
         ((BaseDaoWithListener) contestantDao).addListener(() -> backedUp = false);
         ((BaseDaoWithListener) printHeaderDao).addListener(() -> backedUp = false);
         ((BaseDaoWithListener) schoolDao).addListener(() -> backedUp = false);
+        ((SettingDao) settingDao).addListener(() -> backedUp = false);
     }
 
     private void createTables(ConnectionSource connectionSource) throws SQLException {
@@ -73,6 +75,7 @@ public class Database {
         TableUtils.createTableIfNotExists(connectionSource, Contestant.class);
         TableUtils.createTableIfNotExists(connectionSource, PrintHeader.class);
         TableUtils.createTableIfNotExists(connectionSource, School.class);
+        TableUtils.createTableIfNotExists(connectionSource, Setting.class);
     }
 
     public Dao<AgeGroup, Integer> getAgeGroupDao() {
@@ -89,6 +92,10 @@ public class Database {
 
     public Dao<School, Integer> getSchoolDao() {
         return schoolDao;
+    }
+
+    public SettingDao getSettingDao() {
+        return (SettingDao) settingDao;
     }
 
     public void backedUp() {
