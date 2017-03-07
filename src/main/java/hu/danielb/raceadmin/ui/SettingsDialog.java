@@ -1,25 +1,36 @@
 package hu.danielb.raceadmin.ui;
 
 import hu.danielb.raceadmin.database.Database;
+import hu.danielb.raceadmin.entity.AgeGroup;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ListSelectionEvent;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class SettingsDialog extends JDialog {
-    private JPanel contentPane;
+    private JPanel mContentPane;
     private JList<String> mSettingsMenu;
     private JPanel mBasicSettings;
     private JPanel mAgeGroups;
     private JCheckBox hideDisqualifiedCheckBox;
-    private JButton ageGroupCancelButton;
-    private JButton ageGroupSaveButton;
+    private JButton mAgeGroupCancelButton;
+    private JButton mAgeGroupSaveButton;
+    private JPanel mAgeGroupContainer;
+    private Map<Integer, JPanel> mAgeGroupViews = new HashMap<>();
+    private List<AgeGroup> mAgeGroupList;
+    private boolean ageGroupsSaved = true;
 
-    public SettingsDialog(Frame owner) {
+    SettingsDialog(Frame owner) {
         super(owner);
-        setContentPane(contentPane);
+        setContentPane(mContentPane);
         init();
         this.setLocationRelativeTo(owner);
     }
@@ -39,16 +50,150 @@ public class SettingsDialog extends JDialog {
         mSettingsMenu.setModel(model);
         mSettingsMenu.setSelectedIndex(0);
 
+        hideDisqualifiedCheckBox.setSelected(loadShowDisqualified());
+        hideDisqualifiedCheckBox.addChangeListener(this::hideCheckboxChanged);
+
+        mAgeGroupContainer.setLayout(new BoxLayout(mAgeGroupContainer, BoxLayout.Y_AXIS));
+        try {
+            mAgeGroupList = Database.get().getAgeGroupDao().getAll();
+            loadAgeGroups(mAgeGroupList);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        pack();
+    }
+
+    private void loadAgeGroups(List<AgeGroup> ageGroups) {
+        mAgeGroupContainer.removeAll();
+
+        if (ageGroups != null) {
+            ageGroups.forEach(this::createAgeGroupView);
+        }
+        if (ageGroups == null || ageGroups.size() > 0 && ageGroups.get(ageGroups.size() - 1).getId() != 0) {
+            JButton newAgeGroupButton = new JButton("Új korosztály");
+            newAgeGroupButton.addActionListener(this::newAgeGroupButtonClicked);
+            mAgeGroupContainer.add(newAgeGroupButton);
+        }
+
+        mAgeGroupContainer.revalidate();
+        mAgeGroupContainer.repaint();
+    }
+
+    private void newAgeGroupButtonClicked(ActionEvent e) {
+        enableSaveAndCancel();
+        AgeGroup last = mAgeGroupList.get(mAgeGroupList.size() - 1);
+        AgeGroup newAgeGroup = new AgeGroup(0, "Új korosztály", last.getMinimum() - 2, last.getMinimum() - 1);
+        mAgeGroupList.add(newAgeGroup);
+        loadAgeGroups(mAgeGroupList);
+    }
+
+    private void enableSaveAndCancel() {
+        ageGroupsSaved = false;
+        mAgeGroupSaveButton.setEnabled(true);
+        mAgeGroupCancelButton.setEnabled(true);
+    }
+
+    private void disableSaveAndCancel() {
+        ageGroupsSaved = true;
+        mAgeGroupSaveButton.setEnabled(false);
+        mAgeGroupCancelButton.setEnabled(false);
+    }
+
+    private void createAgeGroupView(AgeGroup ageGroup) {
+        JPanel ageGroupRow = new JPanel();
+
+        JTextField name = new JTextField(ageGroup.getName());
+        name.setPreferredSize(new Dimension(120, 22));
+
+        name.addKeyListener(new AgeGroupNameEditListener());
+
+        JSpinner minimum = new JSpinner(new SpinnerNumberModel(ageGroup.getMinimum(), 1900, 2100, 1));
+        if (ageGroup.getId() != 0) {
+            ((JSpinner.DefaultEditor) minimum.getEditor()).getTextField().setEditable(false);
+            minimum.addChangeListener(e -> ageGroupMinimumChanged(e, ageGroup));
+        }
+
+        JSpinner maximum = new JSpinner(new SpinnerNumberModel(ageGroup.getMaximum(), 1900, 2100, 1));
+        if (ageGroup.getId() != 0) {
+            ((JSpinner.DefaultEditor) maximum.getEditor()).getTextField().setEditable(false);
+            maximum.addChangeListener(e -> ageGroupMaximumChanged(e, ageGroup));
+        }
+
+        JButton delete = new JButton("Törlés");
+
+        ageGroupRow.add(name);
+        ageGroupRow.add(minimum);
+        ageGroupRow.add(maximum);
+        ageGroupRow.add(delete);
+
+        mAgeGroupViews.put(ageGroup.getId(), ageGroupRow);
+        mAgeGroupContainer.add(ageGroupRow);
+    }
+
+    private void ageGroupMinimumChanged(ChangeEvent e, AgeGroup ageGroup) {
+        enableSaveAndCancel();
+        int oldValue = ageGroup.getMinimum();
+        Integer newValue = (Integer) ((JSpinner) e.getSource()).getValue();
+        mAgeGroupList.forEach(ageGroupLocal -> {
+            if (oldValue < newValue) {
+                incrementValue(newValue);
+            } else if (oldValue > newValue) {
+                decrementValue(newValue);
+            }
+        });
+        ageGroup.setMinimum(newValue);
+        loadAgeGroups(mAgeGroupList);
+    }
+
+    private void ageGroupMaximumChanged(ChangeEvent e, AgeGroup ageGroup) {
+        enableSaveAndCancel();
+        int oldValue = ageGroup.getMaximum();
+        Integer newValue = (Integer) ((JSpinner) e.getSource()).getValue();
+        mAgeGroupList.forEach(ageGroupLocal -> {
+            if (oldValue < newValue) {
+                incrementValue(newValue);
+            } else if (oldValue > newValue) {
+                decrementValue(newValue);
+            }
+        });
+        ageGroup.setMaximum(newValue);
+        loadAgeGroups(mAgeGroupList);
+    }
+
+    private void incrementValue(int base) {
+        for (AgeGroup ageGroup : mAgeGroupList) {
+            if (ageGroup.getMinimum() == base) {
+                incrementValue(base + 1);
+                ageGroup.setMinimum(ageGroup.getMinimum() + 1);
+            }
+            if (ageGroup.getMaximum() == base) {
+                incrementValue(base + 1);
+                ageGroup.setMaximum(ageGroup.getMaximum() + 1);
+            }
+        }
+    }
+
+    private void decrementValue(int base) {
+        for (AgeGroup ageGroup : mAgeGroupList) {
+            if (ageGroup.getMinimum() == base) {
+                decrementValue(base - 1);
+                ageGroup.setMinimum(ageGroup.getMinimum() - 1);
+            }
+            if (ageGroup.getMaximum() == base) {
+                decrementValue(base - 1);
+                ageGroup.setMaximum(ageGroup.getMaximum() - 1);
+            }
+        }
+    }
+
+    private boolean loadShowDisqualified() {
         boolean showDisqualified = false;
         try {
             showDisqualified = Database.get().getSettingDao().getShowDisqualified();
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        hideDisqualifiedCheckBox.setSelected(showDisqualified);
-        hideDisqualifiedCheckBox.addChangeListener(this::hideCheckboxChanged);
-
-        pack();
+        return showDisqualified;
     }
 
     private void hideCheckboxChanged(ChangeEvent e) {
@@ -74,6 +219,25 @@ public class SettingsDialog extends JDialog {
                 break;
             case 3:
                 break;
+        }
+    }
+
+    private class AgeGroupNameEditListener implements KeyListener {
+        @Override
+        public void keyTyped(KeyEvent e) {
+            if (e.getKeyCode() != KeyEvent.VK_ENTER || e.getKeyCode() != KeyEvent.VK_TAB) {
+                enableSaveAndCancel();
+            }
+        }
+
+        @Override
+        public void keyPressed(KeyEvent e) {
+
+        }
+
+        @Override
+        public void keyReleased(KeyEvent e) {
+
         }
     }
 }

@@ -6,6 +6,7 @@ import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.logger.LocalLog;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
+import hu.danielb.raceadmin.database.dao.AgeGroupDao;
 import hu.danielb.raceadmin.database.dao.BaseDaoWithListener;
 import hu.danielb.raceadmin.database.dao.SettingDao;
 import hu.danielb.raceadmin.entity.*;
@@ -78,8 +79,8 @@ public class Database {
         TableUtils.createTableIfNotExists(connectionSource, Setting.class);
     }
 
-    public Dao<AgeGroup, Integer> getAgeGroupDao() {
-        return ageGroupDao;
+    public AgeGroupDao getAgeGroupDao() {
+        return (AgeGroupDao) ageGroupDao;
     }
 
     public Dao<Contestant, Integer> getContestantDao() {
@@ -98,11 +99,11 @@ public class Database {
         return (SettingDao) settingDao;
     }
 
-    public void backedUp() {
+    void backedUp() {
         this.backedUp = true;
     }
 
-    public boolean isBackedUp() {
+    boolean isBackedUp() {
         return backedUp;
     }
 }

@@ -2,9 +2,9 @@ package hu.danielb.raceadmin.entity;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
-import hu.danielb.raceadmin.database.dao.BaseDaoWithListener;
+import hu.danielb.raceadmin.database.dao.AgeGroupDao;
 
-@DatabaseTable(tableName = "age_group", daoClass = BaseDaoWithListener.class)
+@DatabaseTable(tableName = "age_group", daoClass = AgeGroupDao.class)
 public class AgeGroup implements Comparable<AgeGroup> {
 
     public static final String COLUMN_ID = "id";
