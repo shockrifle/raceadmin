@@ -2,6 +2,8 @@ package hu.danielb.raceadmin.ui;
 
 import hu.danielb.raceadmin.database.Database;
 import hu.danielb.raceadmin.entity.AgeGroup;
+import hu.danielb.raceadmin.entity.Contestant;
+import org.apache.commons.collections.CollectionUtils;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -14,8 +16,9 @@ import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-public class SettingsDialog extends JDialog {
+public class SettingsDialog extends BaseDialog {
     private JPanel mContentPane;
     private JList<String> mSettingsMenu;
     private JPanel mBasicSettings;
@@ -50,17 +53,26 @@ public class SettingsDialog extends JDialog {
         mSettingsMenu.setModel(model);
         mSettingsMenu.setSelectedIndex(0);
 
+        // basic
         hideDisqualifiedCheckBox.setSelected(loadShowDisqualified());
         hideDisqualifiedCheckBox.addChangeListener(this::hideCheckboxChanged);
 
+        // age groups
+        mAgeGroupCancelButton.addActionListener(this::cancelClicked);
+        mAgeGroupSaveButton.addActionListener(this::ageGroupSaveClicked);
         mAgeGroupContainer.setLayout(new BoxLayout(mAgeGroupContainer, BoxLayout.Y_AXIS));
+        loadAgeGroups();
+
+        pack();
+    }
+
+    private void loadAgeGroups() {
         try {
             mAgeGroupList = Database.get().getAgeGroupDao().getAll();
             loadAgeGroups(mAgeGroupList);
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        pack();
     }
 
     private void loadAgeGroups(List<AgeGroup> ageGroups) {
@@ -77,6 +89,74 @@ public class SettingsDialog extends JDialog {
 
         mAgeGroupContainer.revalidate();
         mAgeGroupContainer.repaint();
+    }
+
+    private void cancelClicked(ActionEvent actionEvent) {
+        disableSaveAndCancel();
+        loadAgeGroups();
+    }
+
+    private void ageGroupSaveClicked(ActionEvent actionEvent) {
+        if (0 == JOptionPane.showOptionDialog(this, "Ha megválzotatja a korosztályt, az eddigi eredmények elvesznek!\nBiztos ezt akarja?", "Figyelem!", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[]{"Igen", "Nem"}, null)) {
+            List<AgeGroup> overlaps = null;
+            for (AgeGroup ageGroup : mAgeGroupList) {
+                overlaps = mAgeGroupList.stream().filter(ageGroup2 ->
+                        ageGroup2.getId() != ageGroup.getId() &&
+                                (ageGroup.includes(ageGroup2.getMinimum()) ||
+                                        ageGroup.includes(ageGroup2.getMaximum()))).collect(Collectors.toList());
+                if (!CollectionUtils.isEmpty(overlaps)) break;
+            }
+
+            if (CollectionUtils.isEmpty(overlaps)) {
+                LoadingDialog dialog = new LoadingDialog(this, "Mentés...");
+                dialog.setMax(mAgeGroupList.size());
+                new Thread(() -> {
+                    try {
+                        for (AgeGroup ageGroup : mAgeGroupList) {
+                            if (ageGroup.getId() != 0) {
+                                AgeGroup ageGroupOld = Database.get().getAgeGroupDao().queryForId(ageGroup.getId());
+                                Database.get().getAgeGroupDao().createOrUpdate(ageGroup);
+                                Database.get().getContestantDao().queryForAll().forEach(contestant -> {
+                                    contestant.setPosition(0);
+                                    updateContestantAgeGroup(contestant, ageGroupOld, ageGroup);
+                                });
+
+                            } else {
+                                Database.get().getAgeGroupDao().createOrUpdate(ageGroup);
+                                Database.get().getContestantDao().queryForAll().forEach(contestant -> updateContestantAgeGroup(contestant, null, ageGroup));
+                            }
+                            dialog.progress();
+                        }
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                    dialog.dispose();
+                    disableSaveAndCancel();
+                    loadAgeGroups();
+                }).start();
+                dialog.setVisible(true);
+            } else {
+                String msg = "A beállított korhatár ütközik a következővel:\n";
+                for (AgeGroup ageGroup1 : overlaps) {
+                    msg += ageGroup1.getName() + "\n";
+                }
+                warn(msg);
+            }
+        }
+    }
+
+    private void updateContestantAgeGroup(Contestant contestant, AgeGroup ageGroupOld, AgeGroup ageGroupNew) {
+        if (ageGroupOld != null && ageGroupOld.equals(contestant.getAgeGroup())) {
+            contestant.setAgeGroup(null);
+        }
+        if (ageGroupNew != null && ageGroupNew.includes(contestant.getAge())) {
+            contestant.setAgeGroup(ageGroupNew);
+        }
+        try {
+            Database.get().getContestantDao().update(contestant);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     private void newAgeGroupButtonClicked(ActionEvent e) {
@@ -111,15 +191,21 @@ public class SettingsDialog extends JDialog {
         if (ageGroup.getId() != 0) {
             ((JSpinner.DefaultEditor) minimum.getEditor()).getTextField().setEditable(false);
             minimum.addChangeListener(e -> ageGroupMinimumChanged(e, ageGroup));
+        } else {
+            minimum.addChangeListener(e -> ageGroup.setMinimum((Integer) minimum.getValue()));
         }
 
         JSpinner maximum = new JSpinner(new SpinnerNumberModel(ageGroup.getMaximum(), 1900, 2100, 1));
         if (ageGroup.getId() != 0) {
             ((JSpinner.DefaultEditor) maximum.getEditor()).getTextField().setEditable(false);
             maximum.addChangeListener(e -> ageGroupMaximumChanged(e, ageGroup));
+        } else {
+            maximum.addChangeListener(e -> ageGroup.setMaximum((Integer) maximum.getValue()));
         }
 
         JButton delete = new JButton("Törlés");
+
+        delete.addActionListener(e -> deleteAgeGroupClicked(ageGroup));
 
         ageGroupRow.add(name);
         ageGroupRow.add(minimum);
@@ -128,6 +214,29 @@ public class SettingsDialog extends JDialog {
 
         mAgeGroupViews.put(ageGroup.getId(), ageGroupRow);
         mAgeGroupContainer.add(ageGroupRow);
+    }
+
+    private void deleteAgeGroupClicked(AgeGroup ageGroup) {
+        if (0 == JOptionPane.showOptionDialog(this, "Ha törli a korosztályt, az eddigi eredmények elvesznek!\nBiztos ezt akarja?", "Figyelem!", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[]{"Igen", "Nem"}, null)) {
+            LoadingDialog dialog = new LoadingDialog(this, "Mentés...");
+            new Thread(() -> {
+                try {
+                    Database.get().getAgeGroupDao().delete(ageGroup);
+                    List<Contestant> contestants = Database.get().getContestantDao().queryForAll();
+                    dialog.setMax(contestants.size());
+                    contestants.forEach(contestant -> {
+                        contestant.setPosition(0);
+                        updateContestantAgeGroup(contestant, ageGroup, null);
+                        dialog.progress();
+                    });
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+                dialog.dispose();
+                loadAgeGroups();
+            }).start();
+            dialog.setVisible(true);
+        }
     }
 
     private void ageGroupMinimumChanged(ChangeEvent e, AgeGroup ageGroup) {

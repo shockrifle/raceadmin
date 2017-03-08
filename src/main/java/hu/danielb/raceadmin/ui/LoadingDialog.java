@@ -1,13 +1,21 @@
 package hu.danielb.raceadmin.ui;
 
 import javax.swing.*;
+import java.awt.*;
 
-public class LoadingDialog extends javax.swing.JDialog {
+class LoadingDialog extends javax.swing.JDialog {
 
-    String message = "";
+    private String message = "";
     private JProgressBar progress;
 
-    public LoadingDialog(java.awt.Frame parent, String message) {
+    LoadingDialog(java.awt.Frame parent, String message) {
+        super(parent, true);
+        this.message = message;
+        initComponents();
+        this.setLocationRelativeTo(parent);
+    }
+
+    LoadingDialog(Dialog parent, String message) {
         super(parent, true);
         this.message = message;
         initComponents();
@@ -54,13 +62,14 @@ public class LoadingDialog extends javax.swing.JDialog {
         pack();
     }
 
-    public void setMax(int max) {
+    void setMax(int max) {
         progress.setIndeterminate(false);
+        progress.setValue(0);
         progress.setMinimum(0);
         progress.setMaximum(max);
     }
 
-    public void progress() {
+    void progress() {
         progress.setValue(progress.getValue() + 1);
     }
 }
