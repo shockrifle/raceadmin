@@ -8,6 +8,7 @@ import org.apache.commons.collections.CollectionUtils;
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -30,6 +31,7 @@ public class SettingsDialog extends BaseDialog {
     private Map<Integer, JPanel> mAgeGroupViews = new HashMap<>();
     private List<AgeGroup> mAgeGroupList;
     private boolean ageGroupsSaved = true;
+    private ListSelectionListener mListItemSelectedListener;
 
     SettingsDialog(Frame owner) {
         super(owner);
@@ -44,7 +46,8 @@ public class SettingsDialog extends BaseDialog {
         setModalityType(java.awt.Dialog.ModalityType.APPLICATION_MODAL);
         setResizable(false);
 
-        mSettingsMenu.addListSelectionListener(this::listItemSelected);
+        mListItemSelectedListener = this::listItemSelected;
+        mSettingsMenu.addListSelectionListener(mListItemSelectedListener);
         DefaultListModel<String> model = new DefaultListModel<>();
         model.addElement("Általános");
         model.addElement("Korosztályok");
@@ -58,8 +61,8 @@ public class SettingsDialog extends BaseDialog {
         hideDisqualifiedCheckBox.addChangeListener(this::hideCheckboxChanged);
 
         // age groups
-        mAgeGroupCancelButton.addActionListener(this::cancelClicked);
-        mAgeGroupSaveButton.addActionListener(this::ageGroupSaveClicked);
+        mAgeGroupCancelButton.addActionListener(e -> cancelClicked());
+        mAgeGroupSaveButton.addActionListener(e -> ageGroupSaveClicked());
         mAgeGroupContainer.setLayout(new BoxLayout(mAgeGroupContainer, BoxLayout.Y_AXIS));
         loadAgeGroups();
 
@@ -91,12 +94,12 @@ public class SettingsDialog extends BaseDialog {
         mAgeGroupContainer.repaint();
     }
 
-    private void cancelClicked(ActionEvent actionEvent) {
+    private void cancelClicked() {
         disableSaveAndCancel();
         loadAgeGroups();
     }
 
-    private void ageGroupSaveClicked(ActionEvent actionEvent) {
+    private void ageGroupSaveClicked() {
         if (0 == JOptionPane.showOptionDialog(this, "Ha megválzotatja a korosztályt, az eddigi eredmények elvesznek!\nBiztos ezt akarja?", "Figyelem!", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[]{"Igen", "Nem"}, null)) {
             List<AgeGroup> overlaps = null;
             for (AgeGroup ageGroup : mAgeGroupList) {
@@ -314,6 +317,22 @@ public class SettingsDialog extends BaseDialog {
     }
 
     private void listItemSelected(ListSelectionEvent e) {
+        if (!ageGroupsSaved) {
+            int answer = JOptionPane.showOptionDialog(this, "A korosztályok nincsenek elmentve!", "Figyelem!", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[]{"Mentés", "Elvetés", "Mégse"}, null);
+            switch (answer) {
+                case 0:
+                    ageGroupSaveClicked();
+                    break;
+                case 1:
+                    cancelClicked();
+                    break;
+                default:
+                    mSettingsMenu.removeListSelectionListener(mListItemSelectedListener);
+                    mSettingsMenu.setSelectedIndex(1);
+                    mSettingsMenu.addListSelectionListener(mListItemSelectedListener);
+                    return;
+            }
+        }
         int index = mSettingsMenu.getSelectedIndex();
         mBasicSettings.setVisible(false);
         mAgeGroups.setVisible(false);
