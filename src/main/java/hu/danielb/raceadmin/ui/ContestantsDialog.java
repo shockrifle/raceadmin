@@ -24,7 +24,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class ContestantsDialog extends BaseDialog {
+class ContestantsDialog extends BaseDialog {
 
     private JComboBox<School> comboSchools;
     private javax.swing.JTable tableContestants;
@@ -34,7 +34,7 @@ public class ContestantsDialog extends BaseDialog {
     private boolean sortBackwards = false;
     private String filter = "";
 
-    public ContestantsDialog(Frame owner) {
+    ContestantsDialog(Frame owner) {
         super(owner);
         init();
         this.setLocationRelativeTo(owner);
@@ -156,7 +156,7 @@ public class ContestantsDialog extends BaseDialog {
 
     private void menuItemPrintActionPerformed(java.awt.event.ActionEvent evt) {
         try {
-            new Printer(tableContestants);
+            new Printer(tableContestants).print();
         } catch (PrinterException | HeadlessException ex) {
             Logger.getLogger(ContestantsDialog.class.getName()).log(Level.SEVERE, null, ex);
         }

@@ -9,27 +9,31 @@ import java.awt.print.PrinterJob;
 
 public class Printer implements Printable {
 
-    private String title;
-    private JTable table;
-    private String[] header;
+    private static final String FONT = "Times New Roman";
+    private String mTitle;
+    private JTable mTable;
+    private String[] mHeader;
     private int numOfRowsPrinted;
     private int firstPageRows;
-    private boolean isTeam;
+    private boolean mIsTeam;
 
-    public Printer(JTable c) throws PrinterException {
-        this("", c, null);
+    public Printer(JTable tableToPrint) {
+        this("", tableToPrint, null);
     }
 
-    public Printer(String t, JTable c, String[] hd) throws PrinterException {
-        this(t, c, hd, false);
+    public Printer(String title, JTable tableToPrint, String[] header) {
+        this(title, tableToPrint, header, false);
     }
 
-    public Printer(String t, JTable c, String[] hd, boolean team) throws PrinterException {
-        title = t;
-        table = c;
-        header = hd;
-        isTeam = team;
-        table.clearSelection();
+    public Printer(String title, JTable tableToPrint, String[] header, boolean isTeam) {
+        mTitle = title;
+        mTable = tableToPrint;
+        mHeader = header;
+        mIsTeam = isTeam;
+        mTable.clearSelection();
+    }
+
+    public void print() throws PrinterException {
         PrinterJob pj = PrinterJob.getPrinterJob();
         pj.setPrintable(this);
         if (pj.printDialog()) {
@@ -48,13 +52,13 @@ public class Printer implements Printable {
 
         double pageHeight = pageFormat.getImageableHeight();
         double pageWidth = pageFormat.getImageableWidth();
-        double tableWidth = (double) table.getColumnModel().getTotalColumnWidth();
+        double tableWidth = (double) mTable.getColumnModel().getTotalColumnWidth();
         double scale = 1;
         if (tableWidth >= pageWidth) {
             scale = (pageWidth / tableWidth);
         }
 
-        double headerHeightOnPage = (table.getTableHeader().getHeight()) * scale;
+        double headerHeightOnPage = (mTable.getTableHeader().getHeight()) * scale;
         double tableWidthOnPage = tableWidth * scale;
 
         graphicToPrint.translate(pageFormat.getImageableX(), pageFormat.getImageableY());
@@ -63,32 +67,32 @@ public class Printer implements Printable {
 
 
         Font tmpFont = graphicToPrint.getFont();
-        if (pageIndex < 1 && header != null) {
-            graphicToPrint.setFont(new Font("New Times Roman", Font.BOLD, 14));
+        if (pageIndex < 1 && mHeader != null) {
+            graphicToPrint.setFont(new Font(FONT, Font.BOLD, 14));
 
             currentDrawHeight += graphicToPrint.getFontMetrics().getLeading() + graphicToPrint.getFontMetrics().getAscent();
-            graphicToPrint.drawString(header[0], 0, (float) currentDrawHeight);
+            graphicToPrint.drawString(mHeader[0], 0, (float) currentDrawHeight);
 
-            graphicToPrint.setFont(new Font("New Times Roman", Font.PLAIN, 14));
+            graphicToPrint.setFont(new Font(FONT, Font.PLAIN, 14));
 
-            for (int i = 1; i < header.length; i++) {
+            for (int i = 1; i < mHeader.length; i++) {
                 currentDrawHeight += graphicToPrint.getFontMetrics().getLeading() + graphicToPrint.getFontMetrics().getAscent();
-                graphicToPrint.drawString(header[i], 0, (float) currentDrawHeight);
+                graphicToPrint.drawString(mHeader[i], 0, (float) currentDrawHeight);
             }
         }
-        if (!title.isEmpty()) {
-            graphicToPrint.setFont(new Font("New Times Roman", Font.ITALIC, 12));
+        if (!mTitle.isEmpty()) {
+            graphicToPrint.setFont(new Font(FONT, Font.ITALIC, 12));
             currentDrawHeight += graphicToPrint.getFontMetrics().getLeading() + graphicToPrint.getFontMetrics().getAscent();
-            graphicToPrint.drawString(title, 0, (float) currentDrawHeight);
+            graphicToPrint.drawString(mTitle, 0, (float) currentDrawHeight);
         }
-        if (pageIndex < 1 && header != null || !title.isEmpty()) {
+        if (pageIndex < 1 && mHeader != null || !mTitle.isEmpty()) {
             currentDrawHeight += 3;
         }
         graphicToPrint.setFont(tmpFont);
 
 
-        double oneRowHeight = (double) (table.getRowHeight() + 1) * scale;
-        if (isTeam) {
+        double oneRowHeight = (double) (mTable.getRowHeight() + 1) * scale;
+        if (mIsTeam) {
             oneRowHeight *= 4;
         }
         int numOfRowsOnAPage;
@@ -107,7 +111,7 @@ public class Printer implements Printable {
                     (int) Math.ceil(tableHeightForPage));
 
             graphicToPrint.scale(scale, scale);
-            table.paint(graphicToPrint);
+            mTable.paint(graphicToPrint);
             graphicToPrint.scale(1 / scale, 1 / scale);
             if (pageIndex < 1) {
                 graphicToPrint.translate(0f, -headerHeightOnPage);
@@ -116,14 +120,14 @@ public class Printer implements Printable {
             }
             graphicToPrint.setClip(0, 0, (int) Math.ceil(tableWidthOnPage), (int) Math.ceil(headerHeightOnPage));
             graphicToPrint.scale(scale, scale);
-            table.getTableHeader().paint(graphicToPrint);
+            mTable.getTableHeader().paint(graphicToPrint);
 
         } else {
 
             numOfRowsOnAPage = (int) Math.floor((pageHeight - currentDrawHeight - headerHeightOnPage - fontHeight) / oneRowHeight);
 
             numOfRowsPrinted = firstPageRows + numOfRowsOnAPage * (pageIndex - 1);
-            int rowsLeft = table.getRowCount() - (isTeam ? numOfRowsPrinted * 4 : numOfRowsPrinted);
+            int rowsLeft = mTable.getRowCount() - (mIsTeam ? numOfRowsPrinted * 4 : numOfRowsPrinted);
             if (rowsLeft < 1) {
                 return NO_SUCH_PAGE;
             }
@@ -137,7 +141,7 @@ public class Printer implements Printable {
 
             double tableHeightForPage = oneRowHeight * (double) (numOfRowsOnThisPage);
 
-            int numOfPagesToPrint = (int) Math.ceil((double) (table.getRowCount() - firstPageRows) / (double) numOfRowsOnAPage) + 1;
+            int numOfPagesToPrint = (int) Math.ceil((double) (mTable.getRowCount() - firstPageRows) / (double) numOfRowsOnAPage) + 1;
 
             if (pageIndex >= numOfPagesToPrint) {
                 return NO_SUCH_PAGE;
@@ -150,7 +154,7 @@ public class Printer implements Printable {
                     (int) Math.ceil(tableHeightForPage));
 
             graphicToPrint.scale(scale, scale);
-            table.paint(graphicToPrint);
+            mTable.paint(graphicToPrint);
             graphicToPrint.scale(1 / scale, 1 / scale);
             if (pageIndex < 1) {
                 graphicToPrint.translate(0f, -headerHeightOnPage);
@@ -159,7 +163,7 @@ public class Printer implements Printable {
             }
             graphicToPrint.setClip(0, 0, (int) Math.ceil(tableWidthOnPage), (int) Math.ceil(headerHeightOnPage));
             graphicToPrint.scale(scale, scale);
-            table.getTableHeader().paint(graphicToPrint);
+            mTable.getTableHeader().paint(graphicToPrint);
 
 
         }

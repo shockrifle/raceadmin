@@ -53,7 +53,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JTabbedPane ageGroupPane;
     private String exportsPath;
 
-    public MainFrame() {
+    private MainFrame() {
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Windows".equals(info.getName())) {
@@ -223,9 +223,9 @@ public class MainFrame extends javax.swing.JFrame {
 
             try {
                 if (tab.getId() == Constants.BOY_TEAM || tab.getId() == Constants.GIRL_TEAM) {
-                    new Printer(ageGroup.getName() + ", " + tab.getTitle(), tables.get(ageGroup.getId() + (String) tab.getId()), headerString, true);
+                    new Printer(ageGroup.getName() + ", " + tab.getTitle(), tables.get(ageGroup.getId() + (String) tab.getId()), headerString, true).print();
                 } else {
-                    new Printer(ageGroup.getName() + ", " + tab.getTitle(), tables.get(ageGroup.getId() + (String) tab.getId()), headerString);
+                    new Printer(ageGroup.getName() + ", " + tab.getTitle(), tables.get(ageGroup.getId() + (String) tab.getId()), headerString).print();
                 }
             } catch (PrinterException ex) {
                 warn("Nyomtatási hiba!");
@@ -577,7 +577,7 @@ public class MainFrame extends javax.swing.JFrame {
         }
     }
 
-    protected void warn(String msg) {
+    private void warn(String msg) {
         JOptionPane.showMessageDialog(this, msg, "", JOptionPane.WARNING_MESSAGE);
     }
 
