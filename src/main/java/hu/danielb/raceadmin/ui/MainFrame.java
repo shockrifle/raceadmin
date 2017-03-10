@@ -51,7 +51,6 @@ import java.util.stream.Collectors;
 public class MainFrame extends javax.swing.JFrame {
 
     private Map<String, JTable> tables;
-    private String[] headerString;
     private JDialog startupScreen;
     private javax.swing.JButton buttonFinisher;
     private javax.swing.JTabbedPane ageGroupPane;
@@ -91,7 +90,6 @@ public class MainFrame extends javax.swing.JFrame {
         JMenu menuEdit = new JMenu();
         JMenuItem menuItemNewContestant = new JMenuItem();
         JMenuItem menuItemFinisher = new JMenuItem();
-        JMenuItem menuItemAgeGroups = new JMenuItem();
         JMenuItem menuItemContestants = new JMenuItem();
         JMenuItem menuItemSettings = new JMenuItem();
         JMenuBar menuBar = new JMenuBar();
@@ -158,10 +156,6 @@ public class MainFrame extends javax.swing.JFrame {
         menuItemFinisher.addActionListener(MainFrame.this::menuItemFinisherActionPerformed);
         menuEdit.add(menuItemFinisher);
 
-        menuItemAgeGroups.setText("Korosztályok");
-        menuItemAgeGroups.addActionListener(MainFrame.this::menuItemAgeGroupsActionPerformed);
-        menuEdit.add(menuItemAgeGroups);
-
         menuItemContestants.setText("Versenyzők");
         menuItemContestants.addActionListener(MainFrame.this::menuItemContestantsActionPerformed);
         menuEdit.add(menuItemContestants);
@@ -192,12 +186,6 @@ public class MainFrame extends javax.swing.JFrame {
         pack();
     }
 
-    private void menuItemAgeGroupsActionPerformed(java.awt.event.ActionEvent evt) {
-        AgeGroupsDialog dialog = new AgeGroupsDialog(this);
-        dialog.setVisible(true);
-        loadData();
-    }
-
     private void menuItemNewContestantActionPerformed(java.awt.event.ActionEvent evt) {
         JDialog addFrame = new AddContestantDialog(this);
         addFrame.setVisible(true);
@@ -219,7 +207,19 @@ public class MainFrame extends javax.swing.JFrame {
     }
 
     private void menuItemPrintActionPerformed(java.awt.event.ActionEvent evt) {
-        if (headerString != null && headerString.length > 0) {
+
+
+        String[] headerString = new String[]{"", ""};
+        try {
+            headerString = new String[]{
+                    Database.get().getSettingDao().getPrintHeaderTitle(),
+                    Database.get().getSettingDao().getPrintHeaderSubtitle()
+            };
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        if (headerString[0].length() != 0 && headerString[1].length() != 0) {
             GenericTabbedPane ageGroupTab = (GenericTabbedPane) ageGroupPane.getComponentAt(ageGroupPane.getSelectedIndex());
             AgeGroup ageGroup = (AgeGroup) ageGroupTab.getData();
             GenericTabbedPane.Tab tab = ageGroupTab.getTab(ageGroupTab.getSelectedIndex());
@@ -235,7 +235,7 @@ public class MainFrame extends javax.swing.JFrame {
                 Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
             }
         } else {
-            warn("Nincs fejléc kiválasztva!");
+            warn("Nem adott meg nyomtatási fejlécet!\n(Beállítások -> Nyomtatási fejléc)");
         }
     }
 
@@ -261,62 +261,59 @@ public class MainFrame extends javax.swing.JFrame {
             File file = fc.getSelectedFile();
 
             LoadingDialog dialog = new LoadingDialog(this, "Importálás...");
-            new Thread() {
-                @Override
-                public void run() {
-                    CSVRecord rowToLogError = null;
-                    List<Contestant> contestants = new ArrayList<>();
-                    try {
-                        CSVParser parse = CSVParser.parse(file, Charset.defaultCharset(),
-                                CSVFormat.newFormat(';').withHeader());
-                        List<CSVRecord> records = parse.getRecords();
-                        dialog.setMax(records.size() * 2);
-                        Map<Integer, Integer> numbers = new HashMap<>(records.size());
-                        for (CSVRecord row : records) {
-                            rowToLogError = row;
-                            AgeGroup ageGroup = Database.get().getAgeGroupDao().queryForId(Integer.parseInt(row.get(Contestant.COLUMN_AGE_GROUP_ID)));
-                            School school = Database.get().getSchoolDao().queryForId(Integer.parseInt(row.get(Contestant.COLUMN_SCHOOL_ID)));
-                            int number = Integer.parseInt(row.get(Contestant.COLUMN_NUMBER));
-                            int count = numbers.get(number) != null ? numbers.get(number) : 0;
-                            int existsWithNumber = Database.get().getContestantDao().queryForEq(Contestant.COLUMN_NUMBER, number).size();
-                            if (existsWithNumber > 0 || ++count > 1) {
-                                throw new IllegalArgumentException("Már létezik versenyző ezzel a számmal!");
-                            }
-                            numbers.put(number, count);
-                            if (school == null) {
-                                throw new IllegalArgumentException("Iskola nem található!");
-                            }
-                            if (ageGroup == null) {
-                                throw new IllegalArgumentException("Korosztály nem található!");
-                            }
-
-                            contestants.add(new Contestant(
-                                    0,
-                                    0,
-                                    row.get(Contestant.COLUMN_NAME),
-                                    row.get(Contestant.COLUMN_SEX),
-                                    number,
-                                    ageGroup,
-                                    school,
-                                    Integer.parseInt(row.get(Contestant.COLUMN_AGE))));
-
-                            dialog.progress();
+            new Thread(() -> {
+                CSVRecord rowToLogError = null;
+                List<Contestant> contestants = new ArrayList<>();
+                try {
+                    CSVParser parse = CSVParser.parse(file, Charset.defaultCharset(),
+                            CSVFormat.newFormat(';').withHeader());
+                    List<CSVRecord> records = parse.getRecords();
+                    dialog.setMax(records.size() * 2);
+                    Map<Integer, Integer> numbers = new HashMap<>(records.size());
+                    for (CSVRecord row : records) {
+                        rowToLogError = row;
+                        AgeGroup ageGroup = Database.get().getAgeGroupDao().queryForId(Integer.parseInt(row.get(Contestant.COLUMN_AGE_GROUP_ID)));
+                        School school = Database.get().getSchoolDao().queryForId(Integer.parseInt(row.get(Contestant.COLUMN_SCHOOL_ID)));
+                        int number = Integer.parseInt(row.get(Contestant.COLUMN_NUMBER));
+                        int count = numbers.get(number) != null ? numbers.get(number) : 0;
+                        int existsWithNumber = Database.get().getContestantDao().queryForEq(Contestant.COLUMN_NUMBER, number).size();
+                        if (existsWithNumber > 0 || ++count > 1) {
+                            throw new IllegalArgumentException("Már létezik versenyző ezzel a számmal!");
                         }
-                        for (Contestant contestant : contestants) {
-                            Database.get().getContestantDao().create(contestant);
-                            dialog.progress();
+                        numbers.put(number, count);
+                        if (school == null) {
+                            throw new IllegalArgumentException("Iskola nem található!");
                         }
-                    } catch (SQLException | IOException | IllegalArgumentException e) {
-                        e.printStackTrace();
-                        warn("Hiba történ importálás közben:\n" +
-                                e.getLocalizedMessage() + "\nHiba helye\n" +
-                                (rowToLogError != null ? rowToLogError.getRecordNumber() : "") +
-                                ": " + (rowToLogError != null ? rowToLogError.toMap() : ""));
+                        if (ageGroup == null) {
+                            throw new IllegalArgumentException("Korosztály nem található!");
+                        }
+
+                        contestants.add(new Contestant(
+                                0,
+                                0,
+                                row.get(Contestant.COLUMN_NAME),
+                                row.get(Contestant.COLUMN_SEX),
+                                number,
+                                ageGroup,
+                                school,
+                                Integer.parseInt(row.get(Contestant.COLUMN_AGE))));
+
+                        dialog.progress();
                     }
-
-                    dialog.dispose();
+                    for (Contestant contestant : contestants) {
+                        Database.get().getContestantDao().create(contestant);
+                        dialog.progress();
+                    }
+                } catch (SQLException | IOException | IllegalArgumentException e) {
+                    e.printStackTrace();
+                    warn("Hiba történ importálás közben:\n" +
+                            e.getLocalizedMessage() + "\nHiba helye\n" +
+                            (rowToLogError != null ? rowToLogError.getRecordNumber() : "") +
+                            ": " + (rowToLogError != null ? rowToLogError.toMap() : ""));
                 }
-            }.start();
+
+                dialog.dispose();
+            }).start();
             dialog.setVisible(true);
         }
     }
@@ -400,16 +397,13 @@ public class MainFrame extends javax.swing.JFrame {
         exportsPath = properties.getProperty("exports-path");
         try {
             Database.get();
-            new Thread() {
-                @Override
-                public void run() {
-                    tables = new HashMap<>();
-                    initComponents();
-                    loadData();
+            new Thread(() -> {
+                tables = new HashMap<>();
+                initComponents();
+                loadData();
 
-                    startupScreen.dispose();
-                }
-            }.start();
+                startupScreen.dispose();
+            }).start();
             startupScreen.setVisible(true);
         } catch (SQLException e) {
             warn("Hiba az adatok betöltése közben!:\n" + e.getLocalizedMessage());
@@ -458,16 +452,13 @@ public class MainFrame extends javax.swing.JFrame {
     }
 
     private void loadData() {
-        new Thread() {
-            @Override
-            public void run() {
-                try {
-                    Database.get().getAgeGroupDao().queryForAll().stream().sorted((o1, o2) -> Integer.compare(o1.getMinimum(), o2.getMinimum())).forEach(MainFrame.this::updateData);
-                } catch (SQLException ex) {
-                    Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
-                }
+        new Thread(() -> {
+            try {
+                Database.get().getAgeGroupDao().queryForAll().stream().sorted(Comparator.comparingInt(AgeGroup::getMinimum)).forEach(MainFrame.this::updateData);
+            } catch (SQLException ex) {
+                Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
             }
-        }.start();
+        }).start();
     }
 
     private void updateData(AgeGroup ageGroup) {
@@ -600,7 +591,6 @@ public class MainFrame extends javax.swing.JFrame {
         tc.setPreferredWidth(size);
     }
 
-
     private List<Contestant> getByAgeGroupAndSex(int ageGroupId, String sex) throws SQLException {
         List<Contestant> contestants = Database.get().getContestantDao().queryBuilder()
                 .where()
@@ -608,8 +598,8 @@ public class MainFrame extends javax.swing.JFrame {
                 .eq(Contestant.COLUMN_SEX, sex).and()
                 .ne(Contestant.COLUMN_POSITION, 0)
                 .query()
-                .stream().sorted((o1, o2) -> Integer.compare(o1.getPosition(), o2.getPosition())).collect(Collectors.toList());
-        if (Database.get().getSettingDao().getShowDisqualified()) {
+                .stream().sorted(Comparator.comparingInt(Contestant::getPosition)).collect(Collectors.toList());
+        if (!Database.get().getSettingDao().getHideDisqualified()) {
             contestants.addAll(Database.get().getContestantDao().queryBuilder()
                     .where()
                     .eq(Contestant.COLUMN_AGE_GROUP_ID, ageGroupId).and()

@@ -28,10 +28,19 @@ public class SettingsDialog extends BaseDialog {
     private JButton mAgeGroupCancelButton;
     private JButton mAgeGroupSaveButton;
     private JPanel mAgeGroupContainer;
+    private JPanel mPrintHeader;
+    private JTextField mTitleTextField;
+    private JTextField mSubtitleTextField;
+    private JLabel titleLabel;
+    private JLabel subtitleLabel;
+    private JPanel mSettingsContent;
+    private JButton mPrintHeaderSaveButton;
+    private JButton mPrintHeaderCancelButton;
     private Map<Integer, JPanel> mAgeGroupViews = new HashMap<>();
     private List<AgeGroup> mAgeGroupList;
     private boolean ageGroupsSaved = true;
     private ListSelectionListener mListItemSelectedListener;
+    private boolean mPrintHeaderSaved = true;
 
     SettingsDialog(Frame owner) {
         super(owner);
@@ -51,20 +60,28 @@ public class SettingsDialog extends BaseDialog {
         DefaultListModel<String> model = new DefaultListModel<>();
         model.addElement("Általános");
         model.addElement("Korosztályok");
-        model.addElement("Iskolák");
         model.addElement("Nyomtatási Fejléc");
         mSettingsMenu.setModel(model);
         mSettingsMenu.setSelectedIndex(0);
 
         // basic
-        hideDisqualifiedCheckBox.setSelected(loadShowDisqualified());
+        hideDisqualifiedCheckBox.setSelected(loadHideDisqualified());
         hideDisqualifiedCheckBox.addChangeListener(this::hideCheckboxChanged);
 
         // age groups
-        mAgeGroupCancelButton.addActionListener(e -> cancelClicked());
+        mAgeGroupCancelButton.addActionListener(e -> ageGroupCancelClicked());
         mAgeGroupSaveButton.addActionListener(e -> ageGroupSaveClicked());
         mAgeGroupContainer.setLayout(new BoxLayout(mAgeGroupContainer, BoxLayout.Y_AXIS));
         loadAgeGroups();
+
+        //print header
+
+        mTitleTextField.addKeyListener(new PrintHeaderEditListener());
+        mSubtitleTextField.addKeyListener(new PrintHeaderEditListener());
+
+        mPrintHeaderSaveButton.addActionListener(e -> printHeaderSaveClicked());
+        mPrintHeaderCancelButton.addActionListener(e -> printHeaderCancelClicked());
+        loadPrintHeader();
 
         pack();
     }
@@ -94,8 +111,8 @@ public class SettingsDialog extends BaseDialog {
         mAgeGroupContainer.repaint();
     }
 
-    private void cancelClicked() {
-        disableSaveAndCancel();
+    private void ageGroupCancelClicked() {
+        disableAgeGroupSaveAndCancel();
         loadAgeGroups();
     }
 
@@ -134,7 +151,7 @@ public class SettingsDialog extends BaseDialog {
                         e.printStackTrace();
                     }
                     dialog.dispose();
-                    disableSaveAndCancel();
+                    disableAgeGroupSaveAndCancel();
                     loadAgeGroups();
                 }).start();
                 dialog.setVisible(true);
@@ -163,20 +180,20 @@ public class SettingsDialog extends BaseDialog {
     }
 
     private void newAgeGroupButtonClicked(ActionEvent e) {
-        enableSaveAndCancel();
+        enableAgeGroupSaveAndCancel();
         AgeGroup last = mAgeGroupList.get(mAgeGroupList.size() - 1);
         AgeGroup newAgeGroup = new AgeGroup(0, "Új korosztály", last.getMinimum() - 2, last.getMinimum() - 1);
         mAgeGroupList.add(newAgeGroup);
         loadAgeGroups(mAgeGroupList);
     }
 
-    private void enableSaveAndCancel() {
+    private void enableAgeGroupSaveAndCancel() {
         ageGroupsSaved = false;
         mAgeGroupSaveButton.setEnabled(true);
         mAgeGroupCancelButton.setEnabled(true);
     }
 
-    private void disableSaveAndCancel() {
+    private void disableAgeGroupSaveAndCancel() {
         ageGroupsSaved = true;
         mAgeGroupSaveButton.setEnabled(false);
         mAgeGroupCancelButton.setEnabled(false);
@@ -243,7 +260,7 @@ public class SettingsDialog extends BaseDialog {
     }
 
     private void ageGroupMinimumChanged(ChangeEvent e, AgeGroup ageGroup) {
-        enableSaveAndCancel();
+        enableAgeGroupSaveAndCancel();
         int oldValue = ageGroup.getMinimum();
         Integer newValue = (Integer) ((JSpinner) e.getSource()).getValue();
         mAgeGroupList.forEach(ageGroupLocal -> {
@@ -258,7 +275,7 @@ public class SettingsDialog extends BaseDialog {
     }
 
     private void ageGroupMaximumChanged(ChangeEvent e, AgeGroup ageGroup) {
-        enableSaveAndCancel();
+        enableAgeGroupSaveAndCancel();
         int oldValue = ageGroup.getMaximum();
         Integer newValue = (Integer) ((JSpinner) e.getSource()).getValue();
         mAgeGroupList.forEach(ageGroupLocal -> {
@@ -298,19 +315,60 @@ public class SettingsDialog extends BaseDialog {
         }
     }
 
-    private boolean loadShowDisqualified() {
-        boolean showDisqualified = false;
+    private void enablePrintHeaderSaveAndCancel() {
+        mPrintHeaderSaved = false;
+        mPrintHeaderSaveButton.setEnabled(true);
+        mPrintHeaderCancelButton.setEnabled(true);
+    }
+
+    private void disablePrintHeaderSaveAndCancel() {
+        mPrintHeaderSaved = true;
+        mPrintHeaderSaveButton.setEnabled(false);
+        mPrintHeaderCancelButton.setEnabled(false);
+    }
+
+    private void loadPrintHeader() {
         try {
-            showDisqualified = Database.get().getSettingDao().getShowDisqualified();
+            String printHeaderTitle = Database.get().getSettingDao().getPrintHeaderTitle();
+            titleLabel.setText(printHeaderTitle);
+            mTitleTextField.setText(printHeaderTitle);
+            String printHeaderSubtitle = Database.get().getSettingDao().getPrintHeaderSubtitle();
+            subtitleLabel.setText(printHeaderSubtitle);
+            mSubtitleTextField.setText(printHeaderSubtitle);
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return showDisqualified;
+    }
+
+    private void printHeaderSaveClicked() {
+        try {
+            Database.get().getSettingDao().savePrintHeaderTitle(mTitleTextField.getText());
+            Database.get().getSettingDao().savePrintHeaderSubtitle(mSubtitleTextField.getText());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        disablePrintHeaderSaveAndCancel();
+    }
+
+    private void printHeaderCancelClicked() {
+        loadPrintHeader();
+        disablePrintHeaderSaveAndCancel();
+    }
+
+
+    private boolean loadHideDisqualified() {
+        boolean hideDisqualified = false;
+        try {
+            hideDisqualified = Database.get().getSettingDao().getHideDisqualified();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return hideDisqualified;
     }
 
     private void hideCheckboxChanged(ChangeEvent e) {
         try {
-            Database.get().getSettingDao().saveShowDisqualified(((JCheckBox) e.getSource()).isSelected());
+            Database.get().getSettingDao().saveHideDisqualified(((JCheckBox) e.getSource()).isSelected());
         } catch (SQLException e1) {
             e1.printStackTrace();
         }
@@ -324,7 +382,7 @@ public class SettingsDialog extends BaseDialog {
                     ageGroupSaveClicked();
                     break;
                 case 1:
-                    cancelClicked();
+                    ageGroupCancelClicked();
                     break;
                 default:
                     mSettingsMenu.removeListSelectionListener(mListItemSelectedListener);
@@ -333,9 +391,28 @@ public class SettingsDialog extends BaseDialog {
                     return;
             }
         }
+
+        if (!mPrintHeaderSaved) {
+            int answer = JOptionPane.showOptionDialog(this, "A nyomtatási fejléc nincs elmentve!", "Figyelem!", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[]{"Mentés", "Elvetés", "Mégse"}, null);
+            switch (answer) {
+                case 0:
+                    printHeaderSaveClicked();
+                    break;
+                case 1:
+                    printHeaderCancelClicked();
+                    break;
+                default:
+                    mSettingsMenu.removeListSelectionListener(mListItemSelectedListener);
+                    mSettingsMenu.setSelectedIndex(2);
+                    mSettingsMenu.addListSelectionListener(mListItemSelectedListener);
+                    return;
+            }
+        }
+
+        for (Component component : mSettingsContent.getComponents()) {
+            component.setVisible(false);
+        }
         int index = mSettingsMenu.getSelectedIndex();
-        mBasicSettings.setVisible(false);
-        mAgeGroups.setVisible(false);
         switch (index) {
             case 0:
                 mBasicSettings.setVisible(true);
@@ -344,8 +421,7 @@ public class SettingsDialog extends BaseDialog {
                 mAgeGroups.setVisible(true);
                 break;
             case 2:
-                break;
-            case 3:
+                mPrintHeader.setVisible(true);
                 break;
         }
     }
@@ -353,9 +429,7 @@ public class SettingsDialog extends BaseDialog {
     private class AgeGroupNameEditListener implements KeyListener {
         @Override
         public void keyTyped(KeyEvent e) {
-            if (e.getKeyCode() != KeyEvent.VK_ENTER || e.getKeyCode() != KeyEvent.VK_TAB) {
-                enableSaveAndCancel();
-            }
+
         }
 
         @Override
@@ -365,7 +439,30 @@ public class SettingsDialog extends BaseDialog {
 
         @Override
         public void keyReleased(KeyEvent e) {
+            if (e.getKeyCode() != KeyEvent.VK_ENTER || e.getKeyCode() != KeyEvent.VK_TAB) {
+                enableAgeGroupSaveAndCancel();
+            }
+        }
+    }
 
+    private class PrintHeaderEditListener implements KeyListener {
+        @Override
+        public void keyTyped(KeyEvent e) {
+
+        }
+
+        @Override
+        public void keyPressed(KeyEvent e) {
+
+        }
+
+        @Override
+        public void keyReleased(KeyEvent e) {
+            if (e.getKeyCode() != KeyEvent.VK_ENTER || e.getKeyCode() != KeyEvent.VK_TAB) {
+                enablePrintHeaderSaveAndCancel();
+                titleLabel.setText(mTitleTextField.getText());
+                subtitleLabel.setText(mSubtitleTextField.getText());
+            }
         }
     }
 }

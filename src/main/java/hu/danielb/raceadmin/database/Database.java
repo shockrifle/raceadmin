@@ -9,7 +9,10 @@ import com.j256.ormlite.table.TableUtils;
 import hu.danielb.raceadmin.database.dao.AgeGroupDao;
 import hu.danielb.raceadmin.database.dao.BaseDaoWithListener;
 import hu.danielb.raceadmin.database.dao.SettingDao;
-import hu.danielb.raceadmin.entity.*;
+import hu.danielb.raceadmin.entity.AgeGroup;
+import hu.danielb.raceadmin.entity.Contestant;
+import hu.danielb.raceadmin.entity.School;
+import hu.danielb.raceadmin.entity.Setting;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -22,7 +25,6 @@ public class Database {
     private final Backup backup;
     private Dao<AgeGroup, Integer> ageGroupDao;
     private Dao<Contestant, Integer> contestantDao;
-    private Dao<PrintHeader, Integer> printHeaderDao;
     private Dao<School, Integer> schoolDao;
     private Dao<Setting, String> settingDao;
     private boolean backedUp = false;
@@ -59,14 +61,12 @@ public class Database {
     private void initDaos(ConnectionSource connectionSource) throws SQLException {
         ageGroupDao = DaoManager.createDao(connectionSource, AgeGroup.class);
         contestantDao = DaoManager.createDao(connectionSource, Contestant.class);
-        printHeaderDao = DaoManager.createDao(connectionSource, PrintHeader.class);
         schoolDao = DaoManager.createDao(connectionSource, School.class);
         settingDao = DaoManager.createDao(connectionSource, Setting.class);
 
 
         ((BaseDaoWithListener) ageGroupDao).addListener(() -> backedUp = false);
         ((BaseDaoWithListener) contestantDao).addListener(() -> backedUp = false);
-        ((BaseDaoWithListener) printHeaderDao).addListener(() -> backedUp = false);
         ((BaseDaoWithListener) schoolDao).addListener(() -> backedUp = false);
         ((SettingDao) settingDao).addListener(() -> backedUp = false);
     }
@@ -74,7 +74,6 @@ public class Database {
     private void createTables(ConnectionSource connectionSource) throws SQLException {
         TableUtils.createTableIfNotExists(connectionSource, AgeGroup.class);
         TableUtils.createTableIfNotExists(connectionSource, Contestant.class);
-        TableUtils.createTableIfNotExists(connectionSource, PrintHeader.class);
         TableUtils.createTableIfNotExists(connectionSource, School.class);
         TableUtils.createTableIfNotExists(connectionSource, Setting.class);
     }
@@ -85,10 +84,6 @@ public class Database {
 
     public Dao<Contestant, Integer> getContestantDao() {
         return contestantDao;
-    }
-
-    public Dao<PrintHeader, Integer> getPrintHeaderDao() {
-        return printHeaderDao;
     }
 
     public Dao<School, Integer> getSchoolDao() {
