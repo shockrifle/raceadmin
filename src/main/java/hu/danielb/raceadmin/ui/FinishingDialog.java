@@ -323,30 +323,27 @@ public class FinishingDialog extends BaseDialog {
     }
 
     private void warning() {
-        new Thread() {
-            @Override
-            public void run() {
-                labelMessage.setText("Nincs ilyen rajtszám!");
-                Toolkit.getDefaultToolkit().beep();
-                int i = 0;
-                long mTime = System.currentTimeMillis();
-                while (i < 300) {
-                    long curentTime = System.currentTimeMillis();
-                    if (curentTime > mTime + 25) {
-                        textNumber.setBackground(new Color(255, i > 255 ? 255 : i, i > 255 ? 255 : i));
-                        i += 25;
-                        mTime = curentTime;
-                    }
+        new Thread(() -> {
+            labelMessage.setText("Nincs ilyen rajtszám!");
+            Toolkit.getDefaultToolkit().beep();
+            int i = 0;
+            long mTime = System.currentTimeMillis();
+            while (i < 300) {
+                long curentTime = System.currentTimeMillis();
+                if (curentTime > mTime + 25) {
+                    textNumber.setBackground(new Color(255, i > 255 ? 255 : i, i > 255 ? 255 : i));
+                    i += 25;
+                    mTime = curentTime;
                 }
-                try {
-                    sleep(3000);
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(FinishingDialog.class.getName()).log(Level.SEVERE, null, ex);
-                    labelMessage.setText("");
-                }
+            }
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(FinishingDialog.class.getName()).log(Level.SEVERE, null, ex);
                 labelMessage.setText("");
             }
-        }.start();
+            labelMessage.setText("");
+        }).start();
     }
 
     public void addFinishingListener(FinishingListener l) {

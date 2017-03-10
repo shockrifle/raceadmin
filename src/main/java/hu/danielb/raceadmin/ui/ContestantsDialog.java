@@ -186,7 +186,7 @@ public class ContestantsDialog extends BaseDialog {
             }
 
             data = data.stream().sorted((o1, o2) -> {
-                int bigger = 0;
+                int bigger;
                 switch (sortBy) {
                     case POSITION:
                         bigger = Integer.compare(o1.getPosition(), o2.getPosition());

@@ -14,9 +14,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class SettingsDialog extends BaseDialog {
@@ -36,7 +34,6 @@ public class SettingsDialog extends BaseDialog {
     private JPanel mSettingsContent;
     private JButton mPrintHeaderSaveButton;
     private JButton mPrintHeaderCancelButton;
-    private Map<Integer, JPanel> mAgeGroupViews = new HashMap<>();
     private List<AgeGroup> mAgeGroupList;
     private boolean ageGroupsSaved = true;
     private ListSelectionListener mListItemSelectedListener;
@@ -232,7 +229,6 @@ public class SettingsDialog extends BaseDialog {
         ageGroupRow.add(maximum);
         ageGroupRow.add(delete);
 
-        mAgeGroupViews.put(ageGroup.getId(), ageGroupRow);
         mAgeGroupContainer.add(ageGroupRow);
     }
 
