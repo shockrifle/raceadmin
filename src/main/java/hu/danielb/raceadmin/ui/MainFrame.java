@@ -36,9 +36,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-//TODO: fejléc szerkesztés
-//TODO: beállítások ablak összes beállítást egybefogva
-//TODO: korosztály gyors beállítás (kezdődátum +hány év egy korosztály)
 //TODO: régi adatok újrafelhasználása rajtszám elvételével
 //TODO: iskolalista
 //TODO: iskola legördülő ne csak az elején keressen
