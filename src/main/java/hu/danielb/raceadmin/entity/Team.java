@@ -4,51 +4,55 @@ import java.util.ArrayList;
 
 public class Team implements Comparable {
 
-    public static final int MAX_MEMBERS = 4;
+    private final int mMaxMembers;
+    private String mName;
+    private ArrayList<Contestant> mMembers;
 
-    private String name;
-    private ArrayList<Contestant> members;
-
-    public Team(String name) {
-        this.name = name;
-        members = new ArrayList<>();
+    public Team(String name, int maxMembers) {
+        mName = name;
+        mMembers = new ArrayList<>();
+        mMaxMembers = maxMembers;
     }
 
     public void addMember(Contestant contestant) {
-        members.add(contestant);
+        mMembers.add(contestant);
     }
 
     public ArrayList<Contestant> getMembers() {
-        return members;
+        return mMembers;
     }
 
     public int getPoints() {
-        return getPoints(MAX_MEMBERS);
+        return getPoints(mMaxMembers);
     }
 
     private int getPoints(int to) {
-        if (to > members.size()) {
-            to = members.size();
+        if (to > mMembers.size()) {
+            to = mMembers.size();
         }
         int sum = 0;
         for (int i = 0; i < to; i++) {
-            sum += members.get(i).getPosition();
+            sum += mMembers.get(i).getPosition();
         }
         return sum;
     }
 
     public String getName() {
-        return name;
+        return mName;
     }
 
     public boolean isFull() {
-        return members.size() >= MAX_MEMBERS;
+        return mMembers.size() >= mMaxMembers;
+    }
+
+    public int getMaxMembers() {
+        return mMaxMembers;
     }
 
     @Override
     public int compareTo(Object o) {
         Team other = (Team) o;
-        return compareTo(other, MAX_MEMBERS);
+        return compareTo(other, mMaxMembers);
     }
 
     private int compareTo(Team other, int memberCount) {

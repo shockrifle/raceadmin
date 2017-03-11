@@ -7,12 +7,11 @@ import org.apache.commons.collections.CollectionUtils;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
-import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import java.awt.*;
-import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -52,7 +51,7 @@ public class SettingsDialog extends BaseDialog {
         setModalityType(java.awt.Dialog.ModalityType.APPLICATION_MODAL);
         setResizable(false);
 
-        mListItemSelectedListener = this::listItemSelected;
+        mListItemSelectedListener = e -> listItemSelected();
         mSettingsMenu.addListSelectionListener(mListItemSelectedListener);
         DefaultListModel<String> model = new DefaultListModel<>();
         model.addElement("Általános");
@@ -100,7 +99,7 @@ public class SettingsDialog extends BaseDialog {
         }
         if (ageGroups == null || ageGroups.size() > 0 && ageGroups.get(ageGroups.size() - 1).getId() != 0) {
             JButton newAgeGroupButton = new JButton("Új korosztály");
-            newAgeGroupButton.addActionListener(this::newAgeGroupButtonClicked);
+            newAgeGroupButton.addActionListener(e -> newAgeGroupButtonClicked());
             mAgeGroupContainer.add(newAgeGroupButton);
         }
 
@@ -148,8 +147,14 @@ public class SettingsDialog extends BaseDialog {
                         e.printStackTrace();
                     }
                     dialog.dispose();
-                    disableAgeGroupSaveAndCancel();
-                    loadAgeGroups();
+                    try {
+                        SwingUtilities.invokeAndWait(() -> {
+                            disableAgeGroupSaveAndCancel();
+                            loadAgeGroups();
+                        });
+                    } catch (InterruptedException | InvocationTargetException e) {
+                        e.printStackTrace();
+                    }
                 }).start();
                 dialog.setVisible(true);
             } else {
@@ -176,10 +181,10 @@ public class SettingsDialog extends BaseDialog {
         }
     }
 
-    private void newAgeGroupButtonClicked(ActionEvent e) {
+    private void newAgeGroupButtonClicked() {
         enableAgeGroupSaveAndCancel();
         AgeGroup last = mAgeGroupList.get(mAgeGroupList.size() - 1);
-        AgeGroup newAgeGroup = new AgeGroup(0, "Új korosztály", last.getMinimum() - 2, last.getMinimum() - 1);
+        AgeGroup newAgeGroup = new AgeGroup(0, "Új korosztály", last.getMinimum() - 2, last.getMinimum() - 1, 4);
         mAgeGroupList.add(newAgeGroup);
         loadAgeGroups(mAgeGroupList);
     }
@@ -200,7 +205,7 @@ public class SettingsDialog extends BaseDialog {
         JPanel ageGroupRow = new JPanel();
 
         JTextField name = new JTextField(ageGroup.getName());
-        name.setPreferredSize(new Dimension(120, 22));
+        name.setPreferredSize(new Dimension(100, 22));
 
         name.addKeyListener(new AgeGroupNameEditListener());
 
@@ -220,6 +225,13 @@ public class SettingsDialog extends BaseDialog {
             maximum.addChangeListener(e -> ageGroup.setMaximum((Integer) maximum.getValue()));
         }
 
+        JSpinner teamHeadCount = new JSpinner(new SpinnerNumberModel(ageGroup.getTeamMaxMembers(), 1, 9999, 1));
+        if (ageGroup.getId() != 0) {
+            ((JSpinner.DefaultEditor) teamHeadCount.getEditor()).getTextField().setEditable(false);
+        }
+        teamHeadCount.addChangeListener(e -> ageGroupHeadCountChanged(e, ageGroup));
+        teamHeadCount.setPreferredSize(new Dimension(40, 22));
+
         JButton delete = new JButton("Törlés");
 
         delete.addActionListener(e -> deleteAgeGroupClicked(ageGroup));
@@ -227,6 +239,7 @@ public class SettingsDialog extends BaseDialog {
         ageGroupRow.add(name);
         ageGroupRow.add(minimum);
         ageGroupRow.add(maximum);
+        ageGroupRow.add(teamHeadCount);
         ageGroupRow.add(delete);
 
         mAgeGroupContainer.add(ageGroupRow);
@@ -249,7 +262,11 @@ public class SettingsDialog extends BaseDialog {
                     e.printStackTrace();
                 }
                 dialog.dispose();
-                loadAgeGroups();
+                try {
+                    SwingUtilities.invokeAndWait(this::loadAgeGroups);
+                } catch (InterruptedException | InvocationTargetException e) {
+                    e.printStackTrace();
+                }
             }).start();
             dialog.setVisible(true);
         }
@@ -311,6 +328,11 @@ public class SettingsDialog extends BaseDialog {
         }
     }
 
+    private void ageGroupHeadCountChanged(ChangeEvent e, AgeGroup ageGroup) {
+        enableAgeGroupSaveAndCancel();
+        ageGroup.setTeamMaxMembers((Integer) ((JSpinner) e.getSource()).getValue());
+    }
+
     private void enablePrintHeaderSaveAndCancel() {
         mPrintHeaderSaved = false;
         mPrintHeaderSaveButton.setEnabled(true);
@@ -370,7 +392,7 @@ public class SettingsDialog extends BaseDialog {
         }
     }
 
-    private void listItemSelected(ListSelectionEvent e) {
+    private void listItemSelected() {
         if (!ageGroupsSaved) {
             int answer = JOptionPane.showOptionDialog(this, "A korosztályok nincsenek elmentve!", "Figyelem!", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[]{"Mentés", "Elvetés", "Mégse"}, null);
             switch (answer) {

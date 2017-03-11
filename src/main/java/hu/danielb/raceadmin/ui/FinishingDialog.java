@@ -19,7 +19,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-public class FinishingDialog extends BaseDialog {
+class FinishingDialog extends BaseDialog {
 
     private HashMap<AgeGroup, Positions> positionsForAgeGroup;
     private HashMap<Integer, Contestant> contestants;
@@ -36,7 +36,7 @@ public class FinishingDialog extends BaseDialog {
     private javax.swing.JLabel labelAgeGroupName;
     private javax.swing.JTextField textNumber;
 
-    public FinishingDialog(Frame owner) {
+    FinishingDialog(Frame owner) {
         super(owner);
         init();
         this.setLocationRelativeTo(owner);
@@ -58,7 +58,7 @@ public class FinishingDialog extends BaseDialog {
                             .where().eq(Contestant.COLUMN_AGE_GROUP_ID, entry.getKey().getId()).queryRaw();
                     Positions positions = new Positions();
                     maximums.forEach(max ->
-                                    positions.positions.put(max[0], Integer.parseInt(max[1]) + 1)
+                            positions.positions.put(max[0], Integer.parseInt(max[1]) + 1)
                     );
                     entry.setValue(positions);
                 } catch (SQLException e) {
@@ -66,7 +66,8 @@ public class FinishingDialog extends BaseDialog {
                 }
             });
 
-            List<Contestant> query = Database.get().getContestantDao().queryBuilder().where().eq(Contestant.COLUMN_POSITION, 0).query();
+            List<Contestant> query = Database.get().getContestantDao().queryBuilder().where().eq(Contestant.COLUMN_POSITION, 0)
+                    .and().isNotNull(Contestant.COLUMN_AGE_GROUP_ID).query();
             query.forEach(contestant -> contestants.put(contestant.getNumber(), contestant));
 
         } catch (SQLException ex) {
@@ -95,7 +96,7 @@ public class FinishingDialog extends BaseDialog {
         setResizable(false);
 
         buttonEnd.setText("Vége");
-        buttonEnd.addActionListener(FinishingDialog.this::buttonEndActionPerformed);
+        buttonEnd.addActionListener(e -> buttonEndActionPerformed());
 
         textNumber.setFont(new java.awt.Font("SansSerif", Font.BOLD, 40));
         textNumber.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
@@ -267,7 +268,7 @@ public class FinishingDialog extends BaseDialog {
 
     }
 
-    private void buttonEndActionPerformed(java.awt.event.ActionEvent evt) {
+    private void buttonEndActionPerformed() {
         this.dispose();
 //        TEST
 //        if (timer != null) {
@@ -346,7 +347,7 @@ public class FinishingDialog extends BaseDialog {
         }).start();
     }
 
-    public void addFinishingListener(FinishingListener l) {
+    void addFinishingListener(FinishingListener l) {
         listeners.add(l);
     }
 
@@ -354,7 +355,7 @@ public class FinishingDialog extends BaseDialog {
     private class Positions {
         Map<String, Integer> positions = new HashMap<>();
 
-        public Positions() {
+        Positions() {
             positions.put(Constants.BOY, 1);
             positions.put(Constants.GIRL, 1);
         }

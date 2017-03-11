@@ -99,7 +99,7 @@ public class MainFrame extends javax.swing.JFrame {
         initPane();
 
         buttonFinisher.setText("Beérkező");
-        buttonFinisher.addActionListener(MainFrame.this::buttonFinisherActionPerformed);
+        buttonFinisher.addActionListener(e -> buttonFinisherActionPerformed());
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
@@ -122,21 +122,21 @@ public class MainFrame extends javax.swing.JFrame {
 
         menuItemPrint.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_P, java.awt.event.InputEvent.CTRL_MASK));
         menuItemPrint.setText("Nyomtatás");
-        menuItemPrint.addActionListener(MainFrame.this::menuItemPrintActionPerformed);
+        menuItemPrint.addActionListener(e -> menuItemPrintActionPerformed());
         menuFile.add(menuItemPrint);
 
         menuItemImport.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_I, java.awt.event.InputEvent.CTRL_MASK));
         menuItemImport.setText("Import");
-        menuItemImport.addActionListener(MainFrame.this::menuItemImportActionPerformed);
+        menuItemImport.addActionListener(e -> menuItemImportActionPerformed());
         menuFile.add(menuItemImport);
 
         menuItemExport.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_E, java.awt.event.InputEvent.CTRL_MASK));
         menuItemExport.setText("Export");
-        menuItemExport.addActionListener(MainFrame.this::menuItemExportActionPerformed);
+        menuItemExport.addActionListener(e -> menuItemExportActionPerformed());
         menuFile.add(menuItemExport);
 
         menuItemExit.setText("Kilépés");
-        menuItemExit.addActionListener(MainFrame.this::menuItemExitActionPerformed);
+        menuItemExit.addActionListener(e -> menuItemExitActionPerformed());
         menuFile.add(menuItemExit);
 
         menuBar.add(menuFile);
@@ -145,20 +145,20 @@ public class MainFrame extends javax.swing.JFrame {
 
         menuItemNewContestant.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_MASK));
         menuItemNewContestant.setText("Versenyző hozzáadása");
-        menuItemNewContestant.addActionListener(MainFrame.this::menuItemNewContestantActionPerformed);
+        menuItemNewContestant.addActionListener(e -> menuItemNewContestantActionPerformed());
         menuEdit.add(menuItemNewContestant);
 
         menuItemFinisher.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_B, java.awt.event.InputEvent.CTRL_MASK));
         menuItemFinisher.setText("Beérkezők megadása");
-        menuItemFinisher.addActionListener(MainFrame.this::menuItemFinisherActionPerformed);
+        menuItemFinisher.addActionListener(e -> menuItemFinisherActionPerformed());
         menuEdit.add(menuItemFinisher);
 
         menuItemContestants.setText("Versenyzők");
-        menuItemContestants.addActionListener(MainFrame.this::menuItemContestantsActionPerformed);
+        menuItemContestants.addActionListener(e -> menuItemContestantsActionPerformed());
         menuEdit.add(menuItemContestants);
 
         menuItemSettings.setText("Beállítások");
-        menuItemSettings.addActionListener(MainFrame.this::menuItemSettingsActionPerformed);
+        menuItemSettings.addActionListener(e -> menuItemSettingsActionPerformed());
         menuEdit.add(menuItemSettings);
 
         menuBar.add(menuEdit);
@@ -183,27 +183,27 @@ public class MainFrame extends javax.swing.JFrame {
         pack();
     }
 
-    private void menuItemNewContestantActionPerformed(java.awt.event.ActionEvent evt) {
+    private void menuItemNewContestantActionPerformed() {
         JDialog addFrame = new AddContestantDialog(this);
         addFrame.setVisible(true);
         loadData();
     }
 
-    private void menuItemExitActionPerformed(java.awt.event.ActionEvent evt) {
+    private void menuItemExitActionPerformed() {
         this.dispose();
     }
 
-    private void menuItemFinisherActionPerformed(java.awt.event.ActionEvent evt) {
+    private void menuItemFinisherActionPerformed() {
         buttonFinisher.doClick();
     }
 
-    private void buttonFinisherActionPerformed(java.awt.event.ActionEvent evt) {
+    private void buttonFinisherActionPerformed() {
         FinishingDialog dialog = new FinishingDialog(this);
         dialog.addFinishingListener(v -> loadData());
         dialog.setVisible(true);
     }
 
-    private void menuItemPrintActionPerformed(java.awt.event.ActionEvent evt) {
+    private void menuItemPrintActionPerformed() {
 
 
         String[] headerString = new String[]{"", ""};
@@ -236,19 +236,19 @@ public class MainFrame extends javax.swing.JFrame {
         }
     }
 
-    private void menuItemContestantsActionPerformed(java.awt.event.ActionEvent evt) {
+    private void menuItemContestantsActionPerformed() {
         ContestantsDialog dial = new ContestantsDialog(this);
         dial.setVisible(true);
         loadData();
     }
 
-    private void menuItemSettingsActionPerformed(java.awt.event.ActionEvent evt) {
+    private void menuItemSettingsActionPerformed() {
         SettingsDialog dialog = new SettingsDialog(this);
         dialog.setVisible(true);
         loadData();
     }
 
-    private void menuItemImportActionPerformed(java.awt.event.ActionEvent evt) {
+    private void menuItemImportActionPerformed() {
 
         final JFileChooser fc = new JFileChooser(System.getProperty("user.dir"));
         fc.setAcceptAllFileFilterUsed(false);
@@ -315,7 +315,7 @@ public class MainFrame extends javax.swing.JFrame {
         }
     }
 
-    private void menuItemExportActionPerformed(java.awt.event.ActionEvent evt) {
+    private void menuItemExportActionPerformed() {
 
         LoadingDialog dialog = new LoadingDialog(this, "Exportálás...");
         new Thread() {
@@ -338,7 +338,7 @@ public class MainFrame extends javax.swing.JFrame {
                             boyAgeGroup.teamCategory.name = ageGroup.getName() + " " + "Fiú, csapat";
 
                             boyAgeGroup.individualCategory.contestants = getByAgeGroupAndSex(ageGroup.getId(), Constants.BOY);
-                            boyAgeGroup.teamCategory.teams.addAll(makeTeams(boyAgeGroup.individualCategory.contestants.stream().filter(contestant1 -> contestant1.getPosition() > 0).collect(Collectors.toList())));
+                            boyAgeGroup.teamCategory.teams.addAll(makeTeams(boyAgeGroup.individualCategory.contestants.stream().filter(contestant1 -> contestant1.getPosition() > 0).collect(Collectors.toList()), ageGroup.getTeamMaxMembers()));
 
                             Category girlAgeGroup = new Category();
                             results.add(girlAgeGroup);
@@ -346,7 +346,7 @@ public class MainFrame extends javax.swing.JFrame {
                             girlAgeGroup.teamCategory.name = ageGroup.getName() + " " + "Lány, csapat";
 
                             girlAgeGroup.individualCategory.contestants = getByAgeGroupAndSex(ageGroup.getId(), Constants.GIRL);
-                            girlAgeGroup.teamCategory.teams.addAll(makeTeams(girlAgeGroup.individualCategory.contestants.stream().filter(contestant1 -> contestant1.getPosition() > 0).collect(Collectors.toList())));
+                            girlAgeGroup.teamCategory.teams.addAll(makeTeams(girlAgeGroup.individualCategory.contestants.stream().filter(contestant1 -> contestant1.getPosition() > 0).collect(Collectors.toList()), ageGroup.getTeamMaxMembers()));
 
                         } catch (SQLException ex) {
                             Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
@@ -477,14 +477,15 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void loadTeams(String sex, AgeGroup ageGroup, List<Contestant> data) {
 
-        List<Team> teams = makeTeams(data);
+        int teamMaxMembers = ageGroup.getTeamMaxMembers();
+        List<Team> teams = makeTeams(data, teamMaxMembers);
         String tableName = String.valueOf(ageGroup.getId()) + getTeamConst(sex);
         addTeamDataToTable(tableName, teams);
         JTable jt = tables.get(tableName);
         CellSpan cellAtt = (CellSpan) ((AttributiveCellTableModel) jt.getModel()).getCellAttribute();
-        for (int i = 0; i < (teams.size() * Team.MAX_MEMBERS); i = i + Team.MAX_MEMBERS) {
-            int[] rowsArray = new int[Team.MAX_MEMBERS];
-            for (int j = 0; j < Team.MAX_MEMBERS; j++) {
+        for (int i = 0; i < (teams.size() * teamMaxMembers); i = i + teamMaxMembers) {
+            int[] rowsArray = new int[teamMaxMembers];
+            for (int j = 0; j < teamMaxMembers; j++) {
                 rowsArray[j] = i + j;
             }
             cellAtt.combine(rowsArray, new int[]{TeamResultsTableModel.Column.POSITION.ordinal()});
@@ -499,7 +500,7 @@ public class MainFrame extends javax.swing.JFrame {
 
     }
 
-    private List<Team> makeTeams(List<Contestant> data) {
+    private List<Team> makeTeams(List<Contestant> data, int maxMembers) {
         HashMap<String, Team> teams = new HashMap<>();
         for (Contestant contestant : data) {
             boolean added = false;
@@ -514,7 +515,7 @@ public class MainFrame extends javax.swing.JFrame {
                         n++;
                     }
                 } else {
-                    teams.put(teamName, new Team(teamName));
+                    teams.put(teamName, new Team(teamName, maxMembers));
                     teams.get(teamName).addMember(contestant);
                     added = true;
                 }

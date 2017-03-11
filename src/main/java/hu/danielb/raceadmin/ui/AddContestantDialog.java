@@ -33,13 +33,13 @@ class AddContestantDialog extends BaseDialog {
     private javax.swing.JSpinner spinnerPosition;
     private javax.swing.JTextField textName;
 
-    public AddContestantDialog(Frame owner) {
+    AddContestantDialog(Frame owner) {
         super(owner);
         init();
         setLocationRelativeTo(owner);
     }
 
-    public AddContestantDialog(Dialog owner, Contestant contestant) {
+    AddContestantDialog(Dialog owner, Contestant contestant) {
         super(owner);
         this.contestant = contestant;
         init();
@@ -68,7 +68,7 @@ class AddContestantDialog extends BaseDialog {
         } else {
             contestant = new Contestant();
         }
-        spinnerAge.addChangeListener(AddContestantDialog.this::spinnerAgeStateChanged);
+        spinnerAge.addChangeListener(e -> spinnerAgeStateChanged());
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowOpened(WindowEvent e) {
@@ -150,20 +150,20 @@ class AddContestantDialog extends BaseDialog {
         buttonGroupSex.add(radioGirl);
 
         buttonSave.setText("Mentés");
-        buttonSave.addActionListener(AddContestantDialog.this::buttonSaveActionPerformed);
+        buttonSave.addActionListener(e -> buttonSaveActionPerformed());
 
         buttonDelete.setText("Törlés");
-        buttonDelete.addActionListener(AddContestantDialog.this::buttonDeleteActionPerformed);
+        buttonDelete.addActionListener(e -> buttonDeleteActionPerformed());
         if (contestant == null) {
             buttonDelete.setVisible(false);
         }
 
         buttonEnd.setText("Vége");
-        buttonEnd.addActionListener(AddContestantDialog.this::buttonEndActionPerformed);
+        buttonEnd.addActionListener(e -> buttonEndActionPerformed());
 
         buttonNew.setText("Új");
         buttonNew.setFocusable(false);
-        buttonNew.addActionListener(AddContestantDialog.this::buttonNewActionPerformed);
+        buttonNew.addActionListener(e -> buttonNewActionPerformed());
 
         labelName.setText("Név:");
 
@@ -184,7 +184,7 @@ class AddContestantDialog extends BaseDialog {
         spinnerPosition.setEnabled(false);
         spinnerPosition.setVisible(false);
 
-        comboAgeGroup.setModel(new javax.swing.DefaultComboBoxModel<>(new AgeGroup[]{new AgeGroup(0, "", 0, 0)}));
+        comboAgeGroup.setModel(new javax.swing.DefaultComboBoxModel<>(new AgeGroup[]{new AgeGroup(0, "", 0, 0, 0)}));
         try {
             Database.get().getAgeGroupDao().queryForAll().forEach(comboAgeGroup::addItem);
         } catch (SQLException ex) {
@@ -289,7 +289,7 @@ class AddContestantDialog extends BaseDialog {
         }
     }
 
-    private void buttonSaveActionPerformed(java.awt.event.ActionEvent evt) {
+    private void buttonSaveActionPerformed() {
         Contestant contestantOld = new Contestant(contestant);
 
         contestant.setName((textName.getText()).trim());
@@ -400,7 +400,7 @@ class AddContestantDialog extends BaseDialog {
         });
     }
 
-    private void buttonDeleteActionPerformed(java.awt.event.ActionEvent evt) {
+    private void buttonDeleteActionPerformed() {
         if (0 == JOptionPane.showOptionDialog(this, "Biztosan törli?", "Figyelem!", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[]{"Igen", "Mégsem"}, null)) {
             Contestant contestantOld = new Contestant(contestant);
             try {
@@ -413,11 +413,11 @@ class AddContestantDialog extends BaseDialog {
         }
     }
 
-    private void buttonEndActionPerformed(java.awt.event.ActionEvent evt) {
+    private void buttonEndActionPerformed() {
         this.dispose();
     }
 
-    private void buttonNewActionPerformed(java.awt.event.ActionEvent evt) {
+    private void buttonNewActionPerformed() {
         new AddSchoolDialog(this).addSaveListener(newSchool -> {
             refreshSchools();
             comboSchool.setSelectedItem(newSchool);
@@ -430,7 +430,7 @@ class AddContestantDialog extends BaseDialog {
         ((JSpinner.DefaultEditor) spinnerNumber.getEditor()).getTextField().selectAll();
     }
 
-    private void spinnerAgeStateChanged(javax.swing.event.ChangeEvent evt) {
+    private void spinnerAgeStateChanged() {
         int age = (int) spinnerAge.getValue();
         for (int i = 0; i < comboAgeGroup.getItemCount(); i++) {
             AgeGroup ageGroup = (comboAgeGroup.getItemAt(i));
