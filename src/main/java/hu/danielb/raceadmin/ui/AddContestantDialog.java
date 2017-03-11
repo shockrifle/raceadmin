@@ -346,7 +346,9 @@ class AddContestantDialog extends BaseDialog {
                     if ((0 < contestant.getPosition() && contestant.getPosition() < contestantOld.getPosition()) || contestantOld.getPosition() == 0) {
                         moveForward(contestantOld, contestant.getPosition());
                     } else if ((0 < contestantOld.getPosition() && contestantOld.getPosition() < contestant.getPosition()) || contestant.getPosition() == 0) {
-                        moveBack(contestantOld, contestant.getPosition());
+                        if (contestantOld.getAgeGroup() != null) {
+                            moveBack(contestantOld, contestant.getPosition());
+                        }
                     }
                 }
 
@@ -404,7 +406,9 @@ class AddContestantDialog extends BaseDialog {
         if (0 == JOptionPane.showOptionDialog(this, "Biztosan törli?", "Figyelem!", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[]{"Igen", "Mégsem"}, null)) {
             Contestant contestantOld = new Contestant(contestant);
             try {
-                moveBack(contestantOld, 0);
+                if (contestantOld.getAgeGroup() != null) {
+                    moveBack(contestantOld, 0);
+                }
                 Database.get().getContestantDao().delete(contestant);
                 this.dispose();
             } catch (SQLException e) {
