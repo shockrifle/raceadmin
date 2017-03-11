@@ -39,7 +39,6 @@ import java.util.stream.Collectors;
 //TODO: régi adatok újrafelhasználása rajtszám elvételével
 //TODO: iskolalista
 //TODO: iskola legördülő ne csak az elején keressen
-//TODO: versenyzőlistán iskola külön szűrő
 //TODO: nevek nagybetűvel kezdése
 //TODO: beérkezőknél korosztályváltás figyelmeztetés, checkboxal kapcsolható
 //TODO: i18n
