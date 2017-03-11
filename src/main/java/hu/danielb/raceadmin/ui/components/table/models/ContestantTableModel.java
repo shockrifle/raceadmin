@@ -9,6 +9,7 @@ public class ContestantTableModel extends BaseTableModel<Contestant> {
 
     private Column sortBy = Column.NAME;
     private boolean sortBackwards = false;
+
     public ContestantTableModel(List<Contestant> data) {
         super(Arrays.asList(
                 "Helyezés",
@@ -31,8 +32,12 @@ public class ContestantTableModel extends BaseTableModel<Contestant> {
             return data.get(row).getNumber();
         if (column == Column.AGE.ordinal())
             return data.get(row).getAge();
-        if (column == Column.AGE_GROUP_NAME.ordinal())
-            return data.get(row).getAgeGroup().getName();
+        if (column == Column.AGE_GROUP_NAME.ordinal()) {
+            if (data.get(row).getAgeGroup() != null) {
+                return data.get(row).getAgeGroup().getName();
+            }
+            return "";
+        }
         if (column == Column.SCHOOL_NAME.ordinal())
             return data.get(row).getSchool().getName();
         if (column == Column.SEX.ordinal())

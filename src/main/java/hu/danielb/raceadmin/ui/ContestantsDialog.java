@@ -33,6 +33,7 @@ class ContestantsDialog extends BaseDialog {
     private ContestantTableModel.Column sortBy = ContestantTableModel.Column.NAME;
     private boolean sortBackwards = false;
     private String filter = "";
+    private String schoolFilter = "";
 
     ContestantsDialog(Frame owner) {
         super(owner);
@@ -95,7 +96,7 @@ class ContestantsDialog extends BaseDialog {
         } catch (SQLException ex) {
             Logger.getLogger(AddContestantDialog.class.getName()).log(Level.SEVERE, null, ex);
         }
-        comboSchools.addActionListener(ContestantsDialog.this::comboSchoolsActionPerformed);
+        comboSchools.addActionListener(e -> comboSchoolsActionPerformed());
 
         menuBar.setMaximumSize(new java.awt.Dimension(0, 0));
         menuBar.setMinimumSize(new java.awt.Dimension(0, 0));
@@ -110,7 +111,7 @@ class ContestantsDialog extends BaseDialog {
         menuItemPrint.setMaximumSize(new java.awt.Dimension(0, 0));
         menuItemPrint.setName("");
         menuItemPrint.setPreferredSize(new java.awt.Dimension(0, 0));
-        menuItemPrint.addActionListener(ContestantsDialog.this::menuItemPrintActionPerformed);
+        menuItemPrint.addActionListener(e -> menuItemPrintActionPerformed());
         menuFile.add(menuItemPrint);
 
         menuBar.add(menuFile);
@@ -154,7 +155,7 @@ class ContestantsDialog extends BaseDialog {
         loadData();
     }
 
-    private void menuItemPrintActionPerformed(java.awt.event.ActionEvent evt) {
+    private void menuItemPrintActionPerformed() {
         try {
             new Printer(tableContestants).print();
         } catch (PrinterException | HeadlessException ex) {
@@ -162,8 +163,8 @@ class ContestantsDialog extends BaseDialog {
         }
     }
 
-    private void comboSchoolsActionPerformed(java.awt.event.ActionEvent evt) {
-        filter = ((School) comboSchools.getSelectedItem()).getName().toLowerCase();
+    private void comboSchoolsActionPerformed() {
+        schoolFilter = ((School) comboSchools.getSelectedItem()).getName().toLowerCase();
         loadData();
     }
 
@@ -174,9 +175,14 @@ class ContestantsDialog extends BaseDialog {
 
             data = Database.get().getContestantDao().queryForAll();
 
+
+            if (!schoolFilter.isEmpty()) {
+                data = data.stream().filter(contestant -> contestant.getSchool().getName().toLowerCase().contains(schoolFilter))
+                        .collect(Collectors.toList());
+            }
             if (!filter.isEmpty()) {
                 data = data.stream().filter(contestant -> contestant.getName().toLowerCase().contains(filter) ||
-                        contestant.getAgeGroup().getName().toLowerCase().contains(filter) ||
+                        contestant.getAgeGroup() != null && contestant.getAgeGroup().getName().toLowerCase().contains(filter) ||
                         contestant.getSchool().getName().toLowerCase().contains(filter) ||
                         (contestant.getSex().equals(Constants.BOY) ? "Fiú".toLowerCase().contains(filter) : "Lány".toLowerCase().contains(filter)) ||
                         String.valueOf(contestant.getPosition()).toLowerCase().contains(filter) ||
@@ -201,6 +207,14 @@ class ContestantsDialog extends BaseDialog {
                         bigger = Integer.compare(o1.getAge(), o2.getAge());
                         break;
                     case AGE_GROUP_NAME:
+                        if (o1.getAgeGroup() == null) {
+                            bigger = -1;
+                            break;
+                        }
+                        if (o2.getAgeGroup() == null) {
+                            bigger = 1;
+                            break;
+                        }
                         bigger = o1.getAgeGroup().getName().compareTo(o2.getAgeGroup().getName());
                         break;
                     case SCHOOL_NAME:
