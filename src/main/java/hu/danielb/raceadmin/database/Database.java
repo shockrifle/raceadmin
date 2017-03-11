@@ -8,6 +8,7 @@ import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 import hu.danielb.raceadmin.database.dao.AgeGroupDao;
 import hu.danielb.raceadmin.database.dao.BaseDaoWithListener;
+import hu.danielb.raceadmin.database.dao.SchoolDao;
 import hu.danielb.raceadmin.database.dao.SettingDao;
 import hu.danielb.raceadmin.entity.AgeGroup;
 import hu.danielb.raceadmin.entity.Contestant;
@@ -21,12 +22,12 @@ import java.util.Properties;
 public class Database {
 
     private static Database database;
-    @SuppressWarnings("FieldCanBeLocal")
+    @SuppressWarnings({"FieldCanBeLocal", "unused"})
     private final Backup backup;
-    private Dao<AgeGroup, Integer> ageGroupDao;
+    private AgeGroupDao ageGroupDao;
     private Dao<Contestant, Integer> contestantDao;
-    private Dao<School, Integer> schoolDao;
-    private Dao<Setting, String> settingDao;
+    private SchoolDao schoolDao;
+    private SettingDao settingDao;
     private boolean backedUp = false;
 
     private Database() throws SQLException {
@@ -65,10 +66,10 @@ public class Database {
         settingDao = DaoManager.createDao(connectionSource, Setting.class);
 
 
-        ((BaseDaoWithListener) ageGroupDao).addListener(() -> backedUp = false);
+        ageGroupDao.addListener(() -> backedUp = false);
         ((BaseDaoWithListener) contestantDao).addListener(() -> backedUp = false);
-        ((BaseDaoWithListener) schoolDao).addListener(() -> backedUp = false);
-        ((SettingDao) settingDao).addListener(() -> backedUp = false);
+        schoolDao.addListener(() -> backedUp = false);
+        settingDao.addListener(() -> backedUp = false);
     }
 
     private void createTables(ConnectionSource connectionSource) throws SQLException {
@@ -79,19 +80,19 @@ public class Database {
     }
 
     public AgeGroupDao getAgeGroupDao() {
-        return (AgeGroupDao) ageGroupDao;
+        return ageGroupDao;
     }
 
     public Dao<Contestant, Integer> getContestantDao() {
         return contestantDao;
     }
 
-    public Dao<School, Integer> getSchoolDao() {
+    public SchoolDao getSchoolDao() {
         return schoolDao;
     }
 
     public SettingDao getSettingDao() {
-        return (SettingDao) settingDao;
+        return settingDao;
     }
 
     void backedUp() {

@@ -20,16 +20,24 @@ class AddSchoolDialog extends BaseDialog {
     private javax.swing.JTextField textShortName;
     private javax.swing.JTextField textSettlement;
 
-    private School school;
+    private School mSchool;
 
-    public AddSchoolDialog(Dialog owner) {
+    AddSchoolDialog(Dialog owner) {
         super(owner);
         initComponents();
         setLocationRelativeTo(owner);
+    }
 
-        if (school == null) {
-            school = new School();
-        }
+    AddSchoolDialog(Dialog owner, School school) {
+        this(owner);
+        mSchool = school;
+        init();
+    }
+
+    private void init() {
+        textName.setText(mSchool.getName());
+        textShortName.setText(mSchool.getShortName());
+        textSettlement.setText(mSchool.getSettlement());
     }
 
     private void initComponents() {
@@ -52,27 +60,27 @@ class AddSchoolDialog extends BaseDialog {
         labelSettlement.setText("Település:");
 
         buttonCancel.setText("Mégse");
-        buttonCancel.addActionListener(AddSchoolDialog.this::buttonCancelActionPerformed);
+        buttonCancel.addActionListener(e -> buttonCancelActionPerformed());
 
         buttonSave.setText("Mentés");
-        buttonSave.addActionListener(AddSchoolDialog.this::buttonSaveActionPerformed);
+        buttonSave.addActionListener(e -> buttonSaveActionPerformed());
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
                 layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(layout.createSequentialGroup()
-                                        .addContainerGap()
-                                        .addComponent(labelName)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(textName, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        ).addGroup(layout.createSequentialGroup()
                                 .addContainerGap()
-                                .addComponent(labelShortName)
+                                .addComponent(labelName)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(textShortName, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(textName, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        ).addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(labelShortName)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(textShortName, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 ).addGroup(layout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(labelSettlement)
@@ -109,11 +117,11 @@ class AddSchoolDialog extends BaseDialog {
         pack();
     }
 
-    private void buttonCancelActionPerformed(java.awt.event.ActionEvent evt) {
+    private void buttonCancelActionPerformed() {
         this.dispose();
     }
 
-    private void buttonSaveActionPerformed(java.awt.event.ActionEvent evt) {
+    private void buttonSaveActionPerformed() {
         String[] names = textName.getText().split(" ");
         ArrayList<String> checked = new ArrayList<>();
         try {
@@ -142,7 +150,7 @@ class AddSchoolDialog extends BaseDialog {
                     msg += aChecked + "\n";
                 }
                 msg += "Ezek valamelyikére gondolt?";
-                switch (JOptionPane.showOptionDialog(this, msg, "", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, new String[]{"Igen", "Újat hozzáad", "Javít"}, null)) {
+                switch (JOptionPane.showOptionDialog(this, msg, "", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, new String[]{"Igen", "Mentés", "Javít"}, null)) {
                     case 0:
                         warn("Kerese meg a listában!");
                         dispose();
@@ -162,19 +170,22 @@ class AddSchoolDialog extends BaseDialog {
     }
 
     private void saveSchool() {
-        school.setName(textName.getText());
-        school.setShortName(textShortName.getText());
-        school.setSettlement(textSettlement.getText());
+        if (mSchool == null) {
+            mSchool = new School();
+        }
+        mSchool.setName(textName.getText());
+        mSchool.setShortName(textShortName.getText());
+        mSchool.setSettlement(textSettlement.getText());
         try {
-            Database.get().getSchoolDao().createOrUpdate(school);
-            message("Új iskola hozzáadva");
+            Database.get().getSchoolDao().createOrUpdate(mSchool);
+            message("Iskola mentve.");
             dispose();
         } catch (SQLException ex) {
             Logger.getLogger(AddSchoolDialog.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    public AddSchoolDialog addSaveListener(SaveListener listener) {
+    AddSchoolDialog addSaveListener(SaveListener listener) {
         listeners.add(listener);
         return this;
     }

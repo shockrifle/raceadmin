@@ -2,23 +2,23 @@ package hu.danielb.raceadmin.entity;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
-import hu.danielb.raceadmin.database.dao.BaseDaoWithListener;
+import hu.danielb.raceadmin.database.dao.SchoolDao;
 
-@DatabaseTable(tableName = "school", daoClass = BaseDaoWithListener.class)
+@DatabaseTable(tableName = "school", daoClass = SchoolDao.class)
 public class School {
 
-    public static final String COLUMN_ID = "id";
     public static final String COLUMN_NAME = "name";
-    public static final String COLUMN_SHORT_NAME = "short_name";
-    public static final String COLUMN_SETTLEMENT = "settlement";
+    private static final String COLUMN_ID = "id";
+    private static final String COLUMN_SHORT_NAME = "short_name";
+    private static final String COLUMN_SETTLEMENT = "settlement";
 
     @DatabaseField(generatedId = true, columnName = COLUMN_ID)
     private int id;
-    @DatabaseField(columnName = COLUMN_NAME)
+    @DatabaseField(columnName = COLUMN_NAME, defaultValue = "")
     private String name = "";
-    @DatabaseField(columnName = COLUMN_SHORT_NAME)
+    @DatabaseField(columnName = COLUMN_SHORT_NAME, defaultValue = "")
     private String shortName = "";
-    @DatabaseField(columnName = COLUMN_SETTLEMENT)
+    @DatabaseField(columnName = COLUMN_SETTLEMENT, defaultValue = "")
     private String settlement = "";
 
     public School() {
@@ -31,10 +31,6 @@ public class School {
 
     public int getId() {
         return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getName() {

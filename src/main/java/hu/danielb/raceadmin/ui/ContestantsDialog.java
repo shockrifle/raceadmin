@@ -38,7 +38,7 @@ class ContestantsDialog extends BaseDialog {
     ContestantsDialog(Frame owner) {
         super(owner);
         init();
-        this.setLocationRelativeTo(owner);
+        setLocationRelativeTo(owner);
     }
 
     private void init() {
