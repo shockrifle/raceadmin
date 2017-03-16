@@ -224,7 +224,7 @@ class FinishingDialog extends BaseDialog {
 
         if (contestant != null) {
             labelContestantName.setText(contestant.getName());
-            labelSchoolName.setText(contestant.getSchool().getName());
+            labelSchoolName.setText(contestant.getSchool().getShortNameWithSettlement());
             labelPositionValue.setText(String.valueOf(positionsForAgeGroup.get(contestant.getAgeGroup()).positions.get(contestant.getSex())));
 
             if (contestant.getSex().equals(Constants.BOY)) {

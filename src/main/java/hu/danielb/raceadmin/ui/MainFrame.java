@@ -515,7 +515,7 @@ public class MainFrame extends javax.swing.JFrame {
             boolean added = false;
             int n = 0;
             do {
-                String teamName = contestant.getSchool().getName() + n;
+                String teamName = contestant.getSchool().getShortNameWithSettlement() + n;
                 if (teams.containsKey(teamName)) {
                     if (!teams.get(teamName).isFull()) {
                         teams.get(teamName).addMember(contestant);

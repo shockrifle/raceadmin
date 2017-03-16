@@ -21,7 +21,7 @@ public class ResultsTableModel extends AttributiveCellTableModel<Contestant> {
         if (column == Column.NUMBER.ordinal())
             return data.get(row).getNumber();
         if (column == Column.SCHOOL_NAME.ordinal())
-            return data.get(row).getSchool().getName();
+            return data.get(row).getSchool().getShortNameWithSettlement();
         return null;
     }
 

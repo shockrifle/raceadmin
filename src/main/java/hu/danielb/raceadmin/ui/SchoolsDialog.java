@@ -88,7 +88,7 @@ public class SchoolsDialog extends BaseDialog {
                 int bigger;
                 switch (mSortBy) {
                     case NAME:
-                        bigger = o1.getName().compareTo(o2.getName());
+                        bigger = o1.getName().toLowerCase().compareTo(o2.getName().toLowerCase());
                         break;
                     case SHORT_NAME:
                         if (o1.getShortName() == null) {
@@ -99,7 +99,7 @@ public class SchoolsDialog extends BaseDialog {
                             bigger = 1;
                             break;
                         }
-                        bigger = o1.getShortName().compareTo(o2.getShortName());
+                        bigger = o1.getShortName().toLowerCase().compareTo(o2.getShortName().toLowerCase());
                         break;
                     case SETTLEMENT:
                         if (o1.getSettlement() == null) {
@@ -110,7 +110,7 @@ public class SchoolsDialog extends BaseDialog {
                             bigger = 1;
                             break;
                         }
-                        bigger = o1.getSettlement().compareTo(o2.getSettlement());
+                        bigger = o1.getSettlement().toLowerCase().compareTo(o2.getSettlement().toLowerCase());
                         break;
                     default:
                         bigger = 0;
@@ -151,6 +151,7 @@ public class SchoolsDialog extends BaseDialog {
 
         dialog.setVisible(true);
         mSearchTextField.setText("");
+        loadData();
     }
 
     private void newButtonActionPerformed() {
@@ -158,5 +159,6 @@ public class SchoolsDialog extends BaseDialog {
 
         dialog.setVisible(true);
         mSearchTextField.setText("");
+        loadData();
     }
 }

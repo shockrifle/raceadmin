@@ -57,8 +57,10 @@ public class School {
         this.settlement = settlement;
     }
 
-    public String getShortNameWithSettlement(){
-        return shortName + ", " + settlement;
+    public String getShortNameWithSettlement() {
+        if (shortName != null)
+            return shortName + (settlement != null ? ", " + settlement : "");
+        return name + (settlement != null ? ", " + settlement : "");
     }
 
     @Override

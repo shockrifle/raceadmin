@@ -12,14 +12,14 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-class AddSchoolDialog extends BaseDialog {
-
+public class AddSchoolDialog extends BaseDialog {
+    private JPanel contentPane;
+    private JTextArea mTextAreaFullName;
+    private JTextField mTextFieldShortName;
+    private JTextField mTextFieldSettlement;
+    private JButton buttonSave;
+    private JButton buttonCancel;
     private List<SaveListener> listeners = new ArrayList<>();
-
-    private javax.swing.JTextField textName;
-    private javax.swing.JTextField textShortName;
-    private javax.swing.JTextField textSettlement;
-
     private School mSchool;
 
     AddSchoolDialog(Dialog owner) {
@@ -35,84 +35,22 @@ class AddSchoolDialog extends BaseDialog {
     }
 
     private void init() {
-        textName.setText(mSchool.getName());
-        textShortName.setText(mSchool.getShortName());
-        textSettlement.setText(mSchool.getSettlement());
+        mTextAreaFullName.setText(mSchool.getName());
+        mTextFieldShortName.setText(mSchool.getShortName());
+        mTextFieldSettlement.setText(mSchool.getSettlement());
     }
 
     private void initComponents() {
-
-        JLabel labelShortName = new JLabel();
-        JLabel labelName = new JLabel();
-        JLabel labelSettlement = new JLabel();
-        textName = new javax.swing.JTextField();
-        textShortName = new javax.swing.JTextField();
-        textSettlement = new javax.swing.JTextField();
-        JButton buttonCancel = new JButton();
-        JButton buttonSave = new JButton();
-
+        setContentPane(contentPane);
+        setModal(true);
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setModalityType(java.awt.Dialog.ModalityType.APPLICATION_MODAL);
         setResizable(false);
 
-        labelName.setText("Iskola név:");
-        labelShortName.setText("Rövid név:");
-        labelSettlement.setText("Település:");
-
-        buttonCancel.setText("Mégse");
+        buttonSave.addActionListener(e -> buttonSaveActionPerformed());
         buttonCancel.addActionListener(e -> buttonCancelActionPerformed());
 
-        buttonSave.setText("Mentés");
-        buttonSave.addActionListener(e -> buttonSaveActionPerformed());
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addComponent(labelName)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(textName, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        ).addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(labelShortName)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(textShortName, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                ).addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(labelSettlement)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(textSettlement, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addComponent(buttonSave)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(buttonCancel)
-                                .addContainerGap())
-        );
-        layout.setVerticalGroup(
-                layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(layout.createSequentialGroup()
-                                .addContainerGap()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                        .addComponent(labelName)
-                                        .addComponent(textName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE).addComponent(labelShortName)
-                                        .addComponent(textShortName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE).addComponent(labelSettlement)
-                                        .addComponent(textSettlement, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                        .addComponent(buttonCancel)
-                                        .addComponent(buttonSave))
-                                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
+        mTextAreaFullName.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
 
         pack();
     }
@@ -122,7 +60,7 @@ class AddSchoolDialog extends BaseDialog {
     }
 
     private void buttonSaveActionPerformed() {
-        String[] names = textName.getText().split(" ");
+        String[] names = mTextAreaFullName.getText().split(" ");
         ArrayList<String> checked = new ArrayList<>();
         try {
             Where<School, Integer> where = Database.get().getSchoolDao().queryBuilder().where();
@@ -173,9 +111,9 @@ class AddSchoolDialog extends BaseDialog {
         if (mSchool == null) {
             mSchool = new School();
         }
-        mSchool.setName(textName.getText());
-        mSchool.setShortName(textShortName.getText());
-        mSchool.setSettlement(textSettlement.getText());
+        mSchool.setName(mTextAreaFullName.getText());
+        mSchool.setShortName(mTextFieldShortName.getText());
+        mSchool.setSettlement(mTextFieldSettlement.getText());
         try {
             Database.get().getSchoolDao().createOrUpdate(mSchool);
             message("Iskola mentve.");

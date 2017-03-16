@@ -164,7 +164,7 @@ class ContestantsDialog extends BaseDialog {
     }
 
     private void comboSchoolsActionPerformed() {
-        schoolFilter = ((School) comboSchools.getSelectedItem()).getName().toLowerCase();
+        schoolFilter = ((School) comboSchools.getSelectedItem()).getShortNameWithSettlement().toLowerCase();
         loadData();
     }
 
@@ -177,13 +177,13 @@ class ContestantsDialog extends BaseDialog {
 
 
             if (!schoolFilter.isEmpty()) {
-                data = data.stream().filter(contestant -> contestant.getSchool().getName().toLowerCase().contains(schoolFilter))
+                data = data.stream().filter(contestant -> contestant.getSchool().getShortNameWithSettlement().toLowerCase().contains(schoolFilter))
                         .collect(Collectors.toList());
             }
             if (!filter.isEmpty()) {
                 data = data.stream().filter(contestant -> contestant.getName().toLowerCase().contains(filter) ||
                         contestant.getAgeGroup() != null && contestant.getAgeGroup().getName().toLowerCase().contains(filter) ||
-                        contestant.getSchool().getName().toLowerCase().contains(filter) ||
+                        contestant.getSchool().getShortNameWithSettlement().toLowerCase().contains(filter) ||
                         (contestant.getSex().equals(Constants.BOY) ? "Fiú".toLowerCase().contains(filter) : "Lány".toLowerCase().contains(filter)) ||
                         String.valueOf(contestant.getPosition()).toLowerCase().contains(filter) ||
                         String.valueOf(contestant.getNumber()).toLowerCase().contains(filter) ||
@@ -218,7 +218,7 @@ class ContestantsDialog extends BaseDialog {
                         bigger = o1.getAgeGroup().getName().compareTo(o2.getAgeGroup().getName());
                         break;
                     case SCHOOL_NAME:
-                        bigger = o1.getSchool().getName().compareTo(o2.getSchool().getName());
+                        bigger = o1.getSchool().getShortNameWithSettlement().compareTo(o2.getSchool().getShortNameWithSettlement());
                         break;
                     case SEX:
                         bigger = o1.getSex().compareTo(o2.getSex());

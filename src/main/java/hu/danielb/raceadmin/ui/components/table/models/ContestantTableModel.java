@@ -39,7 +39,7 @@ public class ContestantTableModel extends BaseTableModel<Contestant> {
             return "";
         }
         if (column == Column.SCHOOL_NAME.ordinal())
-            return data.get(row).getSchool().getName();
+            return data.get(row).getSchool().getShortNameWithSettlement();
         if (column == Column.SEX.ordinal())
             return "B".equals(data.get(row).getSex()) ? "Fiú" : "Lány";
         if (column == Column.EDIT.ordinal())
