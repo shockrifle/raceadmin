@@ -35,6 +35,13 @@ class FinishingDialog extends BaseDialog {
     private javax.swing.JLabel labelPositionValue;
     private javax.swing.JLabel labelAgeGroupName;
     private javax.swing.JTextField textNumber;
+    private AgeGroup mLastAgeGroup;
+    private String mLastSex;
+    private boolean mFirstFinisher = true;
+    private boolean mAgeGroupCheck = true;
+    private boolean mSexCheck = true;
+    private JCheckBox mCheckBoxAgeGroupCheck;
+    private JCheckBox mCheckBoxSexCheck;
 
     FinishingDialog(Frame owner) {
         super(owner);
@@ -83,6 +90,8 @@ class FinishingDialog extends BaseDialog {
         labelMessage = new javax.swing.JLabel();
         labelAgeGroupName = new javax.swing.JLabel();
         labelPositionValue = new javax.swing.JLabel();
+        mCheckBoxAgeGroupCheck = new JCheckBox("Korosztály váltás figyelmeztetés");
+        mCheckBoxSexCheck = new JCheckBox("Fiú/Lány váltás figyelmeztetés");
         JButton buttonEnd = new JButton();
         JLabel labelName = new JLabel();
         JLabel labelSchool = new JLabel();
@@ -90,9 +99,9 @@ class FinishingDialog extends BaseDialog {
         JLabel labelAgeGroup = new JLabel();
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setMaximumSize(new java.awt.Dimension(380, 300));
-        setMinimumSize(new java.awt.Dimension(380, 300));
-        setPreferredSize(new java.awt.Dimension(380, 300));
+        setMaximumSize(new java.awt.Dimension(380, 322));
+        setMinimumSize(new java.awt.Dimension(380, 322));
+        setPreferredSize(new java.awt.Dimension(380, 322));
         setResizable(false);
 
         buttonEnd.setText("Vége");
@@ -146,6 +155,12 @@ class FinishingDialog extends BaseDialog {
         labelAgeGroupName.setMinimumSize(new java.awt.Dimension(263, 24));
         labelAgeGroupName.setPreferredSize(new java.awt.Dimension(263, 24));
 
+        mCheckBoxAgeGroupCheck.setSelected(mAgeGroupCheck);
+        mCheckBoxAgeGroupCheck.addChangeListener(e -> mAgeGroupCheck = mCheckBoxAgeGroupCheck.isSelected());
+
+        mCheckBoxSexCheck.setSelected(mSexCheck);
+        mCheckBoxSexCheck.addChangeListener(e -> mSexCheck = mCheckBoxSexCheck.isSelected());
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -171,7 +186,11 @@ class FinishingDialog extends BaseDialog {
                                         .addGroup(layout.createSequentialGroup()
                                                 .addComponent(labelMessage, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                                .addComponent(buttonEnd, javax.swing.GroupLayout.PREFERRED_SIZE, 79, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                                .addComponent(buttonEnd, javax.swing.GroupLayout.PREFERRED_SIZE, 79, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addGroup(layout.createSequentialGroup()
+                                                .addComponent(mCheckBoxSexCheck)
+                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                .addComponent(mCheckBoxAgeGroupCheck)))
                                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -199,6 +218,9 @@ class FinishingDialog extends BaseDialog {
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                                         .addComponent(buttonEnd, javax.swing.GroupLayout.PREFERRED_SIZE, 39, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addComponent(labelMessage))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                        .addComponent(mCheckBoxSexCheck)
+                                        .addComponent(mCheckBoxAgeGroupCheck))
                                 .addContainerGap())
         );
 
@@ -242,20 +264,19 @@ class FinishingDialog extends BaseDialog {
         if (contains) {
             if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
                 if (contestant != null) {
-                    try {
-                        int nextPos = positionsForAgeGroup.get(contestant.getAgeGroup()).positions.get(contestant.getSex());
-                        contestant.setPosition(nextPos);
-                        Database.get().getContestantDao().update(contestant);
-                        positionsForAgeGroup.get(contestant.getAgeGroup()).positions.put(contestant.getSex(), nextPos + 1);
-                    } catch (SQLException ex) {
-                        Logger.getLogger(FinishingDialog.class.getName()).log(Level.SEVERE, null, ex);
+                    if (contestant.getAgeGroup().equals(mLastAgeGroup) || mFirstFinisher || !mAgeGroupCheck) {
+                        if (contestant.getSex().equals(mLastSex) || mFirstFinisher || !mSexCheck) {
+                            saveContestantPosition(contestant);
+                        } else {
+                            if (0 == JOptionPane.showOptionDialog(this, "Ez a versenyző másik nembe tartozik mint az előző!\n Biztos menti a pozícióját?", "Figyelem!", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[]{"Igen", "Mégsem"}, null)) {
+                                saveContestantPosition(contestant);
+                            }
+                        }
+                    } else {
+                        if (0 == JOptionPane.showOptionDialog(this, "Ez a versenyző másik korosztályba tartozik mint az előző!\n Biztos menti a pozícióját?", "Figyelem!", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[]{"Igen", "Mégsem"}, null)) {
+                            saveContestantPosition(contestant);
+                        }
                     }
-                    for (FinishingListener finishingListener : listeners) {
-                        finishingListener.racerFinished(contestant);
-                    }
-                    contestants.remove(contestant.getNumber());
-
-                    textNumber.setText("");
                 } else {
                     warning();
                 }
@@ -266,6 +287,27 @@ class FinishingDialog extends BaseDialog {
             warning();
         }
 
+    }
+
+    private void saveContestantPosition(Contestant contestant) {
+        try {
+            int nextPos = positionsForAgeGroup.get(contestant.getAgeGroup()).positions.get(contestant.getSex());
+            contestant.setPosition(nextPos);
+            Database.get().getContestantDao().update(contestant);
+            positionsForAgeGroup.get(contestant.getAgeGroup()).positions.put(contestant.getSex(), nextPos + 1);
+        } catch (SQLException ex) {
+            Logger.getLogger(FinishingDialog.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        for (FinishingListener finishingListener : listeners) {
+            finishingListener.racerFinished(contestant);
+        }
+        contestants.remove(contestant.getNumber());
+
+        textNumber.setText("");
+
+        mLastAgeGroup = contestant.getAgeGroup();
+        mLastSex = contestant.getSex();
+        mFirstFinisher = false;
     }
 
     private void buttonEndActionPerformed() {
