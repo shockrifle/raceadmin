@@ -86,6 +86,9 @@ public class MainFrame extends javax.swing.JFrame {
         JMenuItem menuItemContestants = new JMenuItem();
         JMenuItem menuItemSchools = new JMenuItem();
         JMenuItem menuItemSettings = new JMenuItem();
+        JMenu menuHelp = new JMenu();
+        JMenuItem menuItemAbout = new JMenuItem();
+        JMenuItem menuItemUserManual = new JMenuItem();
         JMenuBar menuBar = new JMenuBar();
         JPanel jPanel4 = new JPanel();
 
@@ -163,6 +166,18 @@ public class MainFrame extends javax.swing.JFrame {
         menuEdit.add(menuItemSettings);
 
         menuBar.add(menuEdit);
+
+        menuHelp.setText("Súgó");
+
+        menuItemUserManual.setText("Súgó");
+        menuItemUserManual.addActionListener(e -> menuItemUserManualActionPerformed());
+        menuHelp.add(menuItemUserManual);
+
+        menuItemAbout.setText("Névjegy");
+        menuItemAbout.addActionListener(e -> menuItemAboutActionPerformed());
+        menuHelp.add(menuItemAbout);
+
+        menuBar.add(menuHelp);
 
         setJMenuBar(menuBar);
 
@@ -379,6 +394,18 @@ public class MainFrame extends javax.swing.JFrame {
         }.start();
         dialog.setVisible(true);
 
+    }
+
+    private void menuItemAboutActionPerformed() {
+        new AboutDialog(this).setVisible(true);
+    }
+
+    private void menuItemUserManualActionPerformed() {
+        try {
+            Desktop.getDesktop().open(new File("Súgó.docx"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void positionToCenter() {
