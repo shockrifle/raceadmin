@@ -8,8 +8,8 @@ import hu.danielb.raceadmin.database.dao.SchoolDao;
 public class School {
 
     public static final String COLUMN_NAME = "name";
+    public static final String COLUMN_SHORT_NAME = "short_name";
     private static final String COLUMN_ID = "id";
-    private static final String COLUMN_SHORT_NAME = "short_name";
     private static final String COLUMN_SETTLEMENT = "settlement";
 
     @DatabaseField(generatedId = true, columnName = COLUMN_ID)
@@ -58,9 +58,9 @@ public class School {
     }
 
     public String getShortNameWithSettlement() {
-        if (shortName != null)
-            return shortName + (settlement != null ? ", " + settlement : "");
-        return name + (settlement != null ? ", " + settlement : "");
+        if (shortName != null && shortName.length() > 0)
+            return shortName + (settlement != null && settlement.length() > 0 ? ", " + settlement : "");
+        return name + (settlement != null && settlement.length() > 0 ? ", " + settlement : "");
     }
 
     @Override

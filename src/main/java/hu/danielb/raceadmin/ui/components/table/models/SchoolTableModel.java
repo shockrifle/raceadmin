@@ -11,7 +11,7 @@ public class SchoolTableModel extends AttributiveCellTableModel<School> {
     private boolean sortBackwards = false;
 
     public SchoolTableModel(List<School> data) {
-        super(Arrays.asList("Név", "Rövidített név", "Település", ""), data);
+        super(Arrays.asList("Név", "Megjelenítendő név", "Település", ""), data);
     }
 
     @Override

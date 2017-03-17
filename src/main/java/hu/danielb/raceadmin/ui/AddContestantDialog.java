@@ -6,6 +6,7 @@ import hu.danielb.raceadmin.entity.Contestant;
 import hu.danielb.raceadmin.entity.School;
 import hu.danielb.raceadmin.util.Constants;
 import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
+import org.jdesktop.swingx.autocomplete.ObjectToStringConverter;
 
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
@@ -116,7 +117,25 @@ class AddContestantDialog extends BaseDialog {
         setModalityType(java.awt.Dialog.ModalityType.APPLICATION_MODAL);
         setResizable(false);
 
-        AutoCompleteDecorator.decorate(comboSchool);
+        AutoCompleteDecorator.decorate(comboSchool, new ObjectToStringConverter() {
+            @Override
+            public String getPreferredStringForItem(Object item) {
+                if (item instanceof School) {
+                    return ((School) item).getShortNameWithSettlement();
+                }
+                return null;
+            }
+        });
+        comboSchool.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                if (value instanceof School) {
+                    value = ((School) value).getShortNameWithSettlement();
+                }
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                return this;
+            }
+        });
         refreshSchools();
 
         int min = 9999;
@@ -283,7 +302,7 @@ class AddContestantDialog extends BaseDialog {
     private void refreshSchools() {
         comboSchool.setModel(new DefaultComboBoxModel<>(new School[]{new School(0, "")}));
         try {
-            Database.get().getSchoolDao().queryBuilder().orderBy(School.COLUMN_NAME, true).query().forEach(comboSchool::addItem);
+            Database.get().getSchoolDao().queryBuilder().orderBy(School.COLUMN_SHORT_NAME, true).query().forEach(comboSchool::addItem);
         } catch (SQLException ex) {
             Logger.getLogger(AddContestantDialog.class.getName()).log(Level.SEVERE, null, ex);
         }
