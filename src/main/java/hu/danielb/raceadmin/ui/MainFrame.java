@@ -37,7 +37,6 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 //TODO: régi adatok újrafelhasználása rajtszám elvételével
-//TODO: iskolalista
 //TODO: iskola legördülő ne csak az elején keressen
 //TODO: nevek nagybetűvel kezdése
 //TODO: beérkezőknél korosztályváltás figyelmeztetés, checkboxal kapcsolható
