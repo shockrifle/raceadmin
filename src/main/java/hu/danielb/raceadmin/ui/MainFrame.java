@@ -25,6 +25,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.awt.print.PrinterException;
 import java.io.*;
 import java.nio.charset.Charset;
@@ -168,6 +169,7 @@ public class MainFrame extends javax.swing.JFrame {
 
         menuHelp.setText("Súgó");
 
+        menuItemUserManual.setAccelerator(javax.swing.KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0));
         menuItemUserManual.setText("Súgó");
         menuItemUserManual.addActionListener(e -> menuItemUserManualActionPerformed());
         menuHelp.add(menuItemUserManual);
