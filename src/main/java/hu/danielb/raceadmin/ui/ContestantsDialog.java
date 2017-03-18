@@ -19,6 +19,7 @@ import java.awt.event.MouseEvent;
 import java.awt.print.PrinterException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -82,17 +83,28 @@ class ContestantsDialog extends BaseDialog {
                 textSearchKeyReleased(evt);
             }
         });
-
+        comboSchools.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                if (value instanceof School) {
+                    value = ((School) value).getNameWithSettlement();
+                }
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                return this;
+            }
+        });
         comboSchools.setModel(new javax.swing.DefaultComboBoxModel<>(new School[]{new School(0, "")}));
         try {
-            Database.get().getSchoolDao().queryBuilder().orderBy(School.COLUMN_NAME, true).query().forEach(school -> {
-                try {
-                    if (Database.get().getContestantDao().queryForEq(Contestant.COLUMN_SCHOOL_ID, school.getId()).size() > 0)
-                        comboSchools.addItem(school);
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
-            });
+            Database.get().getSchoolDao().queryForAll().stream()
+                    .filter(school -> {
+                        try {
+                            return Database.get().getContestantDao().queryForEq(Contestant.COLUMN_SCHOOL_ID, school.getId()).size() > 0;
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+                        return false;
+                    }).sorted(Comparator.comparing(o -> o.getNameWithSettlement().toLowerCase()))
+                    .forEach(comboSchools::addItem);
         } catch (SQLException ex) {
             Logger.getLogger(AddContestantDialog.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -164,7 +176,7 @@ class ContestantsDialog extends BaseDialog {
     }
 
     private void comboSchoolsActionPerformed() {
-        schoolFilter = ((School) comboSchools.getSelectedItem()).getShortNameWithSettlement().toLowerCase();
+        schoolFilter = ((School) comboSchools.getSelectedItem()).getNameWithSettlement().toLowerCase();
         loadData();
     }
 
@@ -177,13 +189,13 @@ class ContestantsDialog extends BaseDialog {
 
 
             if (!schoolFilter.isEmpty()) {
-                data = data.stream().filter(contestant -> contestant.getSchool().getShortNameWithSettlement().toLowerCase().contains(schoolFilter))
+                data = data.stream().filter(contestant -> contestant.getSchool().getNameWithSettlement().toLowerCase().contains(schoolFilter))
                         .collect(Collectors.toList());
             }
             if (!filter.isEmpty()) {
                 data = data.stream().filter(contestant -> contestant.getName().toLowerCase().contains(filter) ||
                         contestant.getAgeGroup() != null && contestant.getAgeGroup().getName().toLowerCase().contains(filter) ||
-                        contestant.getSchool().getShortNameWithSettlement().toLowerCase().contains(filter) ||
+                        contestant.getSchool().getNameWithSettlement().toLowerCase().contains(filter) ||
                         (contestant.getSex().equals(Constants.BOY) ? "Fiú".toLowerCase().contains(filter) : "Lány".toLowerCase().contains(filter)) ||
                         String.valueOf(contestant.getPosition()).toLowerCase().contains(filter) ||
                         String.valueOf(contestant.getNumber()).toLowerCase().contains(filter) ||
@@ -218,7 +230,7 @@ class ContestantsDialog extends BaseDialog {
                         bigger = o1.getAgeGroup().getName().compareTo(o2.getAgeGroup().getName());
                         break;
                     case SCHOOL_NAME:
-                        bigger = o1.getSchool().getShortNameWithSettlement().compareTo(o2.getSchool().getShortNameWithSettlement());
+                        bigger = o1.getSchool().getNameWithSettlement().compareTo(o2.getSchool().getNameWithSettlement());
                         break;
                     case SEX:
                         bigger = o1.getSex().compareTo(o2.getSex());

@@ -5,18 +5,18 @@ import java.util.List;
 import java.util.Vector;
 
 public class BaseTableModel<T> extends DefaultTableModel {
-    List<T> data;
+    List<T> mData;
 
-    public BaseTableModel(List<String> columnIdentifiers, List<T> data) {
+    BaseTableModel(List<String> columnIdentifiers, List<T> data) {
         this(columnIdentifiers, data, data.size());
     }
 
-    public BaseTableModel(List<String> columnIdentifiers, List<T> data, int dataSize) {
+    BaseTableModel(List<String> columnIdentifiers, List<T> data, int dataSize) {
         super(new Vector<>(columnIdentifiers), dataSize);
-        this.data = data;
+        this.mData = data;
     }
 
     public T getDataAt(int row) {
-        return data.get(row);
+        return mData.get(row);
     }
 }

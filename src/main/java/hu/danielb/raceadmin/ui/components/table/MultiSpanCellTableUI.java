@@ -7,7 +7,7 @@ import javax.swing.plaf.basic.BasicTableUI;
 import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 
-public class MultiSpanCellTableUI extends BasicTableUI {
+class MultiSpanCellTableUI extends BasicTableUI {
 
     @Override
     public void paint(Graphics g, JComponent c) {

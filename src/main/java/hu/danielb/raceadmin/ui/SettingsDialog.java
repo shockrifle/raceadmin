@@ -158,11 +158,11 @@ public class SettingsDialog extends BaseDialog {
                 }).start();
                 dialog.setVisible(true);
             } else {
-                String msg = "A beállított korhatár ütközik a következővel:\n";
+                StringBuilder buf = new StringBuilder("A beállított korhatár ütközik a következővel:\n");
                 for (AgeGroup ageGroup1 : overlaps) {
-                    msg += ageGroup1.getName() + "\n";
+                    buf.append(ageGroup1.getName()).append("\n");
                 }
-                warn(msg);
+                warn(buf.toString());
             }
         }
     }

@@ -4,14 +4,14 @@ import java.awt.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class StartupScreen extends javax.swing.JDialog {
+class StartupScreen extends javax.swing.JDialog {
 
     private javax.swing.JLabel labelLoading;
     private javax.swing.JLabel labelVersion;
     private javax.swing.JPanel panelWithBackground;
     private javax.swing.JProgressBar progress;
 
-    public StartupScreen(java.awt.Frame parent, boolean modal, String version) {
+    StartupScreen(java.awt.Frame parent, boolean modal, String version) {
         super(parent, modal);
         initComponents();
         labelVersion.setText(version);

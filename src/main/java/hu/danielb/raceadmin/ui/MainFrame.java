@@ -62,7 +62,6 @@ public class MainFrame extends javax.swing.JFrame {
         }
 
         init();
-
         positionToCenter();
     }
 
@@ -540,7 +539,7 @@ public class MainFrame extends javax.swing.JFrame {
             boolean added = false;
             int n = 0;
             do {
-                String teamName = contestant.getSchool().getShortNameWithSettlement() + n;
+                String teamName = contestant.getSchool().getNameWithSettlement() + n;
                 if (teams.containsKey(teamName)) {
                     if (!teams.get(teamName).isFull()) {
                         teams.get(teamName).addMember(contestant);
@@ -643,22 +642,7 @@ public class MainFrame extends javax.swing.JFrame {
     }
 
     @SuppressWarnings("unused")
-    public class Category {
-
-        IndividualCategory individualCategory = new IndividualCategory();
-        TeamCategory teamCategory = new TeamCategory();
-
-        public IndividualCategory getIndividualCategory() {
-            return individualCategory;
-        }
-
-        public TeamCategory getTeamCategory() {
-            return teamCategory;
-        }
-    }
-
-    @SuppressWarnings("unused")
-    public class IndividualCategory {
+    public static class IndividualCategory {
 
         String name = "";
         List<Contestant> contestants = new ArrayList<>();
@@ -673,7 +657,7 @@ public class MainFrame extends javax.swing.JFrame {
     }
 
     @SuppressWarnings("unused")
-    public class TeamCategory {
+    public static class TeamCategory {
 
         String name = "";
         List<Team> teams = new ArrayList<>();
@@ -684,6 +668,21 @@ public class MainFrame extends javax.swing.JFrame {
 
         public List<Team> getTeams() {
             return teams;
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public class Category {
+
+        IndividualCategory individualCategory = new IndividualCategory();
+        TeamCategory teamCategory = new TeamCategory();
+
+        public IndividualCategory getIndividualCategory() {
+            return individualCategory;
+        }
+
+        public TeamCategory getTeamCategory() {
+            return teamCategory;
         }
     }
 }

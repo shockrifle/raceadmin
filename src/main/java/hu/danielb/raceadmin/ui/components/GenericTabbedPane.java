@@ -7,12 +7,12 @@ import java.util.Map;
 
 public class GenericTabbedPane<T> extends JTabbedPane {
 
-    private T data;
+    private T mData;
     private Map<Integer, Tab> tabs;
 
     public GenericTabbedPane(T data) {
         super();
-        this.data = data;
+        this.mData = data;
         tabs = new HashMap<>();
     }
 
@@ -22,11 +22,11 @@ public class GenericTabbedPane<T> extends JTabbedPane {
     }
 
     public T getData() {
-        return data;
+        return mData;
     }
 
     public void setData(T model) {
-        this.data = model;
+        this.mData = model;
     }
 
     public Tab getTab(int position) {
@@ -39,7 +39,7 @@ public class GenericTabbedPane<T> extends JTabbedPane {
         String title;
         Component component;
 
-        public Tab(K id, String title, Component component) {
+        Tab(K id, String title, Component component) {
             this.id = id;
             this.title = title;
             this.component = component;

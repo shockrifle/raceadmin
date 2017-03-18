@@ -14,13 +14,13 @@ import java.util.TimerTask;
 public class Backup {
 
     private static final String BACKUP_THREAD = "hu.danielb.raceadmin.database.Backup.BACKUP_THREAD";
-    private final int backupInterval;
-    private final String backupsPath;
-    private final String fileName;
-    private final String timeFormat;
-    private Timer backupTimer;
+    private final int mBackupInterval;
+    private final String mBackupsPath;
+    private final String mFileName;
+    private final String mTimeFormat;
+    private Timer mBackupTimer;
 
-    public Backup() {
+    Backup() {
 
         final Properties properties = new Properties();
         try {
@@ -28,33 +28,33 @@ public class Backup {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        backupInterval = Integer.parseInt(properties.getProperty("backup-interval")) * 1000 * 60;
-        backupsPath = properties.getProperty("backup-path", "backups");
-        fileName = properties.getProperty("database", "adatok.db");
-        timeFormat = properties.getProperty("backup-time-format", "_HH.mm.ss");
+        mBackupInterval = Integer.parseInt(properties.getProperty("backup-interval")) * 1000 * 60;
+        mBackupsPath = properties.getProperty("backup-path", "backups");
+        mFileName = properties.getProperty("database", "adatok.db");
+        mTimeFormat = properties.getProperty("backup-time-format", "_HH.mm.ss");
     }
 
-    public Backup start() {
-        backupTimer = new Timer(BACKUP_THREAD, true);
-        backupTimer.schedule(new TimerTask() {
+    Backup start() {
+        mBackupTimer = new Timer(BACKUP_THREAD, true);
+        mBackupTimer.schedule(new TimerTask() {
             @Override
             public void run() {
                 try {
-                    backup(backupsPath, fileName, timeFormat);
+                    backup(mBackupsPath, mFileName, mTimeFormat);
                 } catch (IOException | SQLException ex) {
                     ex.printStackTrace();
                 }
             }
-        }, 0, backupInterval);
+        }, 0, mBackupInterval);
         return this;
     }
 
     public Backup stop() {
-        backupTimer.cancel();
+        mBackupTimer.cancel();
         return this;
     }
 
-    synchronized public void backup(String backupsPath, String fileName, String timeFormat) throws IOException, SQLException {
+    private synchronized void backup(String backupsPath, String fileName, String timeFormat) throws IOException, SQLException {
         if (!Database.get().isBackedUp()) {
             DateFormat f = new SimpleDateFormat(timeFormat);
             File dir = new File(backupsPath);

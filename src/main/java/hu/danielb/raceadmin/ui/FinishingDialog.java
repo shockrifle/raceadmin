@@ -19,14 +19,16 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+//import java.util.Timer;
+
 class FinishingDialog extends BaseDialog {
 
     private HashMap<AgeGroup, Positions> positionsForAgeGroup;
     private HashMap<Integer, Contestant> contestants;
     private List<FinishingListener> listeners;
 
-//    TEST
-//    Contestant contestantTest;
+    //    TEST
+//    private Contestant contestantTest;
 //    private Timer timer;
 
     private javax.swing.JLabel labelContestantName;
@@ -126,18 +128,18 @@ class FinishingDialog extends BaseDialog {
         labelSchool.setText("Iskola:");
 
         labelContestantName.setFont(new java.awt.Font("Arial", Font.BOLD, 20));
-        labelContestantName.setText(" ");
+        labelContestantName.setText("");
         labelContestantName.setMaximumSize(new java.awt.Dimension(263, 24));
         labelContestantName.setMinimumSize(new java.awt.Dimension(263, 24));
         labelContestantName.setPreferredSize(new java.awt.Dimension(263, 24));
 
         labelSchoolName.setFont(new java.awt.Font("Arial", Font.BOLD, 20));
-        labelSchoolName.setText(" ");
+        labelSchoolName.setText("");
         labelSchoolName.setMaximumSize(new java.awt.Dimension(263, 24));
         labelSchoolName.setMinimumSize(new java.awt.Dimension(263, 24));
         labelSchoolName.setPreferredSize(new java.awt.Dimension(263, 24));
 
-        labelMessage.setText(" ");
+        labelMessage.setText("");
 
         labelPosition.setFont(new java.awt.Font("Arial", Font.BOLD, 20));
         labelPosition.setText("Helyezés:");
@@ -246,7 +248,7 @@ class FinishingDialog extends BaseDialog {
 
         if (contestant != null) {
             labelContestantName.setText(contestant.getName());
-            labelSchoolName.setText(contestant.getSchool().getShortNameWithSettlement());
+            labelSchoolName.setText(contestant.getSchool().getNameWithSettlement());
             labelPositionValue.setText(String.valueOf(positionsForAgeGroup.get(contestant.getAgeGroup()).positions.get(contestant.getSex())));
 
             if (contestant.getSex().equals(Constants.BOY)) {
@@ -268,12 +270,12 @@ class FinishingDialog extends BaseDialog {
                         if (contestant.getSex().equals(mLastSex) || mFirstFinisher || !mSexCheck) {
                             saveContestantPosition(contestant);
                         } else {
-                            if (0 == JOptionPane.showOptionDialog(this, "Ez a versenyző másik nembe tartozik mint az előző!\n Biztos menti a pozícióját?", "Figyelem!", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[]{"Igen", "Mégsem"}, null)) {
+                            if (0 == JOptionPane.showOptionDialog(this, "Ez a versenyző másik nembe tartozik mint az előző!\n Biztos menti az eredményét?", "Figyelem!", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[]{"Igen", "Mégsem"}, null)) {
                                 saveContestantPosition(contestant);
                             }
                         }
                     } else {
-                        if (0 == JOptionPane.showOptionDialog(this, "Ez a versenyző másik korosztályba tartozik mint az előző!\n Biztos menti a pozícióját?", "Figyelem!", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[]{"Igen", "Mégsem"}, null)) {
+                        if (0 == JOptionPane.showOptionDialog(this, "Ez a versenyző másik korosztályba tartozik mint az előző!\n Biztos menti az eredményét?", "Figyelem!", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[]{"Igen", "Mégsem"}, null)) {
                             saveContestantPosition(contestant);
                         }
                     }
@@ -313,6 +315,10 @@ class FinishingDialog extends BaseDialog {
     private void buttonEndActionPerformed() {
         this.dispose();
 //        TEST
+//        mSexCheck = false;
+//        mAgeGroupCheck = false;
+//        mCheckBoxSexCheck.setSelected(mSexCheck);
+//        mCheckBoxAgeGroupCheck.setSelected(mAgeGroupCheck);
 //        if (timer != null) {
 //            timer.cancel();
 //            timer = null;
@@ -322,6 +328,10 @@ class FinishingDialog extends BaseDialog {
 //        timer.schedule(new TimerTask() {
 //            @Override
 //            public void run() {
+//                if (contestants.isEmpty() || !labelMessage.getText().isEmpty()) {
+//                    buttonEndActionPerformed();
+//                    return;
+//                }
 //                int i = 0;
 //                int r = new Random(System.nanoTime() * 2).nextInt(contestants.size());
 //                for (Map.Entry<Integer, Contestant> entry : contestants.entrySet()) {
@@ -335,34 +345,31 @@ class FinishingDialog extends BaseDialog {
 //                t.schedule(new TimerTask() {
 //                    @Override
 //                    public void run() {
-//                        SwingUtilities.invokeLater(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                int h = textNumber.getText().length();
-//                                if (contestantTest == null) {
-//                                    t.cancel();
-//                                    return;
-//                                }
-//                                String number = String.valueOf(contestantTest.getNumber());
-//                                if (h == number.length()) {
-//                                    try {
-//                                        textNumberKeyReleased(new KeyEvent(textNumber, 10, 9999, 0, KeyEvent.VK_ENTER, 'e'));
-//                                    } catch (StringIndexOutOfBoundsException e) {
-//                                        java.util.logging.Logger.getLogger(FinishingDialog.class.getName()).log(java.util.logging.Level.SEVERE, null, e);
-//                                        textNumber.setText("");
-//                                    }
-//                                    t.cancel();
-//
-//                                    return;
-//                                }
-//                                textNumber.setText(number.substring(0, h + 1));
-//                                textNumberKeyReleased(new KeyEvent(textNumber, 10, 9999, 0, KeyEvent.VK_9, 'e'));
+//                        SwingUtilities.invokeLater(() -> {
+//                            int h = textNumber.getText().length();
+//                            if (contestantTest == null) {
+//                                t.cancel();
+//                                return;
 //                            }
+//                            String number = String.valueOf(contestantTest.getNumber());
+//                            if (h == number.length()) {
+//                                try {
+//                                    textNumberKeyReleased(new KeyEvent(textNumber, 10, 9999, 0, KeyEvent.VK_ENTER, 'e'));
+//                                } catch (StringIndexOutOfBoundsException e) {
+//                                    Logger.getLogger(FinishingDialog.class.getName()).log(Level.SEVERE, null, e);
+//                                    textNumber.setText("");
+//                                }
+//                                t.cancel();
+//
+//                                return;
+//                            }
+//                            textNumber.setText(number.substring(0, h + 1));
+//                            textNumberKeyReleased(new KeyEvent(textNumber, 10, 9999, 0, KeyEvent.VK_9, 'e'));
 //                        });
 //                    }
 //                }, 0, 75);
 //            }
-//        }, 0, 400);
+//        }, 0, 1000);
     }
 
     private void warning() {

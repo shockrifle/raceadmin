@@ -7,8 +7,8 @@ import java.util.List;
 
 public class ContestantTableModel extends BaseTableModel<Contestant> {
 
-    private Column sortBy = Column.NAME;
-    private boolean sortBackwards = false;
+    private Column mSortBy = Column.NAME;
+    private boolean mSortBackwards = false;
 
     public ContestantTableModel(List<Contestant> data) {
         super(Arrays.asList(
@@ -25,23 +25,23 @@ public class ContestantTableModel extends BaseTableModel<Contestant> {
     @Override
     public Object getValueAt(int row, int column) {
         if (column == Column.POSITION.ordinal())
-            return data.get(row).getPosition();
+            return mData.get(row).getPosition();
         if (column == Column.NAME.ordinal())
-            return data.get(row).getName();
+            return mData.get(row).getName();
         if (column == Column.NUMBER.ordinal())
-            return data.get(row).getNumber();
+            return mData.get(row).getNumber();
         if (column == Column.AGE.ordinal())
-            return data.get(row).getAge();
+            return mData.get(row).getAge();
         if (column == Column.AGE_GROUP_NAME.ordinal()) {
-            if (data.get(row).getAgeGroup() != null) {
-                return data.get(row).getAgeGroup().getName();
+            if (mData.get(row).getAgeGroup() != null) {
+                return mData.get(row).getAgeGroup().getName();
             }
             return "";
         }
         if (column == Column.SCHOOL_NAME.ordinal())
-            return data.get(row).getSchool().getShortNameWithSettlement();
+            return mData.get(row).getSchool().getNameWithSettlement();
         if (column == Column.SEX.ordinal())
-            return "B".equals(data.get(row).getSex()) ? "Fiú" : "Lány";
+            return "B".equals(mData.get(row).getSex()) ? "Fiú" : "Lány";
         if (column == Column.EDIT.ordinal())
             return "Szerkesztés";
         return null;
@@ -59,18 +59,18 @@ public class ContestantTableModel extends BaseTableModel<Contestant> {
     }
 
     public ContestantTableModel setSortBy(Column sortBy) {
-        this.sortBy = sortBy;
+        mSortBy = sortBy;
         return this;
     }
 
     public ContestantTableModel setSortBackwards(boolean sortBackwards) {
-        this.sortBackwards = sortBackwards;
+        mSortBackwards = sortBackwards;
         return this;
     }
 
     private String putSortMark(Column i) {
-        if (i == sortBy) {
-            if (sortBackwards) {
+        if (i.equals(mSortBy)) {
+            if (mSortBackwards) {
                 return "^";
             }
             return "ˇ";

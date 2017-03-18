@@ -15,13 +15,13 @@ public class ResultsTableModel extends AttributiveCellTableModel<Contestant> {
     @Override
     public Object getValueAt(int row, int column) {
         if (column == Column.POSITION.ordinal())
-            return data.get(row).getPosition();
+            return mData.get(row).getPosition();
         if (column == Column.NAME.ordinal())
-            return data.get(row).getName();
+            return mData.get(row).getName();
         if (column == Column.NUMBER.ordinal())
-            return data.get(row).getNumber();
+            return mData.get(row).getNumber();
         if (column == Column.SCHOOL_NAME.ordinal())
-            return data.get(row).getSchool().getShortNameWithSettlement();
+            return mData.get(row).getSchool().getNameWithSettlement();
         return null;
     }
 

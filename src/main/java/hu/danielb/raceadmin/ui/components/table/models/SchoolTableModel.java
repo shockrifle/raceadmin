@@ -7,8 +7,8 @@ import java.util.List;
 
 public class SchoolTableModel extends AttributiveCellTableModel<School> {
 
-    private Column sortBy = Column.NAME;
-    private boolean sortBackwards = false;
+    private Column mSortBy = Column.NAME;
+    private boolean mSortBackwards = false;
 
     public SchoolTableModel(List<School> data) {
         super(Arrays.asList("Név", "Megjelenítendő név", "Település", ""), data);
@@ -17,11 +17,11 @@ public class SchoolTableModel extends AttributiveCellTableModel<School> {
     @Override
     public Object getValueAt(int row, int column) {
         if (column == Column.NAME.ordinal())
-            return data.get(row).getName();
+            return mData.get(row).getName();
         if (column == Column.SHORT_NAME.ordinal())
-            return data.get(row).getShortName();
+            return mData.get(row).getShortName();
         if (column == Column.SETTLEMENT.ordinal())
-            return data.get(row).getSettlement();
+            return mData.get(row).getSettlement();
         if (column == Column.EDIT.ordinal())
             return "Szerkesztés";
         return null;
@@ -38,18 +38,18 @@ public class SchoolTableModel extends AttributiveCellTableModel<School> {
     }
 
     public SchoolTableModel setSortBy(Column sortBy) {
-        this.sortBy = sortBy;
+        this.mSortBy = sortBy;
         return this;
     }
 
     public SchoolTableModel setSortBackwards(boolean sortBackwards) {
-        this.sortBackwards = sortBackwards;
+        this.mSortBackwards = sortBackwards;
         return this;
     }
 
     private String putSortMark(Column i) {
-        if (i == sortBy) {
-            if (sortBackwards) {
+        if (i.equals(mSortBy)) {
+            if (mSortBackwards) {
                 return "^";
             }
             return "ˇ";

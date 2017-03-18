@@ -12,11 +12,11 @@ public class AttributiveCellTableModel<T> extends BaseTableModel<T> {
 
     private CellAttribute cellAtt;
 
-    public AttributiveCellTableModel(List<String> columnIdentifiers, List<T> data) {
+    AttributiveCellTableModel(List<String> columnIdentifiers, List<T> data) {
         super(columnIdentifiers, data);
     }
 
-    public AttributiveCellTableModel(List<String> columnIdentifiers, List<T> data, int dataSize) {
+    AttributiveCellTableModel(List<String> columnIdentifiers, List<T> data, int dataSize) {
         super(columnIdentifiers, data, dataSize);
     }
 
@@ -78,13 +78,14 @@ public class AttributiveCellTableModel<T> extends BaseTableModel<T> {
     @SuppressWarnings("unchecked")
     @Override
     public void insertRow(int row, Vector rowData) {
-        if (rowData == null) {
-            rowData = new Vector(getColumnCount());
+        Vector rowDataLocal = rowData;
+        if (rowDataLocal == null) {
+            rowDataLocal = new Vector(getColumnCount());
         } else {
-            rowData.setSize(getColumnCount());
+            rowDataLocal.setSize(getColumnCount());
         }
 
-        dataVector.insertElementAt(rowData, row);
+        dataVector.insertElementAt(rowDataLocal, row);
 
         cellAtt.insertRow(row);
 

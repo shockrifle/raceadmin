@@ -17,20 +17,20 @@ public class TeamResultsTableModel extends AttributiveCellTableModel<Team> {
 
     @Override
     public Object getValueAt(int row, int column) {
-        int teamRow = (int) Math.floor(row / mTeamMaxMembers);
+        int teamRow = (int) Math.floor((double) row / (double) mTeamMaxMembers);
 
         if (column == Column.POSITION.ordinal())
-            return (int) Math.floor(row / mTeamMaxMembers) + 1;
+            return teamRow + 1;
         if (column == Column.POINTS.ordinal())
-            return data.get(teamRow).getPoints();
+            return mData.get(teamRow).getPoints();
         if (column == Column.INDIVIDUAL_POSITION.ordinal())
-            return data.get(teamRow).getMembers().get(row % mTeamMaxMembers).getPosition();
+            return mData.get(teamRow).getMembers().get(row % mTeamMaxMembers).getPosition();
         if (column == Column.NAME.ordinal())
-            return data.get(teamRow).getMembers().get(row % mTeamMaxMembers).getName();
+            return mData.get(teamRow).getMembers().get(row % mTeamMaxMembers).getName();
         if (column == Column.NUMBER.ordinal())
-            return data.get(teamRow).getMembers().get(row % mTeamMaxMembers).getNumber();
+            return mData.get(teamRow).getMembers().get(row % mTeamMaxMembers).getNumber();
         if (column == Column.SCHOOL_NAME.ordinal())
-            return data.get(teamRow).getMembers().get(row % mTeamMaxMembers).getSchool().getShortNameWithSettlement();
+            return mData.get(teamRow).getMembers().get(row % mTeamMaxMembers).getSchool().getNameWithSettlement();
 
         return null;
 

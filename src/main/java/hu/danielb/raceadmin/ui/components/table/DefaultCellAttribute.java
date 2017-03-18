@@ -1,6 +1,7 @@
 package hu.danielb.raceadmin.ui.components.table;
 
 import java.awt.*;
+import java.util.Arrays;
 
 public class DefaultCellAttribute implements CellAttribute, CellSpan {
 
@@ -37,7 +38,7 @@ public class DefaultCellAttribute implements CellAttribute, CellSpan {
         if (isOutOfBounds(row, column)) {
             return;
         }
-        this.span[row][column] = span;
+        this.span[row][column] = Arrays.copyOf(span, span.length);
     }
 
     @Override

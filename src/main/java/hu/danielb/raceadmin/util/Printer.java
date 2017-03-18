@@ -6,6 +6,7 @@ import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
+import java.util.Arrays;
 
 public class Printer implements Printable {
 
@@ -28,7 +29,7 @@ public class Printer implements Printable {
     public Printer(String title, JTable tableToPrint, String[] header, boolean isTeam) {
         mTitle = title;
         mTable = tableToPrint;
-        mHeader = header;
+        mHeader = Arrays.copyOf(header, header.length);
         mIsTeam = isTeam;
         mTable.clearSelection();
     }

@@ -1,12 +1,13 @@
 package hu.danielb.raceadmin.entity;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Team implements Comparable {
 
     private final int mMaxMembers;
     private String mName;
-    private ArrayList<Contestant> mMembers;
+    private List<Contestant> mMembers;
 
     public Team(String name, int maxMembers) {
         mName = name;
@@ -18,7 +19,7 @@ public class Team implements Comparable {
         mMembers.add(contestant);
     }
 
-    public ArrayList<Contestant> getMembers() {
+    public List<Contestant> getMembers() {
         return mMembers;
     }
 
@@ -27,11 +28,12 @@ public class Team implements Comparable {
     }
 
     private int getPoints(int to) {
-        if (to > mMembers.size()) {
-            to = mMembers.size();
+        int toLocal = to;
+        if (toLocal > mMembers.size()) {
+            toLocal = mMembers.size();
         }
         int sum = 0;
-        for (int i = 0; i < to; i++) {
+        for (int i = 0; i < toLocal; i++) {
             sum += mMembers.get(i).getPosition();
         }
         return sum;

@@ -16,6 +16,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.sql.SQLException;
+import java.util.Comparator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -121,7 +122,7 @@ class AddContestantDialog extends BaseDialog {
             @Override
             public String getPreferredStringForItem(Object item) {
                 if (item instanceof School) {
-                    return ((School) item).getShortNameWithSettlement();
+                    return ((School) item).getNameWithSettlement();
                 }
                 return null;
             }
@@ -130,7 +131,7 @@ class AddContestantDialog extends BaseDialog {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 if (value instanceof School) {
-                    value = ((School) value).getShortNameWithSettlement();
+                    value = ((School) value).getNameWithSettlement();
                 }
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 return this;
@@ -150,7 +151,7 @@ class AddContestantDialog extends BaseDialog {
         SpinnerNumberModel spinnerModelNumber = new SpinnerNumberModel(min, min, max, 1);
         spinnerAge.setModel(spinnerModelNumber);
 
-        spinnerModelNumber = new SpinnerNumberModel(1, 1, 9999, 1);
+        spinnerModelNumber = new SpinnerNumberModel(1, 1, 99999, 1);
         spinnerNumber.setModel(spinnerModelNumber);
         spinnerNumber.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusGained(java.awt.event.FocusEvent evt) {
@@ -302,7 +303,8 @@ class AddContestantDialog extends BaseDialog {
     private void refreshSchools() {
         comboSchool.setModel(new DefaultComboBoxModel<>(new School[]{new School(0, "")}));
         try {
-            Database.get().getSchoolDao().queryBuilder().orderBy(School.COLUMN_SHORT_NAME, true).query().forEach(comboSchool::addItem);
+            Database.get().getSchoolDao().queryForAll().stream().sorted(Comparator.comparing(o -> o.getNameWithSettlement().toLowerCase()))
+                    .forEach(comboSchool::addItem);
         } catch (SQLException ex) {
             Logger.getLogger(AddContestantDialog.class.getName()).log(Level.SEVERE, null, ex);
         }

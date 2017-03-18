@@ -5,19 +5,19 @@ import java.awt.*;
 
 class LoadingDialog extends javax.swing.JDialog {
 
-    private String message = "";
-    private JProgressBar progress;
+    private String mMessage = "";
+    private JProgressBar mProgress;
 
     LoadingDialog(java.awt.Frame parent, String message) {
         super(parent, true);
-        this.message = message;
+        this.mMessage = message;
         initComponents();
         this.setLocationRelativeTo(parent);
     }
 
     LoadingDialog(Dialog parent, String message) {
         super(parent, true);
-        this.message = message;
+        this.mMessage = message;
         initComponents();
         this.setLocationRelativeTo(parent);
     }
@@ -25,7 +25,7 @@ class LoadingDialog extends javax.swing.JDialog {
     private void initComponents() {
 
         javax.swing.JLabel labelMessage = new javax.swing.JLabel();
-        progress = new JProgressBar();
+        mProgress = new JProgressBar();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
         setCursor(new java.awt.Cursor(java.awt.Cursor.WAIT_CURSOR));
@@ -33,10 +33,10 @@ class LoadingDialog extends javax.swing.JDialog {
         setResizable(false);
         setUndecorated(true);
 
-        labelMessage.setText(message);
+        labelMessage.setText(mMessage);
 
-        progress.setIndeterminate(true);
-        progress.setMaximumSize(new java.awt.Dimension(145, 15));
+        mProgress.setIndeterminate(true);
+        mProgress.setMaximumSize(new java.awt.Dimension(145, 15));
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -45,7 +45,7 @@ class LoadingDialog extends javax.swing.JDialog {
                         .addGroup(layout.createSequentialGroup()
                                 .addContainerGap()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                        .addComponent(progress, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                        .addComponent(mProgress, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                         .addComponent(labelMessage, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
@@ -55,7 +55,7 @@ class LoadingDialog extends javax.swing.JDialog {
                                 .addContainerGap()
                                 .addComponent(labelMessage)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(progress, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(mProgress, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -63,13 +63,13 @@ class LoadingDialog extends javax.swing.JDialog {
     }
 
     void setMax(int max) {
-        progress.setIndeterminate(false);
-        progress.setValue(0);
-        progress.setMinimum(0);
-        progress.setMaximum(max);
+        mProgress.setIndeterminate(false);
+        mProgress.setValue(0);
+        mProgress.setMinimum(0);
+        mProgress.setMaximum(max);
     }
 
     void progress() {
-        progress.setValue(progress.getValue() + 1);
+        mProgress.setValue(mProgress.getValue() + 1);
     }
 }

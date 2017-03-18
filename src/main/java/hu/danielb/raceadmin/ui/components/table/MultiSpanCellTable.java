@@ -21,32 +21,33 @@ public class MultiSpanCellTable extends JTable {
 
     @Override
     public Rectangle getCellRect(int row, int column, boolean includeSpacing) {
-        Rectangle sRect = super.getCellRect(row, column, includeSpacing);
-        if ((row < 0) || (column < 0)
-                || (getRowCount() <= row) || (getColumnCount() <= column)) {
+        int rowLocal = row;
+        int columnLocal = column;
+        Rectangle sRect = super.getCellRect(rowLocal, columnLocal, includeSpacing);
+        if ((rowLocal < 0) || (columnLocal < 0)
+                || (getRowCount() <= rowLocal) || (getColumnCount() <= columnLocal)) {
             return sRect;
         }
         CellSpan cellAtt = (CellSpan) ((AttributiveCellTableModel) getModel()).getCellAttribute();
-        if (!cellAtt.isVisible(row, column)) {
-            int temp_row = row;
-            int temp_column = column;
-            row += cellAtt.getSpan(temp_row, temp_column)[CellSpan.ROW];
-            column += cellAtt.getSpan(temp_row, temp_column)[CellSpan.COLUMN];
+        if (!cellAtt.isVisible(rowLocal, columnLocal)) {
+            int rowTemp = rowLocal;
+            rowLocal += cellAtt.getSpan(rowLocal, columnLocal)[CellSpan.ROW];
+            columnLocal += cellAtt.getSpan(rowTemp, columnLocal)[CellSpan.COLUMN];
         }
-        int[] n = cellAtt.getSpan(row, column);
+        int[] n = cellAtt.getSpan(rowLocal, columnLocal);
 
         int index = 0;
         int columnMargin = getColumnModel().getColumnMargin();
         Rectangle cellFrame = new Rectangle();
         int aCellHeight = rowHeight + rowMargin;
-        cellFrame.y = row * aCellHeight;
+        cellFrame.y = rowLocal * aCellHeight;
         cellFrame.height = n[CellSpan.ROW] * aCellHeight;
 
         Enumeration enumeration = getColumnModel().getColumns();
         while (enumeration.hasMoreElements()) {
             TableColumn aColumn = (TableColumn) enumeration.nextElement();
             cellFrame.width = aColumn.getWidth() + columnMargin;
-            if (index == column) {
+            if (index == columnLocal) {
                 break;
             }
             cellFrame.x += cellFrame.width;

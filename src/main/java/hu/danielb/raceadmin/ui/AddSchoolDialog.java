@@ -83,12 +83,12 @@ public class AddSchoolDialog extends BaseDialog {
             if (checked.isEmpty()) {
                 saveSchool();
             } else {
-                String msg = "Hasonló névvel már léteznek a következő iskolák: \n";
+                StringBuilder buf = new StringBuilder("Hasonló névvel már léteznek a következő iskolák: \n");
                 for (String aChecked : checked) {
-                    msg += aChecked + "\n";
+                    buf.append(aChecked).append("\n");
                 }
-                msg += "Ezek valamelyikére gondolt?";
-                switch (JOptionPane.showOptionDialog(this, msg, "", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, new String[]{"Igen", "Mentés", "Javít"}, null)) {
+                buf.append("Ezek valamelyikére gondolt?");
+                switch (JOptionPane.showOptionDialog(this, buf.toString(), "", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, new String[]{"Igen", "Mentés", "Javít"}, null)) {
                     case 0:
                         warn("Kerese meg a listában!");
                         dispose();

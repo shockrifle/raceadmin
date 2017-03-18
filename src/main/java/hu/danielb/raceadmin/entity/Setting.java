@@ -6,8 +6,8 @@ import hu.danielb.raceadmin.database.dao.SettingDao;
 
 @DatabaseTable(tableName = "setting", daoClass = SettingDao.class)
 public class Setting {
-    public static final String COLUMN_NAME = "name";
-    public static final String COLUMN_VALUE = "value";
+    private static final String COLUMN_NAME = "name";
+    private static final String COLUMN_VALUE = "value";
 
     @DatabaseField(id = true, columnName = COLUMN_NAME)
     private String name = "";
