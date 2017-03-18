@@ -37,6 +37,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+//TODO: fix about image
+//TODO: ant task to version number
 //TODO: régi adatok újrafelhasználása rajtszám elvételével
 //TODO: iskola legördülő ne csak az elején keressen
 //TODO: nevek nagybetűvel kezdése
