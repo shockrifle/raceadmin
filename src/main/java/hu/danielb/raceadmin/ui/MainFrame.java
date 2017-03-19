@@ -405,7 +405,7 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void menuItemUserManualActionPerformed() {
         try {
-            Desktop.getDesktop().open(new File("Súgó.docx"));
+            Desktop.getDesktop().open(new File("Súgó.pdf"));
         } catch (IOException e) {
             e.printStackTrace();
         }
