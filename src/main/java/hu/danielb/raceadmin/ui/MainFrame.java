@@ -37,6 +37,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+//TODO: fix school name or clause
+//TODO: fix update after adding first contestant
+//TODO: add logging
 //TODO: save a note for contestant edits
 //TODO: make windows resizable
 //TODO: ant task to version number
