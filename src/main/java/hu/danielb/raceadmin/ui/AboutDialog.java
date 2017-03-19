@@ -23,7 +23,7 @@ public class AboutDialog extends BaseDialog {
         setModalityType(java.awt.Dialog.ModalityType.APPLICATION_MODAL);
         setResizable(false);
 
-        mStartupImagePanel.add(new BackgroundPanel(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/images/loading.jpg"))));
+        mStartupImagePanel.add(new BackgroundPanel(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/images/loading.jpg"))), BorderLayout.CENTER);
         final Properties properties = new Properties();
         try {
             properties.load(this.getClass().getResourceAsStream("/project.properties"));
