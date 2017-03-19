@@ -29,7 +29,9 @@ public class Printer implements Printable {
     public Printer(String title, JTable tableToPrint, String[] header, boolean isTeam) {
         mTitle = title;
         mTable = tableToPrint;
-        mHeader = Arrays.copyOf(header, header.length);
+        if (header != null) {
+            mHeader = Arrays.copyOf(header, header.length);
+        }
         mIsTeam = isTeam;
         mTable.clearSelection();
     }
