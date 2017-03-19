@@ -143,12 +143,12 @@ class AddContestantDialog extends BaseDialog {
         int max = 0;
         try {
             String[] minMax = Database.get().getAgeGroupDao().queryBuilder().selectRaw("MIN(" + AgeGroup.COLUMN_MINIMUM + ")", "MAX(" + AgeGroup.COLUMN_MAXIMUM + ")").queryRawFirst();
-            min = Integer.parseInt(minMax[0]);
-            max = Integer.parseInt(minMax[1]);
+            min = Integer.parseInt(minMax[0]) - 5;
+            max = Integer.parseInt(minMax[1]) + 5;
         } catch (SQLException ex) {
             Logger.getLogger(AddContestantDialog.class.getName()).log(Level.SEVERE, null, ex);
         }
-        SpinnerNumberModel spinnerModelNumber = new SpinnerNumberModel(min, min, max, 1);
+        SpinnerNumberModel spinnerModelNumber = new SpinnerNumberModel(min + 5, min, max, 1);
         spinnerAge.setModel(spinnerModelNumber);
 
         spinnerModelNumber = new SpinnerNumberModel(1, 1, 99999, 1);
