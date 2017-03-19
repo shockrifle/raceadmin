@@ -10,6 +10,7 @@ import hu.danielb.raceadmin.util.Constants;
 import hu.danielb.raceadmin.util.Printer;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -270,6 +271,12 @@ class ContestantsDialog extends BaseDialog {
         tc.setMaxWidth(size);
         tc.setMinWidth(size);
         tc.setPreferredWidth(size);
+        if (columnNumber == ContestantTableModel.Column.POSITION.ordinal() ||
+                columnNumber == ContestantTableModel.Column.NUMBER.ordinal()) {
+            DefaultTableCellRenderer cellRenderer = new DefaultTableCellRenderer();
+            cellRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+            tc.setCellRenderer(cellRenderer);
+        }
     }
 
     private void editButtonActionPerformed(ActionEvent evt) {
