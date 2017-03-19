@@ -60,7 +60,17 @@ public class AddSchoolDialog extends BaseDialog {
     }
 
     private void buttonSaveActionPerformed() {
-        String[] names = mTextAreaFullName.getText().split(" ");
+        String fullName = mTextAreaFullName.getText();
+        if (fullName.length() < 3) {
+            warn("Nem adott meg nevet!");
+            return;
+        }
+        String settlement = mTextFieldSettlement.getText();
+        if (settlement.length() < 2) {
+            warn("Nem adott meg helységet!");
+            return;
+        }
+        String[] names = fullName.split(" ");
         ArrayList<String> checked = new ArrayList<>();
         try {
             Where<School, Integer> where = Database.get().getSchoolDao().queryBuilder().where();
