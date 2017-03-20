@@ -72,11 +72,6 @@ public class AddSchoolDialog extends BaseDialog {
             warn("Nem adott meg nevet!");
             return;
         }
-        String settlement = mTextFieldSettlement.getText();
-        if (settlement.length() < 2) {
-            warn("Nem adott meg helységet!");
-            return;
-        }
         String[] names = fullName.split(" ");
         ArrayList<String> checked = new ArrayList<>();
         try {
@@ -86,6 +81,8 @@ public class AddSchoolDialog extends BaseDialog {
                 String tempName = names[i];
                 tempName = tempName.toLowerCase()
                         .replaceAll("\\.", "")
+                        .replaceAll("isk", "")
+                        .replaceAll("ált", "")
                         .replaceAll("iskola", "")
                         .replaceAll("általános", "");
                 if (tempName.length() > 2) {
