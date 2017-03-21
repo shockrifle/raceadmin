@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 
 class ContestantsDialog extends BaseDialog {
 
+    public static final int COLUMN_SIZE_EDIT = 90;
     private JComboBox<School> comboSchools;
     private javax.swing.JTable tableContestants;
     private javax.swing.JTextField textSearch;
@@ -170,7 +171,9 @@ class ContestantsDialog extends BaseDialog {
 
     private void menuItemPrintActionPerformed() {
         try {
+            setColumnWidth(ContestantTableModel.Column.EDIT.ordinal(), 0);
             new Printer(tableContestants).print();
+            setColumnWidth(ContestantTableModel.Column.EDIT.ordinal(), COLUMN_SIZE_EDIT);
         } catch (PrinterException | HeadlessException ex) {
             Logger.getLogger(ContestantsDialog.class.getName()).log(Level.SEVERE, null, ex);
         }
