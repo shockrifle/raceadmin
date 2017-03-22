@@ -107,7 +107,7 @@
                             <target>
                                 <copy file="Súgó.pdf" todir="./out/release/VersenyAdmin_${project.version}"/>
                                 <copy file="adatok.db" todir="./out/release/VersenyAdmin_${project.version}"/>
-                                <copy file="./target/app-2.8-jar-with-dependencies.jar"
+                                <copy file="./target/app-${project.version}-jar-with-dependencies.jar"
                                       tofile="./out/release/VersenyAdmin_${project.version}/VersenyAdmin.jar"/>
                             </target>
                         </configuration>
