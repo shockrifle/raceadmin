@@ -79,6 +79,12 @@
                             <goal>single</goal>
                         </goals>
                     </execution>
+                    <execution>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
                 </executions>
                 <configuration>
                     <archive>
@@ -103,6 +109,19 @@
                                 <copy file="adatok.db" todir="./out/release/VersenyAdmin_${project.version}"/>
                                 <copy file="./target/app-2.8-jar-with-dependencies.jar"
                                       tofile="./out/release/VersenyAdmin_${project.version}/VersenyAdmin.jar"/>
+                            </target>
+                        </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>install-zip</id>
+                        <phase>install</phase>
+                        <configuration>
+                            <target>
+                                <zip destfile="./out/VersenyAdmin_${project.version}.zip"
+                                     basedir="./out/release/VersenyAdmin_${project.version}"/>
                             </target>
                         </configuration>
                         <goals>
