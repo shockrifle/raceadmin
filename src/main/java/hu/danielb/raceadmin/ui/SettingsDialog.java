@@ -16,6 +16,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -123,71 +124,112 @@ public class SettingsDialog extends BaseDialog {
     }
 
     private void ageGroupSaveClicked() {
-        if (0 == JOptionPane.showOptionDialog(this, "Ha megválzotatja a korosztályt, az eddigi eredmények elvesznek!\nBiztos ezt akarja?", "Figyelem!", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[]{"Igen", "Nem"}, null)) {
-            List<AgeGroup> overlaps = null;
+        List<AgeGroup> overlaps = new ArrayList<>();
+        for (AgeGroup ageGroup : mAgeGroupList) {
+            overlaps = mAgeGroupList.stream().filter(ageGroup2 ->
+                    ageGroup2.getId() != ageGroup.getId() &&
+                            (ageGroup.includes(ageGroup2.getMinimum()) ||
+                                    ageGroup.includes(ageGroup2.getMaximum()))).collect(Collectors.toList());
+            if (!CollectionUtils.isEmpty(overlaps)) break;
+        }
+
+        if (CollectionUtils.isEmpty(overlaps)) {
+            List<AgeGroup> toChange = new ArrayList<>();
+            boolean limitsChange = false;
             for (AgeGroup ageGroup : mAgeGroupList) {
-                overlaps = mAgeGroupList.stream().filter(ageGroup2 ->
-                        ageGroup2.getId() != ageGroup.getId() &&
-                                (ageGroup.includes(ageGroup2.getMinimum()) ||
-                                        ageGroup.includes(ageGroup2.getMaximum()))).collect(Collectors.toList());
-                if (!CollectionUtils.isEmpty(overlaps)) break;
-            }
-
-            if (CollectionUtils.isEmpty(overlaps)) {
-                LoadingDialog dialog = new LoadingDialog(this, "Mentés...");
-                dialog.setMax(mAgeGroupList.size());
-                new Thread(() -> {
+                if (ageGroup.getId() != 0) {
                     try {
-                        for (AgeGroup ageGroup : mAgeGroupList) {
-                            if (ageGroup.getId() != 0) {
-                                AgeGroup ageGroupOld = Database.get().getAgeGroupDao().queryForId(ageGroup.getId());
-                                Database.get().getAgeGroupDao().createOrUpdate(ageGroup);
-                                Database.get().getContestantDao().queryForAll().forEach(contestant -> {
-                                    contestant.setPosition(0);
-                                    updateContestantAgeGroup(contestant, ageGroupOld, ageGroup);
-                                });
-
-                            } else {
-                                Database.get().getAgeGroupDao().createOrUpdate(ageGroup);
-                                Database.get().getContestantDao().queryForAll().forEach(contestant -> updateContestantAgeGroup(contestant, null, ageGroup));
+                        AgeGroup ageGroupOld = Database.get().getAgeGroupDao().queryForId(ageGroup.getId());
+                        if (ageGroupOld.getMinimum() != ageGroup.getMinimum() || ageGroupOld.getMaximum() != ageGroup.getMaximum() ||
+                                !ageGroupOld.getName().equals(ageGroup.getName()) || ageGroupOld.getTeamMaxMembers() != ageGroup.getTeamMaxMembers()) {
+                            toChange.add(ageGroup);
+                            if (ageGroupOld.getMinimum() != ageGroup.getMinimum() || ageGroupOld.getMaximum() != ageGroup.getMaximum()) {
+                                limitsChange = true;
                             }
-                            dialog.progress();
                         }
                     } catch (SQLException e) {
                         e.printStackTrace();
                     }
-                    dialog.dispose();
+                } else {
+                    toChange.add(ageGroup);
+                }
+            }
+
+            if (toChange.size() > 0) {
+                if (!limitsChange || 0 == JOptionPane.showOptionDialog(this, "Ha megválzotatja a korosztály határait, az eddigi eredmények elvesznek!\nBiztos ezt akarja?", "Figyelem!", JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE, null, new String[]{"Igen", "Nem"}, null)) {
+                    LoadingDialog dialog = new LoadingDialog(this, "Mentés...");
+                    long countOfContestants = 0;
                     try {
-                        SwingUtilities.invokeAndWait(() -> {
-                            disableAgeGroupSaveAndCancel();
-                            loadAgeGroups();
-                        });
-                    } catch (InterruptedException | InvocationTargetException e) {
+                        countOfContestants = Database.get().getContestantDao().countOf();
+                        dialog.setMax((int) (toChange.size() * countOfContestants));
+                    } catch (SQLException e) {
                         e.printStackTrace();
                     }
-                }).start();
-                dialog.setVisible(true);
-            } else {
-                StringBuilder buf = new StringBuilder("A beállított korhatár ütközik a következővel:\n");
-                for (AgeGroup ageGroup1 : overlaps) {
-                    buf.append(ageGroup1.getName()).append("\n");
+                    long finalCountOfContestants = countOfContestants;
+                    new Thread(() -> {
+                        try {
+                            for (AgeGroup ageGroup : toChange) {
+                                if (ageGroup.getId() != 0) {
+                                    AgeGroup ageGroupOld = Database.get().getAgeGroupDao().queryForId(ageGroup.getId());
+                                    Database.get().getAgeGroupDao().createOrUpdate(ageGroup);
+                                    if (ageGroupOld.getMinimum() != ageGroup.getMinimum() || ageGroupOld.getMaximum() != ageGroup.getMaximum()) {
+                                        Database.get().getContestantDao().queryForAll().forEach(contestant -> {
+                                            updateContestantAgeGroup(contestant, ageGroupOld, ageGroup);
+                                            dialog.progress();
+                                        });
+                                    } else {
+                                        dialog.progress((int) finalCountOfContestants);
+                                    }
+                                } else {
+                                    Database.get().getAgeGroupDao().createOrUpdate(ageGroup);
+                                    Database.get().getContestantDao().queryForAll().forEach(contestant -> {
+                                        updateContestantAgeGroup(contestant, null, ageGroup);
+                                        dialog.progress();
+                                    });
+                                }
+                            }
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+                        dialog.dispose();
+                        try {
+                            SwingUtilities.invokeAndWait(() -> {
+                                disableAgeGroupSaveAndCancel();
+                                loadAgeGroups();
+                            });
+                        } catch (InterruptedException | InvocationTargetException e) {
+                            e.printStackTrace();
+                        }
+                    }).start();
+                    dialog.setVisible(true);
                 }
-                warn(buf.toString());
             }
+        } else {
+            StringBuilder buf = new StringBuilder("A beállított korhatár ütközik a következővel:\n");
+            for (AgeGroup ageGroup1 : overlaps) {
+                buf.append(ageGroup1.getName()).append("\n");
+            }
+            warn(buf.toString());
         }
     }
 
     private void updateContestantAgeGroup(Contestant contestant, AgeGroup ageGroupOld, AgeGroup ageGroupNew) {
+        boolean changed = false;
         if (ageGroupOld != null && ageGroupOld.equals(contestant.getAgeGroup())) {
             contestant.setAgeGroup(null);
+            changed = true;
         }
         if (ageGroupNew != null && ageGroupNew.includes(contestant.getAge())) {
             contestant.setAgeGroup(ageGroupNew);
+            changed = true;
         }
-        try {
-            Database.get().getContestantDao().update(contestant);
-        } catch (SQLException e) {
-            e.printStackTrace();
+        if (changed) {
+            try {
+                contestant.setPosition(0);
+                Database.get().getContestantDao().update(contestant);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -274,7 +316,6 @@ public class SettingsDialog extends BaseDialog {
                     List<Contestant> contestants = Database.get().getContestantDao().queryForAll();
                     dialog.setMax(contestants.size());
                     contestants.forEach(contestant -> {
-                        contestant.setPosition(0);
                         updateContestantAgeGroup(contestant, ageGroup, null);
                         dialog.progress();
                     });
