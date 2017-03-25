@@ -58,7 +58,7 @@ public class SettingsDialog extends BaseDialog {
     private void init() {
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setModalityType(ModalityType.APPLICATION_MODAL);
+        setModal(true);
         setResizable(false);
 
         mListItemSelectedListener = e -> listItemSelected();

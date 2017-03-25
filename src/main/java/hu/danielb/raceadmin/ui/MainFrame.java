@@ -38,11 +38,9 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 //TODO: fix school name or clause
-//TODO: fix update after adding first contestant
 //TODO: add logging
 //TODO: save a note for contestant edits
 //TODO: make windows resizable
-//TODO: ant task to version number
 //TODO: régi adatok újrafelhasználása rajtszám elvételével
 //TODO: iskola legördülő ne csak az elején keressen
 //TODO: nevek nagybetűvel kezdése
@@ -274,6 +272,7 @@ public class MainFrame extends javax.swing.JFrame {
     private void menuItemSettingsActionPerformed() {
         SettingsDialog dialog = new SettingsDialog(this);
         dialog.setVisible(true);
+        initPane();
         loadData();
     }
 
