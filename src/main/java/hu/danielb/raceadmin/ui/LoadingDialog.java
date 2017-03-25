@@ -70,6 +70,10 @@ class LoadingDialog extends javax.swing.JDialog {
     }
 
     void progress() {
-        mProgress.setValue(mProgress.getValue() + 1);
+        progress(1);
+    }
+
+    void progress(int progressToAdd) {
+        mProgress.setValue(mProgress.getValue() + progressToAdd);
     }
 }
