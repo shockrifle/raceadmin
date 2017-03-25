@@ -221,7 +221,13 @@ public class SettingsDialog extends BaseDialog {
         JTextField name = new JTextField(ageGroup.getName());
         name.setPreferredSize(new Dimension(100, 22));
 
-        name.addKeyListener(new AgeGroupNameEditListener());
+        name.addKeyListener(new AgeGroupNameEditListener() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                super.keyReleased(e);
+                ageGroup.setName(name.getText());
+            }
+        });
 
         JSpinner minimum = new JSpinner(new SpinnerNumberModel(ageGroup.getMinimum(), 1900, 2100, 1));
         if (ageGroup.getId() != 0) {
