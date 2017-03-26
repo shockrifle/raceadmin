@@ -37,6 +37,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+
+//TODO: település elől/hátul állítható
+//TODO: edző tárolása megjelenítése
+//TODO: darabszám/sorszám rajtlistánál
 //TODO: fix school name or clause
 //TODO: add logging
 //TODO: save a note for contestant edits
