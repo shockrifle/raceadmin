@@ -38,6 +38,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 
+//TODO: revert backed up database
 //TODO: település elől/hátul állítható
 //TODO: edző tárolása megjelenítése
 //TODO: darabszám/sorszám rajtlistánál
