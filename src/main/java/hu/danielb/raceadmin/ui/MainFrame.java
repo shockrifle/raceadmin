@@ -38,6 +38,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 
+//TODO: export excel csapat cellák dinamikusan
 //TODO: exception kezelés, hiba kiírás!!!!
 //TODO: 5fős csapatok? mi van ha nincs 5 fő? két csapat esetén az 5.ember hova tartozik?
 //TODO: egyenlő csapat pontszám esetén a 4.csapattag számít?

@@ -54,18 +54,10 @@ public class Team implements Comparable {
     @Override
     public int compareTo(Object o) {
         Team other = (Team) o;
-        return compareTo(other, mMaxMembers);
-    }
-
-    private int compareTo(Team other, int memberCount) {
-        if (memberCount <= 0) {
-            return 0;
+        int result = Integer.compare(this.getPoints(), other.getPoints());
+        if (result == 0) {
+            return Integer.compare(this.getMembers().get(mMaxMembers - 1).getPosition(), other.getMembers().get(mMaxMembers - 1).getPosition());
         }
-        if (other.getPoints(memberCount) > this.getPoints(memberCount)) {
-            return -1;
-        } else if (other.getPoints(memberCount) == this.getPoints(memberCount)) {
-            return compareTo(other, memberCount - 1);
-        }
-        return 1;
+        return result;
     }
 }
