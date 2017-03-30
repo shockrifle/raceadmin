@@ -38,6 +38,12 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 
+//TODO: exception kezelés, hiba kiírás!!!!
+//TODO: 5fős csapatok? mi van ha nincs 5 fő? két csapat esetén az 5.ember hova tartozik?
+//TODO: egyenlő csapat pontszám esetén a 4.csapattag számít?
+//TODO: Iskolák rövidítetten és településsel
+//TODO: a nyomtatási lapokon dátum, versenynév, pontos beazonosítás erősebb karakterekkel, hogy szembetünőbb legyen a lista tartalma pl.: előnevezett iskola, előnevezett korcsoport
+//TODO: adatok fel/letöltése, online opciók
 //TODO: revert backed up database
 //TODO: település elől/hátul állítható
 //TODO: edző tárolása megjelenítése
