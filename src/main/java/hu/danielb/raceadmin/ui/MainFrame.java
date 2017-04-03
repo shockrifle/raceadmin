@@ -37,11 +37,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-
 //TODO: export excel csapat cellák dinamikusan
 //TODO: exception kezelés, hiba kiírás!!!!
 //TODO: 5fős csapatok? mi van ha nincs 5 fő? két csapat esetén az 5.ember hova tartozik?
+//  1. Ha csak négy fő indul egy iskolából az is teljes jogú csapatnak számít, mert az ötödik induló tulajdonképpen egy plusz opció arra nézve, hogy ötből a négy jobb eredménye számít a csapatversenybe.Érmet az ötödik tanuló is kap, de eredménye nem számít a csapatversenybe. Ha csak négyen indulnak, mindenkinek végig kell menni a pályán, és a végelszámolásnál mindegyikük eredménye beleszámít a csapatversenybe.
+//  4.Ahogy telefonon is beszéltünk erről,ez a kérdés az elmúlt tíz évben nem vetődött fel,és ahogy ígértem,utána fogok nézni.Ugyanakkor ez a kérdés akkor vet fel problémát,hogy ha történetesen az adott intézmény kilenc vagy tíz főt nevez a versenyre.Nyolc fő nevezése esetén két négy fős csapat van,és a kérdés itt nem kérdés azért,mert...de...vagy van két négyfős csapatom,vagy van egy ötfős csapatom,és még van három tanuló,akik nem értek el semmit,azon kívül,hogy lefutották a távot.De mi van,ha testnevelő az ötödiknek is akar adott esetben érmet adni,akkor feláldozza a második csapatát?Kilenc vagy tíz fő esetében szerintem automatikusan az első csapatot egészítem ki öt főre,ha érmet nyertek....de...ha a második csapat is éremszerző helyen ért célba,akkor hová teszem az ötödik embert.
+//  Szóval,még egyszer,ez nagyon jó filozófiai kérdés,és csak ha gyakorlatban jelentkezik,tudunk rá megoldást találni az érintettek bevonásával!$
 //TODO: egyenlő csapat pontszám esetén a 4.csapattag számít?
+//  2.Egyenlő csapat-pontszám esetén azt a csapatot soroljuk előrébb,akinek a negyedik versenyzője jobb helyezést ért el,mint a holtversenyben lévő másik csapat negyedik versenyzője.Az ötödiknek célba érkező versenyző helyezési pontszáma nem számít,mivel eleve négy fős a csapatverseny.
 //TODO: Iskolák rövidítetten és településsel
 //TODO: a nyomtatási lapokon dátum, versenynév, pontos beazonosítás erősebb karakterekkel, hogy szembetünőbb legyen a lista tartalma pl.: előnevezett iskola, előnevezett korcsoport
 //TODO: adatok fel/letöltése, online opciók
@@ -57,6 +60,7 @@ import java.util.stream.Collectors;
 //TODO: iskola legördülő ne csak az elején keressen
 //TODO: nevek nagybetűvel kezdése
 //TODO: i18n
+//ALERT: 5.Szerintem az internetes oldalhoz van lehetőség hozzá férni akkor,ha a hozzáféréshez jogosítvánnyal rendelkező hat fő közül valaki oda adja neked a saját hozzáférési kódját.A dolog nem lehetetlen,mivel Őze Lászlónak van hozzáférése/kódja/,nekem nincs.Viszont az eredményes rendezés közös érdek,ezért van remény...szerintem jövő tavasszal a következő bajnokság előtt erre a kérdésre térjünk vissza.
 
 public class MainFrame extends javax.swing.JFrame {
 
