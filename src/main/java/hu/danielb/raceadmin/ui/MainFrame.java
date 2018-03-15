@@ -13,10 +13,12 @@ import hu.danielb.raceadmin.ui.components.table.models.AttributiveCellTableModel
 import hu.danielb.raceadmin.ui.components.table.models.ResultsTableModel;
 import hu.danielb.raceadmin.ui.components.table.models.TeamResultsTableModel;
 import hu.danielb.raceadmin.util.Constants;
+import hu.danielb.raceadmin.util.EachMergeCommand;
 import hu.danielb.raceadmin.util.Printer;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.jxls.builder.xls.XlsCommentAreaBuilder;
 import org.jxls.common.Context;
 import org.jxls.util.JxlsHelper;
 
@@ -37,7 +39,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-//TODO: export excel csapat cellák dinamikusan
 //TODO: exception kezelés, hiba kiírás!!!!
 //TODO: 5fős csapatok? mi van ha nincs 5 fő? két csapat esetén az 5.ember hova tartozik?
 //  1. Ha csak négy fő indul egy iskolából az is teljes jogú csapatnak számít, mert az ötödik induló tulajdonképpen egy plusz opció arra nézve,
@@ -459,6 +460,7 @@ public class MainFrame extends javax.swing.JFrame {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        XlsCommentAreaBuilder.addCommandMapping(EachMergeCommand.COMMAND_NAME, EachMergeCommand.class);
         startupScreen = new StartupScreen(this, true, properties.getProperty("version"));
         exportsPath = properties.getProperty("exports-path");
         try {
