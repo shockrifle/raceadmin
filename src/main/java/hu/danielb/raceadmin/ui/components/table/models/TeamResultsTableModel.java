@@ -24,7 +24,7 @@ public class TeamResultsTableModel extends AttributiveCellTableModel<Team> {
         if (column == Column.POINTS.ordinal())
             return mData.get(teamRow).getPoints();
         if (column == Column.INDIVIDUAL_POSITION.ordinal())
-            return mData.get(teamRow).getMembers().get(row % mTeamMaxMembers).getPosition();
+            return mData.get(teamRow).getMembers().get(row % mTeamMaxMembers).getPositionString();
         if (column == Column.NAME.ordinal())
             return mData.get(teamRow).getMembers().get(row % mTeamMaxMembers).getName();
         if (column == Column.NUMBER.ordinal())

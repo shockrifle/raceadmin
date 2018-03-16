@@ -74,6 +74,10 @@ public class Contestant {
         this.position = position;
     }
 
+    public String getPositionString() {
+        return position > 0 ? String.valueOf(position) : "";
+    }
+
     public String getName() {
         return name;
     }

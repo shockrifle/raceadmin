@@ -15,7 +15,7 @@ public class ResultsTableModel extends AttributiveCellTableModel<Contestant> {
     @Override
     public Object getValueAt(int row, int column) {
         if (column == Column.POSITION.ordinal())
-            return mData.get(row).getPosition();
+            return mData.get(row).getPositionString();
         if (column == Column.NAME.ordinal())
             return mData.get(row).getName();
         if (column == Column.NUMBER.ordinal())

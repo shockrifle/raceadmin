@@ -345,7 +345,15 @@ public class MainFrame extends javax.swing.JFrame {
                 List<Category> results = new ArrayList<>();
 
                 String exportsPath = Properties.getExportsPath();
+                String printHeaderTitle = "";
+                String printHeaderSubtitle = "";
+                String date = "";
                 try {
+                    printHeaderTitle = Database.get().getSettingDao().getPrintHeaderTitle();
+                    printHeaderSubtitle = Database.get().getSettingDao().getPrintHeaderSubtitle();
+                    date = new SimpleDateFormat("yyyy. MMMM d.", Locale.forLanguageTag("hu")).format(new Date());
+
+
                     Database.get().getAgeGroupDao().queryForAll().stream().sorted().forEach(ageGroup -> {
                         try {
                             File exportDir = new File(exportsPath);
@@ -380,10 +388,13 @@ public class MainFrame extends javax.swing.JFrame {
                     e.printStackTrace();
                 }
 
-                try (InputStream is = getClass().getResourceAsStream("/templates/egyeni_template.xlsx")) {
-                    try (OutputStream os = new FileOutputStream(exportsPath + File.separator + "export" + new SimpleDateFormat("_HH.mm.ss").format(new Date()) + ".xlsx")) {
+                try (InputStream is = getClass().getResourceAsStream("/templates/result_template.xlsx")) {
+                    try (OutputStream os = new FileOutputStream(exportsPath + File.separator + "export" + new SimpleDateFormat(Properties.getBackupTimeFormat()).format(new Date()) + ".xlsx")) {
                         Context context = new Context();
                         context.putVar("results", results);
+                        context.putVar("header", printHeaderTitle);
+                        context.putVar("subheader", printHeaderSubtitle);
+                        context.putVar("date", date);
                         JxlsHelper.getInstance().processTemplate(is, os, context);
                     }
                 } catch (IOException e) {
