@@ -3,11 +3,10 @@ package hu.danielb.raceadmin.ui;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
+import hu.danielb.raceadmin.util.Properties;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.IOException;
-import java.util.Properties;
 
 public class AboutDialog extends BaseDialog {
     private JPanel contentPane;
@@ -28,13 +27,7 @@ public class AboutDialog extends BaseDialog {
         setResizable(false);
 
         mStartupImagePanel.add(new BackgroundPanel(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/images/loading.jpg"))), BorderLayout.CENTER);
-        final Properties properties = new Properties();
-        try {
-            properties.load(this.getClass().getResourceAsStream("/project.properties"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        mLabelVersion.setText(properties.getProperty("version"));
+        mLabelVersion.setText(Properties.getVersion());
 
         pack();
     }

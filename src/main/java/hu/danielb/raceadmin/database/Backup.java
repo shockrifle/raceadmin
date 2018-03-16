@@ -1,5 +1,7 @@
 package hu.danielb.raceadmin.database;
 
+import hu.danielb.raceadmin.util.Properties;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -7,7 +9,6 @@ import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -21,17 +22,10 @@ public class Backup {
     private Timer mBackupTimer;
 
     Backup() {
-
-        final Properties properties = new Properties();
-        try {
-            properties.load(this.getClass().getResourceAsStream("/project.properties"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        mBackupInterval = Integer.parseInt(properties.getProperty("backup-interval")) * 1000 * 60;
-        mBackupsPath = properties.getProperty("backup-path", "backups");
-        mFileName = properties.getProperty("database", "adatok.db");
-        mTimeFormat = properties.getProperty("backup-time-format", "_HH.mm.ss");
+        mBackupInterval = Properties.getBackupInterval() * 1000 * 60;
+        mBackupsPath = Properties.getBackupPath();
+        mFileName = Properties.getDatabase();
+        mTimeFormat = Properties.getBackupTimeFormat();
     }
 
     Backup start() {

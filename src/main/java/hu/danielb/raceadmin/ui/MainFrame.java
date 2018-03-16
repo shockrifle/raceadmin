@@ -15,6 +15,7 @@ import hu.danielb.raceadmin.ui.components.table.models.TeamResultsTableModel;
 import hu.danielb.raceadmin.util.Constants;
 import hu.danielb.raceadmin.util.EachMergeCommand;
 import hu.danielb.raceadmin.util.Printer;
+import hu.danielb.raceadmin.util.Properties;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -45,7 +46,6 @@ public class MainFrame extends javax.swing.JFrame {
     private JDialog startupScreen;
     private javax.swing.JButton buttonFinisher;
     private javax.swing.JTabbedPane ageGroupPane;
-    private String exportsPath;
 
     private MainFrame() {
         try {
@@ -271,7 +271,7 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void menuItemImportActionPerformed() {
 
-        final JFileChooser fc = new JFileChooser(System.getProperty("user.dir"));
+        final JFileChooser fc = new JFileChooser(Properties.getUserDir());
         fc.setAcceptAllFileFilterUsed(false);
         fc.addChoosableFileFilter(new FileNameExtensionFilter("csv", "csv"));
         int returnVal = fc.showOpenDialog(this);
@@ -344,6 +344,7 @@ public class MainFrame extends javax.swing.JFrame {
             public void run() {
                 List<Category> results = new ArrayList<>();
 
+                String exportsPath = Properties.getExportsPath();
                 try {
                     Database.get().getAgeGroupDao().queryForAll().stream().sorted().forEach(ageGroup -> {
                         try {
@@ -417,15 +418,9 @@ public class MainFrame extends javax.swing.JFrame {
     }
 
     private void init() {
-        final Properties properties = new Properties();
-        try {
-            properties.load(this.getClass().getResourceAsStream("/project.properties"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
         XlsCommentAreaBuilder.addCommandMapping(EachMergeCommand.COMMAND_NAME, EachMergeCommand.class);
-        startupScreen = new StartupScreen(this, true, properties.getProperty("version"));
-        exportsPath = properties.getProperty("exports-path");
+        startupScreen = new StartupScreen(this, true, Properties.getVersion());
         try {
             Database.get();
             new Thread(() -> {

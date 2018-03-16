@@ -14,10 +14,9 @@ import hu.danielb.raceadmin.entity.AgeGroup;
 import hu.danielb.raceadmin.entity.Contestant;
 import hu.danielb.raceadmin.entity.School;
 import hu.danielb.raceadmin.entity.Setting;
+import hu.danielb.raceadmin.util.Properties;
 
-import java.io.IOException;
 import java.sql.SQLException;
-import java.util.Properties;
 
 public class Database {
 
@@ -43,15 +42,8 @@ public class Database {
 
     private void connect() throws SQLException {
 
-        Properties properties = new Properties();
-        try {
-            properties.load(this.getClass().getResourceAsStream("/project.properties"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
         String databaseUrl = "jdbc:sqlite:";
-        String databaseFile = properties.getProperty("database");
+        String databaseFile = Properties.getDatabase();
 
         ConnectionSource connectionSource = new JdbcConnectionSource(databaseUrl + databaseFile);
 
