@@ -1,8 +1,9 @@
 package hu.danielb.raceadmin.util;
 
-import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
-import org.apache.poi.ss.util.RegionUtil;
 import org.jxls.area.Area;
 import org.jxls.command.CellRefGenerator;
 import org.jxls.command.EachCommand;
@@ -27,26 +28,32 @@ public class EachMergeCommand extends EachCommand {
     public static final String COMMAND_NAME = "each-merge";
     private static Logger logger = LoggerFactory.getLogger(EachMergeCommand.class);
 
+    @SuppressWarnings("unused")
     public EachMergeCommand() {
         super();
     }
 
+    @SuppressWarnings("unused")
     public EachMergeCommand(String var, String items, Direction direction) {
         super(var, items, direction);
     }
 
+    @SuppressWarnings("unused")
     public EachMergeCommand(String items, Area area) {
         super(items, area);
     }
 
+    @SuppressWarnings("unused")
     public EachMergeCommand(String var, String items, Area area) {
         super(var, items, area);
     }
 
+    @SuppressWarnings("unused")
     public EachMergeCommand(String var, String items, Area area, Direction direction) {
         super(var, items, area, direction);
     }
 
+    @SuppressWarnings("unused")
     public EachMergeCommand(String var, String items, Area area, CellRefGenerator cellRefGenerator) {
         super(var, items, area, cellRefGenerator);
     }
@@ -147,30 +154,15 @@ public class EachMergeCommand extends EachCommand {
                 return;
             }
             Cell originCell;
-            CellStyle originCellStyle;
             CellRangeAddress region;
             for (int col : mergeColumns) {
                 logger.debug("fromRow={}, toRow={}, col={}", fromRow, toRow, col);
                 region = new CellRangeAddress(fromRow, toRow, col, col);
                 sheet.addMergedRegion(region);
 
-                //firstCell = sheet.getRow(fromRow).getCell(col);
                 originCell = sheet.getRow(srcCell.getRow()).getCell(col);
                 if (originCell == null) {
                     logger.info("Missing cell: row={}, col={}", fromRow, col);
-                }
-                if (originCell != null) {
-                    // copy originCell style to the merged cell
-                    originCellStyle = originCell.getCellStyle();
-                    RegionUtil.setBorderTop(originCellStyle.getBorderTopEnum(), region, sheet);
-                    RegionUtil.setBorderRight(originCellStyle.getBorderRightEnum(), region, sheet);
-                    RegionUtil.setBorderBottom(originCellStyle.getBorderBottomEnum(), region, sheet);
-                    RegionUtil.setBorderLeft(originCellStyle.getBorderLeftEnum(), region, sheet);
-                } else {
-                    RegionUtil.setBorderTop(BorderStyle.THIN, region, sheet);
-                    RegionUtil.setBorderRight(BorderStyle.THIN, region, sheet);
-                    RegionUtil.setBorderBottom(BorderStyle.THIN, region, sheet);
-                    RegionUtil.setBorderLeft(BorderStyle.THIN, region, sheet);
                 }
             }
         }
@@ -191,17 +183,19 @@ public class EachMergeCommand extends EachCommand {
         // This class use this feature to do the merge work.
         @Override
         public void afterTransformCell(CellRef srcCell, CellRef targetCell, Context context) {
-            if (parentProcessed == 0) this.sheetName = targetCell.getSheetName();
+            if (parentProcessed == 0) {
+                this.sheetName = targetCell.getSheetName();
+            }
 
             if (targetCell.getCol() == parentStartColumn) { // main command process
                 this.parentProcessed++;
 
-                logger.debug("parent: srcCell={}, targetCell={} [{}, {}]", srcCell, targetCell,
-                        targetCell.getRow(), targetCell.getCol());
+                logger.debug("parent: srcCell={}, targetCell={} [{}, {}]", srcCell, targetCell, targetCell.getRow(), targetCell.getCol());
 
                 //should be recorded just on necessary
-                if (targetCell.getRow() < this.childRow)
+                if (targetCell.getRow() < this.childRow) {
                     this.records.add(new int[]{targetCell.getRow(), this.childRow});
+                }
 
                 // merge work invoke on the last
                 if (this.parentProcessed == this.parentCount) {

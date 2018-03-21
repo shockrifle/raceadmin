@@ -102,6 +102,10 @@ public class Contestant {
         this.number = number;
     }
 
+    public String getNumberString() {
+        return number > 0 ? String.valueOf(number) : "";
+    }
+
     public AgeGroup getAgeGroup() {
         return ageGroup;
     }
@@ -125,4 +129,9 @@ public class Contestant {
     public void setAge(int age) {
         this.age = age;
     }
+
+    public String getAgeString() {
+        return age > 0 ? String.valueOf(age) : "";
+    }
+
 }

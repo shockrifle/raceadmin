@@ -30,7 +30,7 @@ public class TeamResultsTableModel extends AttributiveCellTableModel<Team> {
         if (column == Column.NUMBER.ordinal())
             return mData.get(teamRow).getMembers().get(row % mTeamMaxMembers).getNumber();
         if (column == Column.SCHOOL_NAME.ordinal())
-            return mData.get(teamRow).getMembers().get(row % mTeamMaxMembers).getSchool().getNameWithSettlement();
+            return mData.get(teamRow).getName();
 
         return null;
 

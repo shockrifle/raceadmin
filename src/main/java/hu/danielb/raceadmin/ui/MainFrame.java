@@ -368,7 +368,7 @@ public class MainFrame extends javax.swing.JFrame {
                             boyAgeGroup.teamCategory.name = ageGroup.getName() + " " + "Fiú, csapat";
 
                             boyAgeGroup.individualCategory.contestants = getByAgeGroupAndSex(ageGroup.getId(), Constants.BOY);
-                            boyAgeGroup.teamCategory.teams.addAll(makeTeams(boyAgeGroup.individualCategory.contestants.stream().filter(contestant1 -> contestant1.getPosition() > 0).collect(Collectors.toList()), ageGroup.getTeamMaxMembers()));
+                            boyAgeGroup.teamCategory.teams.addAll(makeTeams(boyAgeGroup.individualCategory.contestants.stream().filter(contestant1 -> contestant1.getPosition() > 0).collect(Collectors.toList()), ageGroup.getTeamMaxMembers(), true));
 
                             Category girlAgeGroup = new Category();
                             results.add(girlAgeGroup);
@@ -376,7 +376,7 @@ public class MainFrame extends javax.swing.JFrame {
                             girlAgeGroup.teamCategory.name = ageGroup.getName() + " " + "Lány, csapat";
 
                             girlAgeGroup.individualCategory.contestants = getByAgeGroupAndSex(ageGroup.getId(), Constants.GIRL);
-                            girlAgeGroup.teamCategory.teams.addAll(makeTeams(girlAgeGroup.individualCategory.contestants.stream().filter(contestant1 -> contestant1.getPosition() > 0).collect(Collectors.toList()), ageGroup.getTeamMaxMembers()));
+                            girlAgeGroup.teamCategory.teams.addAll(makeTeams(girlAgeGroup.individualCategory.contestants.stream().filter(contestant1 -> contestant1.getPosition() > 0).collect(Collectors.toList()), ageGroup.getTeamMaxMembers(), true));
 
                         } catch (SQLException ex) {
                             Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
@@ -541,12 +541,16 @@ public class MainFrame extends javax.swing.JFrame {
     }
 
     private List<Team> makeTeams(List<Contestant> data, int maxMembers) {
+        return makeTeams(data, maxMembers, false);
+    }
+
+    private List<Team> makeTeams(List<Contestant> data, int maxMembers, boolean addPlaceholder) {
         HashMap<String, Team> teams = new HashMap<>();
         for (Contestant contestant : data) {
             boolean added = false;
             int n = 0;
             do {
-                String teamName = contestant.getSchool().getNameWithSettlement() + n;
+                String teamName = contestant.getSchool().getNameWithSettlement() + (n > 0 ? " " + (char) ('A' + n) : "");
                 if (teams.containsKey(teamName)) {
                     if (!teams.get(teamName).isFull()) {
                         teams.get(teamName).addMember(contestant);
@@ -563,11 +567,16 @@ public class MainFrame extends javax.swing.JFrame {
         }
 
 
-        return teams.entrySet().stream()
+        List<Team> teamList = teams.entrySet().stream()
                 .filter(entry -> entry.getValue().isFull())
-                .map(Map.Entry::getValue).collect(Collectors.toList())
-                .stream()
-                .sorted().collect(Collectors.toList());
+                .map(Map.Entry::getValue).collect(Collectors.toList());
+
+        if (addPlaceholder) {
+            teamList.forEach(team -> team.addMember(new Contestant()));
+        }
+
+        return teamList.stream().sorted().collect(Collectors.toList());
+
     }
 
     private void addTeamDataToTable(String tableName, List<Team> data) {
