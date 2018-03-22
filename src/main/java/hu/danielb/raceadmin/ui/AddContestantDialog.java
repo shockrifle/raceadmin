@@ -204,7 +204,7 @@ class AddContestantDialog extends BaseDialog {
         spinnerPosition.setEnabled(false);
         spinnerPosition.setVisible(false);
 
-        comboAgeGroup.setModel(new javax.swing.DefaultComboBoxModel<>(new AgeGroup[]{new AgeGroup(0, "", 0, 0, 0)}));
+        comboAgeGroup.setModel(new javax.swing.DefaultComboBoxModel<>(new AgeGroup[]{new AgeGroup(0, "", 0, 0, 0, 0)}));
         try {
             Database.get().getAgeGroupDao().queryForAll().forEach(comboAgeGroup::addItem);
         } catch (SQLException ex) {
