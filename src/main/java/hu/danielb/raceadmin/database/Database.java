@@ -1,13 +1,12 @@
 package hu.danielb.raceadmin.database;
 
-import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.logger.LocalLog;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 import hu.danielb.raceadmin.database.dao.AgeGroupDao;
-import hu.danielb.raceadmin.database.dao.BaseDaoWithListener;
+import hu.danielb.raceadmin.database.dao.ContestantDao;
 import hu.danielb.raceadmin.database.dao.SchoolDao;
 import hu.danielb.raceadmin.database.dao.SettingDao;
 import hu.danielb.raceadmin.entity.AgeGroup;
@@ -24,7 +23,7 @@ public class Database {
     @SuppressWarnings({"FieldCanBeLocal", "unused"})
     private final Backup backup;
     private AgeGroupDao ageGroupDao;
-    private Dao<Contestant, Integer> contestantDao;
+    private ContestantDao contestantDao;
     private SchoolDao schoolDao;
     private SettingDao settingDao;
     private boolean backedUp = false;
@@ -59,7 +58,7 @@ public class Database {
 
 
         ageGroupDao.addListener(() -> backedUp = false);
-        ((BaseDaoWithListener) contestantDao).addListener(() -> backedUp = false);
+        contestantDao.addListener(() -> backedUp = false);
         schoolDao.addListener(() -> backedUp = false);
         settingDao.addListener(() -> backedUp = false);
     }
@@ -75,7 +74,7 @@ public class Database {
         return ageGroupDao;
     }
 
-    public Dao<Contestant, Integer> getContestantDao() {
+    public ContestantDao getContestantDao() {
         return contestantDao;
     }
 
