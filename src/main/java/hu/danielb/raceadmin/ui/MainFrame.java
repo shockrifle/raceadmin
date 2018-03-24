@@ -2,6 +2,7 @@ package hu.danielb.raceadmin.ui;
 
 
 import hu.danielb.raceadmin.database.Database;
+import hu.danielb.raceadmin.database.dao.SettingDao;
 import hu.danielb.raceadmin.entity.AgeGroup;
 import hu.danielb.raceadmin.entity.Contestant;
 import hu.danielb.raceadmin.entity.School;
@@ -12,9 +13,7 @@ import hu.danielb.raceadmin.ui.components.table.MultiSpanCellTable;
 import hu.danielb.raceadmin.ui.components.table.models.AttributiveCellTableModel;
 import hu.danielb.raceadmin.ui.components.table.models.ResultsTableModel;
 import hu.danielb.raceadmin.ui.components.table.models.TeamResultsTableModel;
-import hu.danielb.raceadmin.util.Constants;
-import hu.danielb.raceadmin.util.EachMergeCommand;
-import hu.danielb.raceadmin.util.Printer;
+import hu.danielb.raceadmin.util.*;
 import hu.danielb.raceadmin.util.Properties;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -33,7 +32,6 @@ import java.awt.print.PrinterException;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 import java.util.logging.Level;
@@ -222,9 +220,10 @@ public class MainFrame extends javax.swing.JFrame {
 
         String[] headerString = new String[]{"", ""};
         try {
+            SettingDao settingDao = Database.get().getSettingDao();
             headerString = new String[]{
-                    Database.get().getSettingDao().getPrintHeaderTitle(),
-                    Database.get().getSettingDao().getPrintHeaderSubtitle()
+                    settingDao.getPrintHeaderTitle(),
+                    settingDao.getPrintHeaderSubtitle() + " " + DateUtils.formatDate(settingDao.getRaceDate())
             };
         } catch (SQLException e) {
             e.printStackTrace();
@@ -351,7 +350,7 @@ public class MainFrame extends javax.swing.JFrame {
                 try {
                     printHeaderTitle = Database.get().getSettingDao().getPrintHeaderTitle();
                     printHeaderSubtitle = Database.get().getSettingDao().getPrintHeaderSubtitle();
-                    date = new SimpleDateFormat("yyyy. MMMM d.", Locale.forLanguageTag("hu")).format(new Date());
+                    date = DateUtils.formatDate(Database.get().getSettingDao().getRaceDate());
 
 
                     Database.get().getAgeGroupDao().queryForAll().stream().sorted().forEach(ageGroup -> {
@@ -393,7 +392,7 @@ public class MainFrame extends javax.swing.JFrame {
                 }
 
                 try (InputStream is = getClass().getResourceAsStream("/templates/result_template.xlsx")) {
-                    try (OutputStream os = new FileOutputStream(exportsPath + File.separator + "export" + new SimpleDateFormat(Properties.getBackupTimeFormat()).format(new Date()) + ".xlsx")) {
+                    try (OutputStream os = new FileOutputStream(exportsPath + File.separator + "export" + DateUtils.formatForFile(new Date()) + ".xlsx")) {
                         Context context = new Context();
                         context.putVar("results", results);
                         context.putVar("header", printHeaderTitle);

@@ -4,11 +4,13 @@ import com.j256.ormlite.support.ConnectionSource;
 import hu.danielb.raceadmin.entity.Setting;
 
 import java.sql.SQLException;
+import java.util.Date;
 
 public class SettingDao extends BaseDaoWithListener<Setting, String> {
     private static final String PRINT_HEADER_TITLE = "print_header_title";
     private static final String PRINT_HEADER_SUBTITLE = "print_header_subtitle";
     private static final String HIDE_DISQUALIFIED = "hide_disqualified";
+    private static final String RACE_DATE = "race_date";
 
     public SettingDao(ConnectionSource connectionSource, Class<Setting> dataClass) throws SQLException {
         super(connectionSource, dataClass);
@@ -26,6 +28,7 @@ public class SettingDao extends BaseDaoWithListener<Setting, String> {
         return getBoolean(key, false);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private boolean getBoolean(String key, boolean defaultValue) {
         try {
             Setting setting = queryForId(key);
@@ -50,11 +53,36 @@ public class SettingDao extends BaseDaoWithListener<Setting, String> {
         return getString(key, "");
     }
 
+    @SuppressWarnings("SameParameterValue")
     private String getString(String key, String defaultValue) {
         try {
             Setting setting = queryForId(key);
             if (setting != null) {
                 return setting.getValue();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return defaultValue;
+    }
+
+    private void putDate(String key, Date value) {
+        try {
+            createOrUpdate(new Setting(key, String.valueOf(value.getTime())));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private Date getDate(String key) {
+        return getDate(key, new Date());
+    }
+
+    private Date getDate(String key, Date defaultValue) {
+        try {
+            Setting setting = queryForId(key);
+            if (setting != null) {
+                return new Date(Long.parseLong(setting.getValue()));
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -84,5 +112,13 @@ public class SettingDao extends BaseDaoWithListener<Setting, String> {
 
     public String getPrintHeaderSubtitle() {
         return getString(PRINT_HEADER_SUBTITLE);
+    }
+
+    public void saveRaceDate(Date date) {
+        putDate(RACE_DATE, date);
+    }
+
+    public Date getRaceDate() {
+        return getDate(RACE_DATE);
     }
 }
