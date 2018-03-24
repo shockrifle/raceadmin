@@ -10,6 +10,7 @@ public class Coach {
     public static final String COLUMN_SCHOOL_ID = "school_id";
     private static final String COLUMN_ID = "id";
     private static final String COLUMN_NAME = "name";
+
     @DatabaseField(generatedId = true, columnName = COLUMN_ID)
     private int mId;
     @DatabaseField(columnName = COLUMN_NAME)

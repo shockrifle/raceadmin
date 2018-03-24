@@ -1,4 +1,4 @@
-package hu.danielb.raceadmin.ui.components.table.models;
+package hu.danielb.raceadmin.ui.components.table.tablemodels;
 
 import hu.danielb.raceadmin.entity.Contestant;
 import hu.danielb.raceadmin.entity.Team;

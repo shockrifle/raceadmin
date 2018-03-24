@@ -5,7 +5,7 @@ import hu.danielb.raceadmin.entity.Contestant;
 import hu.danielb.raceadmin.entity.School;
 import hu.danielb.raceadmin.ui.components.ButtonEditor;
 import hu.danielb.raceadmin.ui.components.ButtonRenderer;
-import hu.danielb.raceadmin.ui.components.table.models.ContestantTableModel;
+import hu.danielb.raceadmin.ui.components.table.tablemodels.ContestantTableModel;
 import hu.danielb.raceadmin.util.Constants;
 import hu.danielb.raceadmin.util.Printer;
 
