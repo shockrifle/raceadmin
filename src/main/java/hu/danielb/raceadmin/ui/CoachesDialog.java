@@ -45,11 +45,11 @@ public class CoachesDialog extends BaseTableDialog<Coach> {
 
     @Override
     protected BaseDialog getEditDialog() {
-        return null;
+        return new AddCoachDialog(this);
     }
 
     @Override
     protected BaseDialog getEditDialog(Coach data) {
-        return null;
+        return new AddCoachDialog(this, data);
     }
 }
