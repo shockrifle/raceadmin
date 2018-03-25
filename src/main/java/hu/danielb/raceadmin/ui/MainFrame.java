@@ -80,6 +80,7 @@ public class MainFrame extends javax.swing.JFrame {
         JMenuItem menuItemFinisher = new JMenuItem();
         JMenuItem menuItemContestants = new JMenuItem();
         JMenuItem menuItemSchools = new JMenuItem();
+        JMenuItem menuItemCoaches = new JMenuItem();
         JMenuItem menuItemSettings = new JMenuItem();
         JMenu menuHelp = new JMenu();
         JMenuItem menuItemAbout = new JMenuItem();
@@ -155,6 +156,10 @@ public class MainFrame extends javax.swing.JFrame {
         menuItemSchools.setText("Iskolák");
         menuItemSchools.addActionListener(e -> menuItemSchoolsActionPerformed());
         menuEdit.add(menuItemSchools);
+
+        menuItemCoaches.setText("Edzők/Tanárok");
+        menuItemCoaches.addActionListener(e -> menuItemCoachesActionPerformed());
+        menuEdit.add(menuItemCoaches);
 
         menuItemSettings.setText("Beállítások");
         menuItemSettings.addActionListener(e -> menuItemSettingsActionPerformed());
@@ -257,6 +262,12 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void menuItemSchoolsActionPerformed() {
         SchoolsDialog dial = new SchoolsDialog(this);
+        dial.setVisible(true);
+        loadData();
+    }
+
+    private void menuItemCoachesActionPerformed() {
+        CoachesDialog dial = new CoachesDialog(this);
         dial.setVisible(true);
         loadData();
     }
