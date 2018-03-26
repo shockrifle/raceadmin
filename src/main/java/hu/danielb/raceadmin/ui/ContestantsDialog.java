@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 
 class ContestantsDialog extends BaseDialog {
 
-    public static final int COLUMN_SIZE_EDIT = 90;
+    private static final int COLUMN_SIZE_EDIT = 90;
     private JComboBox<School> comboSchools;
     private javax.swing.JTable tableContestants;
     private javax.swing.JTextField textSearch;
@@ -95,7 +95,7 @@ class ContestantsDialog extends BaseDialog {
                 return this;
             }
         });
-        comboSchools.setModel(new javax.swing.DefaultComboBoxModel<>(new School[]{new School(0, "")}));
+        comboSchools.setModel(new javax.swing.DefaultComboBoxModel<>(new School[]{new School()}));
         try {
             Database.get().getSchoolDao().queryForAll().stream()
                     .filter(school -> {

@@ -301,7 +301,7 @@ class AddContestantDialog extends BaseDialog {
     }
 
     private void refreshSchools() {
-        comboSchool.setModel(new DefaultComboBoxModel<>(new School[]{new School(0, "")}));
+        comboSchool.setModel(new DefaultComboBoxModel<>(new School[]{new School()}));
         try {
             Database.get().getSchoolDao().queryForAll().stream().sorted(Comparator.comparing(o -> o.getNameWithSettlement().toLowerCase()))
                     .forEach(comboSchool::addItem);

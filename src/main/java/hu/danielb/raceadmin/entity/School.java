@@ -11,6 +11,7 @@ public class School {
     private static final String COLUMN_SHORT_NAME = "short_name";
     private static final String COLUMN_ID = "id";
     private static final String COLUMN_SETTLEMENT = "settlement";
+    private static final String COLUMN_COACH_ID = "coach_id";
 
     @DatabaseField(generatedId = true, columnName = COLUMN_ID)
     private int id;
@@ -20,14 +21,8 @@ public class School {
     private String shortName = "";
     @DatabaseField(columnName = COLUMN_SETTLEMENT, defaultValue = "")
     private String settlement = "";
-
-    public School() {
-    }
-
-    public School(int id, String name) {
-        this.id = id;
-        this.name = name;
-    }
+    @DatabaseField(columnName = COLUMN_COACH_ID)
+    private int coachId;
 
     public int getId() {
         return id;
@@ -55,6 +50,14 @@ public class School {
 
     public void setSettlement(String settlement) {
         this.settlement = settlement;
+    }
+
+    public int getCoachId() {
+        return coachId;
+    }
+
+    public void setCoachId(int coachId) {
+        this.coachId = coachId;
     }
 
     public String getNameWithSettlement() {

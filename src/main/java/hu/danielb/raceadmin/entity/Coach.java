@@ -4,12 +4,14 @@ import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
 import hu.danielb.raceadmin.database.dao.CoachDao;
 
+import java.util.Objects;
+
 @DatabaseTable(tableName = "coach", daoClass = CoachDao.class)
 public class Coach {
 
     public static final String COLUMN_SCHOOL_ID = "school_id";
+    public static final String COLUMN_NAME = "name";
     private static final String COLUMN_ID = "id";
-    private static final String COLUMN_NAME = "name";
 
     @DatabaseField(generatedId = true, columnName = COLUMN_ID)
     private int mId;
@@ -21,16 +23,8 @@ public class Coach {
     public Coach() {
     }
 
-    public Coach(int id, String name, School school) {
+    public Coach(int id) {
         mId = id;
-        mName = name;
-        this.school = school;
-    }
-
-    public Coach(Coach other) {
-        mId = other.getId();
-        mName = other.getName();
-        this.school = other.getSchool();
     }
 
     public int getId() {
@@ -55,5 +49,19 @@ public class Coach {
 
     public void setSchool(School school) {
         this.school = school;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Coach)) return false;
+        Coach coach = (Coach) o;
+        return mId == coach.mId;
+    }
+
+    @Override
+    public int hashCode() {
+
+        return Objects.hash(mId);
     }
 }
