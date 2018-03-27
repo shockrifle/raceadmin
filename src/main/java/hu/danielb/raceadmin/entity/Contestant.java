@@ -15,6 +15,7 @@ public class Contestant {
     public static final String COLUMN_AGE_GROUP_ID = "age_group_id";
     public static final String COLUMN_SCHOOL_ID = "school_id";
     public static final String COLUMN_AGE = "age";
+    public static final String COLUMN_COACH_ID = "coach_id";
 
     @DatabaseField(generatedId = true, columnName = COLUMN_ID)
     private int id;
@@ -28,10 +29,12 @@ public class Contestant {
     private int number;
     @DatabaseField(foreign = true, foreignAutoRefresh = true, columnName = COLUMN_AGE_GROUP_ID)
     private AgeGroup ageGroup = new AgeGroup();
-    @DatabaseField(foreign = true, foreignAutoRefresh = true, foreignAutoCreate = true, columnName = COLUMN_SCHOOL_ID)
+    @DatabaseField(foreign = true, foreignAutoRefresh = true, columnName = COLUMN_SCHOOL_ID)
     private School school = new School();
     @DatabaseField(columnName = COLUMN_AGE)
     private int age;
+    @DatabaseField(foreign = true, foreignAutoRefresh = true, columnName = COLUMN_SCHOOL_ID)
+    private Coach coach = new Coach();
 
     public Contestant() {
     }
@@ -134,4 +137,11 @@ public class Contestant {
         return age > 0 ? String.valueOf(age) : "";
     }
 
+    public Coach getCoach() {
+        return coach;
+    }
+
+    public void setCoach(Coach coach) {
+        this.coach = coach;
+    }
 }

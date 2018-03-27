@@ -2,6 +2,7 @@ package hu.danielb.raceadmin.ui;
 
 import hu.danielb.raceadmin.database.Database;
 import hu.danielb.raceadmin.entity.AgeGroup;
+import hu.danielb.raceadmin.entity.Coach;
 import hu.danielb.raceadmin.entity.Contestant;
 import hu.danielb.raceadmin.entity.School;
 import hu.danielb.raceadmin.util.Constants;
@@ -17,6 +18,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.sql.SQLException;
 import java.util.Comparator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,6 +29,7 @@ class AddContestantDialog extends BaseDialog {
     private javax.swing.ButtonGroup buttonGroupSex;
     private JComboBox<AgeGroup> comboAgeGroup;
     private javax.swing.JComboBox<School> comboSchool;
+    private javax.swing.JComboBox<Coach> comboCoach;
     private javax.swing.JLabel labelPosition;
     private javax.swing.JRadioButton radioBoy;
     private javax.swing.JRadioButton radioGirl;
@@ -59,6 +62,9 @@ class AddContestantDialog extends BaseDialog {
             spinnerPosition.setValue(contestant.getPosition());
             textName.setText(contestant.getName());
             comboSchool.setSelectedItem(contestant.getSchool());
+            if (contestant.getCoach() != null) {
+                comboCoach.setSelectedItem(contestant.getCoach());
+            }
             spinnerAge.setValue(contestant.getAge());
             comboAgeGroup.setSelectedItem(contestant.getAgeGroup());
             spinnerNumber.setValue(contestant.getNumber());
@@ -95,6 +101,7 @@ class AddContestantDialog extends BaseDialog {
         buttonGroupSex = new javax.swing.ButtonGroup();
         textName = new javax.swing.JTextField();
         comboSchool = new javax.swing.JComboBox<>();
+        comboCoach = new javax.swing.JComboBox<>();
         spinnerAge = new javax.swing.JSpinner();
         spinnerNumber = new javax.swing.JSpinner();
         radioBoy = new javax.swing.JRadioButton();
@@ -106,8 +113,10 @@ class AddContestantDialog extends BaseDialog {
         JButton buttonDelete = new JButton();
         JButton buttonEnd = new JButton();
         JButton buttonNew = new JButton();
+        JButton buttonNewCoach = new JButton();
         JLabel labelName = new JLabel();
         JLabel labelSchool = new JLabel();
+        JLabel labelCoach = new JLabel();
         JLabel labelAge = new JLabel();
         JLabel labelNumber = new JLabel();
         JLabel labelSex = new JLabel();
@@ -137,7 +146,33 @@ class AddContestantDialog extends BaseDialog {
                 return this;
             }
         });
+        comboSchool.addItemListener(e -> refreshCoaches());
         refreshSchools();
+
+
+        AutoCompleteDecorator.decorate(comboCoach, new ObjectToStringConverter() {
+            @Override
+            public String getPreferredStringForItem(Object item) {
+                if (item instanceof Coach) {
+                    Coach coach = (Coach) item;
+                    return coach.getName() + (coach.getSchool() != null && coach.getSchool().getId() > 0 ? " - " + coach.getSchool().getShortName() : "");
+                }
+                return null;
+            }
+        });
+        comboCoach.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                String name = null;
+                if (value instanceof Coach) {
+                    Coach coach = (Coach) value;
+                    name = coach.getName() + (coach.getSchool() != null && coach.getSchool().getId() > 0 ? " - " + coach.getSchool().getShortName() : "");
+                }
+                super.getListCellRendererComponent(list, name, index, isSelected, cellHasFocus);
+                return this;
+            }
+        });
+        refreshCoaches();
 
         int min = 9999;
         int max = 0;
@@ -185,9 +220,15 @@ class AddContestantDialog extends BaseDialog {
         buttonNew.setFocusable(false);
         buttonNew.addActionListener(e -> buttonNewActionPerformed());
 
+        buttonNewCoach.setText("Új");
+        buttonNewCoach.setFocusable(false);
+        buttonNewCoach.addActionListener(e -> buttonNewCoachActionPerformed());
+
         labelName.setText("Név:");
 
         labelSchool.setText("Iskola:");
+
+        labelCoach.setText("Edző/Tanár:");
 
         labelAge.setText("Születési év:");
 
@@ -231,6 +272,7 @@ class AddContestantDialog extends BaseDialog {
                                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                                         .addComponent(labelName)
                                                         .addComponent(labelSchool)
+                                                        .addComponent(labelCoach)
                                                         .addComponent(labelPosition)
                                                         .addComponent(labelAge, javax.swing.GroupLayout.PREFERRED_SIZE, 61, javax.swing.GroupLayout.PREFERRED_SIZE)
                                                         .addComponent(labelNumber)
@@ -243,6 +285,10 @@ class AddContestantDialog extends BaseDialog {
                                                                 .addComponent(comboSchool, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                                                 .addComponent(buttonNew))
+                                                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                                                .addComponent(comboCoach, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                                .addComponent(buttonNewCoach))
                                                         .addComponent(textName, javax.swing.GroupLayout.Alignment.TRAILING)
                                                         .addComponent(spinnerPosition, javax.swing.GroupLayout.Alignment.TRAILING)
                                                         .addComponent(spinnerNumber)
@@ -270,6 +316,11 @@ class AddContestantDialog extends BaseDialog {
                                         .addComponent(labelSchool, javax.swing.GroupLayout.PREFERRED_SIZE, 14, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addComponent(comboSchool, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addComponent(buttonNew))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                        .addComponent(labelCoach, javax.swing.GroupLayout.PREFERRED_SIZE, 14, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(comboCoach, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(buttonNewCoach))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                         .addComponent(spinnerAge, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -310,11 +361,38 @@ class AddContestantDialog extends BaseDialog {
         }
     }
 
+    private void refreshCoaches() {
+        Object selectedItem = comboCoach.getSelectedItem();
+        comboCoach.setModel(new DefaultComboBoxModel<>(new Coach[]{new Coach()}));
+        try {
+            List<Coach> coaches = Database.get().getCoachDao().queryForAll();
+
+            School school = (School) comboSchool.getSelectedItem();
+            if (school != null && school.getId() != 0) {
+                coaches.stream().filter(coach -> coach.getSchool() != null && coach.getSchool().getId() == school.getId()).sorted(Comparator.comparing(o -> o.getName().toLowerCase()))
+                        .forEach(comboCoach::addItem);
+                if (comboCoach.getItemCount() > 1) {
+                    comboCoach.addItem(new Coach(-1, "----"));
+                }
+                coaches.stream().filter(coach -> coach.getSchool() == null || coach.getSchool().getId() != school.getId()).sorted(Comparator.comparing(o -> o.getName().toLowerCase()))
+                        .forEach(comboCoach::addItem);
+            } else {
+                coaches.stream().sorted(Comparator.comparing(o -> o.getName().toLowerCase()))
+                        .forEach(comboCoach::addItem);
+            }
+
+            comboCoach.setSelectedItem(selectedItem);
+        } catch (SQLException ex) {
+            Logger.getLogger(AddContestantDialog.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
     private void buttonSaveActionPerformed() {
         Contestant contestantOld = new Contestant(contestant);
 
         contestant.setName((textName.getText()).trim());
         contestant.setSchool((School) comboSchool.getSelectedItem());
+        contestant.setCoach((Coach) comboCoach.getSelectedItem());
         contestant.setAge((Integer) spinnerAge.getValue());
         contestant.setAgeGroup((AgeGroup) comboAgeGroup.getSelectedItem());
         contestant.setNumber((Integer) spinnerNumber.getValue());
@@ -446,6 +524,14 @@ class AddContestantDialog extends BaseDialog {
         new AddSchoolDialog(this).addSaveListener(newSchool -> {
             refreshSchools();
             comboSchool.setSelectedItem(newSchool);
+        }).setVisible(true);
+
+    }
+
+    private void buttonNewCoachActionPerformed() {
+        new AddCoachDialog(this).addSaveListener(newCoach -> {
+            refreshCoaches();
+            comboCoach.setSelectedItem(newCoach);
         }).setVisible(true);
 
     }

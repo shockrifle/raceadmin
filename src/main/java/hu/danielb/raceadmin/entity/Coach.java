@@ -2,6 +2,7 @@ package hu.danielb.raceadmin.entity;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+import com.sun.istack.internal.Nullable;
 import hu.danielb.raceadmin.database.dao.CoachDao;
 
 import java.util.Objects;
@@ -17,7 +18,8 @@ public class Coach {
     private int mId;
     @DatabaseField(columnName = COLUMN_NAME)
     private String mName = "";
-    @DatabaseField(foreign = true, foreignAutoRefresh = true, foreignAutoCreate = true, columnName = COLUMN_SCHOOL_ID)
+    @Nullable
+    @DatabaseField(foreign = true, foreignAutoRefresh = true, columnName = COLUMN_SCHOOL_ID)
     private School school = new School();
 
     public Coach() {
@@ -25,6 +27,11 @@ public class Coach {
 
     public Coach(int id) {
         mId = id;
+    }
+
+    public Coach(int id, String name) {
+        mId = id;
+        mName = name;
     }
 
     public int getId() {
@@ -43,6 +50,7 @@ public class Coach {
         mName = name;
     }
 
+    @Nullable
     public School getSchool() {
         return school;
     }

@@ -40,7 +40,7 @@ public class CoachesDialog extends BaseTableDialog<Coach> {
     @Override
     protected Predicate<Coach> getFilter(String filter) {
         return coach -> coach.getName().toLowerCase().contains(filter) ||
-                coach.getSchool().getNameWithSettlement() != null && coach.getSchool().getNameWithSettlement().toLowerCase().contains(filter);
+                coach.getSchool() != null && coach.getSchool().getNameWithSettlement() != null && coach.getSchool().getNameWithSettlement().toLowerCase().contains(filter);
     }
 
     @Override

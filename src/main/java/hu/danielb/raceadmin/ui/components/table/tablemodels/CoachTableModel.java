@@ -17,9 +17,9 @@ public class CoachTableModel extends SortableAttributiveCellTableModel<Coach> {
             new ColumnModel.Builder<Coach>()
                     .setOrdinal(1)
                     .setName("Iskola")
-                    .setGetter(coach -> coach.getSchool().getNameWithSettlement())
+                    .setGetter(coach -> coach.getSchool() != null ? coach.getSchool().getNameWithSettlement() : "")
                     .setWidth(400)
-                    .setComparator(o -> o.getSchool().getNameWithSettlement().toLowerCase())
+                    .setComparator(o -> o.getSchool() != null ? o.getSchool().getNameWithSettlement() : "")
                     .build(),
             new ColumnModel.Builder<Coach>()
                     .setOrdinal(2)

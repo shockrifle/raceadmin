@@ -88,11 +88,6 @@ public class AddCoachDialog extends BaseDialog {
         mComboBoxSchools.setSelectedItem(data.getSchool());
     }
 
-    AddCoachDialog(Dialog owner, School school) {
-        this(owner);
-        mComboBoxSchools.setModel(new DefaultComboBoxModel<>(new School[]{school}));
-    }
-
     private void buttonCancelActionPerformed() {
         this.dispose();
     }
@@ -167,6 +162,11 @@ public class AddCoachDialog extends BaseDialog {
         } catch (SQLException ex) {
             Logger.getLogger(AddCoachDialog.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    AddCoachDialog(Dialog owner, School school) {
+        this(owner);
+        mComboBoxSchools.setModel(new DefaultComboBoxModel<>(new School[]{school}));
     }
 
     public BaseDialog addSaveListener(SaveListener listener) {
