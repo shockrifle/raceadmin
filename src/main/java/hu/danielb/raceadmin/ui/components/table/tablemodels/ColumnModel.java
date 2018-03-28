@@ -70,7 +70,7 @@ public class ColumnModel<T> {
     public static class Builder<T> {
 
         private String mName = "";
-        private int mWidth = 100;
+        private int mWidth = 0;
         private int mOrdinal = 0;
         private boolean mButton = false;
         private boolean mSortable = true;

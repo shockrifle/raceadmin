@@ -14,6 +14,11 @@ public class SortableAttributiveCellTableModel<T> extends AttributiveCellTableMo
         mColumnModels = columnModels;
     }
 
+    SortableAttributiveCellTableModel(List<ColumnModel<T>> columnModels, List<T> data, int dataSize) {
+        super(columnModels.stream().map(ColumnModel::getName).collect(Collectors.toList()), data, dataSize);
+        mColumnModels = columnModels;
+    }
+
     @Override
     public String getColumnName(int column) {
         return super.getColumnName(column) + putSortMark(mColumnModels.get(column).getOrdinal());

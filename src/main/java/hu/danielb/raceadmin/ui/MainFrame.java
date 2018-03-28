@@ -614,10 +614,9 @@ public class MainFrame extends javax.swing.JFrame {
 
         JTable currentTable = tables.get(tableName);
 
-        currentTable.setModel(new ResultsTableModel(data));
-        setColumnWidth(currentTable, ResultsTableModel.Column.POSITION.ordinal(), 80);
-        setColumnWidth(currentTable, ResultsTableModel.Column.NUMBER.ordinal(), 80);
-        setColumnWidth(currentTable, ResultsTableModel.Column.NAME.ordinal(), 180);
+        ResultsTableModel dataModel = new ResultsTableModel(data);
+        currentTable.setModel(dataModel);
+        ResultsTableModel.COLUMN_MODELS.forEach(c -> setColumnWidth(currentTable, c.getOrdinal(), c.getWidth()));
 
         setupTable(currentTable);
     }
@@ -649,10 +648,12 @@ public class MainFrame extends javax.swing.JFrame {
     }
 
     private void setColumnWidth(JTable table, int columnNumber, int size) {
-        TableColumn tc = table.getColumnModel().getColumn(columnNumber);
-        tc.setMaxWidth(size);
-        tc.setMinWidth(size);
-        tc.setPreferredWidth(size);
+        if (size > 0) {
+            TableColumn tc = table.getColumnModel().getColumn(columnNumber);
+            tc.setMaxWidth(size);
+            tc.setMinWidth(size);
+            tc.setPreferredWidth(size);
+        }
     }
 
     private List<Contestant> getByAgeGroupAndSex(int ageGroupId, String sex) throws SQLException {
