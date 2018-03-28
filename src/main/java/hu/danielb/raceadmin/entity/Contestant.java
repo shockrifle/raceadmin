@@ -33,7 +33,7 @@ public class Contestant {
     private School school = new School();
     @DatabaseField(columnName = COLUMN_AGE)
     private int age;
-    @DatabaseField(foreign = true, foreignAutoRefresh = true, columnName = COLUMN_SCHOOL_ID)
+    @DatabaseField(foreign = true, foreignAutoRefresh = true, columnName = COLUMN_COACH_ID)
     private Coach coach = new Coach();
 
     public Contestant() {

@@ -687,6 +687,23 @@ public class MainFrame extends javax.swing.JFrame {
         public List<Contestant> getContestants() {
             return contestants;
         }
+
+        public String getCoach() {
+            String coachName = "";
+            if (!contestants.isEmpty() && contestants.get(0).getCoach() != null) {
+                coachName = contestants.get(0).getCoach().getName();
+            } else if (!contestants.isEmpty() && contestants.get(0).getSchool() != null && contestants.get(0).getSchool().getCoachId() != 0) {
+                try {
+                    coachName = Database.get().getCoachDao().queryForId(contestants.get(0).getSchool().getCoachId()).getName();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (!coachName.isEmpty()) {
+                coachName = "Bajnok edzője: " + coachName;
+            }
+            return coachName;
+        }
     }
 
     @SuppressWarnings("unused")
@@ -701,6 +718,23 @@ public class MainFrame extends javax.swing.JFrame {
 
         public List<Team> getTeams() {
             return teams;
+        }
+
+        public String getCoach() {
+            String coachName = "";
+            if (!teams.isEmpty() && teams.get(0).getMembers().get(0).getCoach() != null) {
+                coachName = teams.get(0).getMembers().get(0).getCoach().getName();
+            } else if (!teams.isEmpty() && teams.get(0).getMembers().get(0).getSchool().getCoachId() != 0) {
+                try {
+                    coachName = Database.get().getCoachDao().queryForId(teams.get(0).getMembers().get(0).getSchool().getCoachId()).getName();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (!coachName.isEmpty()) {
+                coachName = "Bajnok csapat edzője: " + coachName;
+            }
+            return coachName;
         }
     }
 
