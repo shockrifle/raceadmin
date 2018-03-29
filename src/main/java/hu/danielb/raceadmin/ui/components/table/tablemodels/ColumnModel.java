@@ -1,23 +1,19 @@
 package hu.danielb.raceadmin.ui.components.table.tablemodels;
 
-import com.sun.istack.internal.Nullable;
-
 import java.util.Comparator;
 import java.util.function.Function;
 
 public class ColumnModel<T> {
 
-    @Nullable
     private Getter<T> getter;
     private String name;
     private int width;
     private int ordinal;
-    @Nullable
     private Comparator<? super T> comparator;
     private boolean button;
     private boolean sortable;
 
-    private ColumnModel(String name, int width, int ordinal, boolean button, boolean sortable, @Nullable Getter<T> getter, @Nullable Comparator<? super T> comparator) {
+    private ColumnModel(String name, int width, int ordinal, boolean button, boolean sortable, Getter<T> getter, Comparator<? super T> comparator) {
         this.name = name;
         this.width = width;
         this.ordinal = ordinal;
@@ -39,7 +35,6 @@ public class ColumnModel<T> {
         return ordinal;
     }
 
-    @Nullable
     Object getValue(T data) {
         if (getter == null) {
             return null;
@@ -51,7 +46,6 @@ public class ColumnModel<T> {
         return button;
     }
 
-    @Nullable
     public Comparator<? super T> getComparator(boolean sortBackwards) {
         if (comparator != null && sortBackwards) {
             return comparator.reversed();
