@@ -5,36 +5,37 @@ import hu.danielb.raceadmin.entity.Contestant;
 import java.util.Arrays;
 import java.util.List;
 
-public class ResultsTableModel extends AttributiveCellTableModel<Contestant> {
+public class ResultsTableModel extends SortableAttributiveCellTableModel<Contestant> {
 
+    public static final List<ColumnModel<Contestant>> COLUMN_MODELS = Arrays.asList(
+            new ColumnModel.Builder<Contestant>()
+                    .setName("Helyezés")
+                    .setGetter(Contestant::getPositionString)
+                    .setWidth(80)
+                    .setSortable(false)
+                    .build(),
+            new ColumnModel.Builder<Contestant>()
+                    .setOrdinal(1)
+                    .setName("Rajtszám")
+                    .setGetter(Contestant::getNumber)
+                    .setWidth(80)
+                    .setSortable(false)
+                    .build(),
+            new ColumnModel.Builder<Contestant>()
+                    .setOrdinal(2)
+                    .setName("Név")
+                    .setGetter(Contestant::getName)
+                    .setWidth(180)
+                    .setSortable(false)
+                    .build(),
+            new ColumnModel.Builder<Contestant>()
+                    .setOrdinal(3)
+                    .setName("Iskola")
+                    .setGetter(c -> c.getSchool() != null ? c.getSchool().getNameWithSettlement() : "")
+                    .setSortable(false)
+                    .build());
 
     public ResultsTableModel(List<Contestant> data) {
-        super(Arrays.asList("Helyezés", "Rajtszám", "Név", "Iskola"), data);
+        super(COLUMN_MODELS, data);
     }
-
-    @Override
-    public Object getValueAt(int row, int column) {
-        if (column == Column.POSITION.ordinal())
-            return mData.get(row).getPositionString();
-        if (column == Column.NAME.ordinal())
-            return mData.get(row).getName();
-        if (column == Column.NUMBER.ordinal())
-            return mData.get(row).getNumber();
-        if (column == Column.SCHOOL_NAME.ordinal())
-            return mData.get(row).getSchool().getNameWithSettlement();
-        return null;
-    }
-
-    @Override
-    public boolean isCellEditable(int row, int column) {
-        return false;
-    }
-
-    public enum Column {
-        POSITION,
-        NUMBER,
-        NAME,
-        SCHOOL_NAME
-    }
-
 }

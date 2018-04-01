@@ -6,11 +6,16 @@ import java.util.stream.Collectors;
 public class SortableAttributiveCellTableModel<T> extends AttributiveCellTableModel<T> {
 
     private List<ColumnModel<T>> mColumnModels;
-    private int mSortBy;
+    private int mSortBy = -1;
     private boolean mSortBackwards = false;
 
     SortableAttributiveCellTableModel(List<ColumnModel<T>> columnModels, List<T> data) {
         super(columnModels.stream().map(ColumnModel::getName).collect(Collectors.toList()), data);
+        mColumnModels = columnModels;
+    }
+
+    SortableAttributiveCellTableModel(List<ColumnModel<T>> columnModels, List<T> data, int dataSize) {
+        super(columnModels.stream().map(ColumnModel::getName).collect(Collectors.toList()), data, dataSize);
         mColumnModels = columnModels;
     }
 

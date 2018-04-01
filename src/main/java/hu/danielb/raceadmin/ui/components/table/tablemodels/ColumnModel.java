@@ -36,7 +36,7 @@ public class ColumnModel<T> {
     }
 
     Object getValue(T data) {
-        if (getter == null) {
+        if (getter == null || data == null) {
             return null;
         }
         return getter.getValue(data);
@@ -64,7 +64,7 @@ public class ColumnModel<T> {
     public static class Builder<T> {
 
         private String mName = "";
-        private int mWidth = 100;
+        private int mWidth = 0;
         private int mOrdinal = 0;
         private boolean mButton = false;
         private boolean mSortable = true;

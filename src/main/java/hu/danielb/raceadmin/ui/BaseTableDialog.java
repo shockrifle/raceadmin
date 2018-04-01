@@ -113,10 +113,12 @@ public abstract class BaseTableDialog<T> extends BaseDialog {
     protected abstract SortableAttributiveCellTableModel<T> getTableModel(List<T> data);
 
     private void setColumnWidth(int columnNumber, int size) {
-        TableColumn tc = mTable.getColumnModel().getColumn(columnNumber);
-        tc.setMaxWidth(size);
-        tc.setMinWidth(size);
-        tc.setPreferredWidth(size);
+        if (size > 0) {
+            TableColumn tc = mTable.getColumnModel().getColumn(columnNumber);
+            tc.setMaxWidth(size);
+            tc.setMinWidth(size);
+            tc.setPreferredWidth(size);
+        }
     }
 
     private void setupButton(int column) {
