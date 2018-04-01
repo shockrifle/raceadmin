@@ -241,9 +241,9 @@ public class MainFrame extends javax.swing.JFrame {
 
             try {
                 if (tab.getId() == Constants.BOY_TEAM || tab.getId() == Constants.GIRL_TEAM) {
-                    new Printer(ageGroup.getName() + ", " + tab.getTitle(), tables.get(ageGroup.getId() + (String) tab.getId()).mTable, headerString, true).print();
+                    new Printer(ageGroup.getName() + ", " + tab.getTitle(), tables.get(ageGroup.getId() + (String) tab.getId()), headerString, true).print();
                 } else {
-                    new Printer(ageGroup.getName() + ", " + tab.getTitle(), tables.get(ageGroup.getId() + (String) tab.getId()).mTable, headerString).print();
+                    new Printer(ageGroup.getName() + ", " + tab.getTitle(), tables.get(ageGroup.getId() + (String) tab.getId()), headerString).print();
                 }
             } catch (PrinterException ex) {
                 warn("Nyomtatási hiba!");
@@ -783,13 +783,4 @@ public class MainFrame extends javax.swing.JFrame {
         }
     }
 
-    private class TableHolder {
-        JTable mTable;
-        JLabel mLabel;
-
-        TableHolder(JTable currentTable, JLabel label) {
-            mTable = currentTable;
-            mLabel = label;
-        }
-    }
 }

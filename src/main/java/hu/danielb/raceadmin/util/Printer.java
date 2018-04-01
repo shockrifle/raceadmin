@@ -1,5 +1,7 @@
 package hu.danielb.raceadmin.util;
 
+import hu.danielb.raceadmin.ui.TableHolder;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.print.PageFormat;
@@ -17,18 +19,20 @@ public class Printer implements Printable {
     private int numOfRowsPrinted;
     private int firstPageRows;
     private boolean mIsTeam;
+    private JLabel mLabel;
 
-    public Printer(JTable tableToPrint) {
+    public Printer(TableHolder tableToPrint) {
         this("", tableToPrint, null);
     }
 
-    public Printer(String title, JTable tableToPrint, String[] header) {
+    public Printer(String title, TableHolder tableToPrint, String[] header) {
         this(title, tableToPrint, header, false);
     }
 
-    public Printer(String title, JTable tableToPrint, String[] header, boolean isTeam) {
+    public Printer(String title, TableHolder tableToPrint, String[] header, boolean isTeam) {
         mTitle = title;
-        mTable = tableToPrint;
+        mTable = tableToPrint.getTable();
+        mLabel = tableToPrint.getCoach();
         if (header != null) {
             mHeader = Arrays.copyOf(header, header.length);
         }
@@ -73,19 +77,19 @@ public class Printer implements Printable {
         if (pageIndex < 1 && mHeader != null) {
             graphicToPrint.setFont(new Font(FONT, Font.BOLD, 14));
 
-            currentDrawHeight += graphicToPrint.getFontMetrics().getLeading() + graphicToPrint.getFontMetrics().getAscent();
+            currentDrawHeight += getFontDrawHeight(graphicToPrint);
             graphicToPrint.drawString(mHeader[0], 0, (float) currentDrawHeight);
 
             graphicToPrint.setFont(new Font(FONT, Font.PLAIN, 14));
 
             for (int i = 1; i < mHeader.length; i++) {
-                currentDrawHeight += graphicToPrint.getFontMetrics().getLeading() + graphicToPrint.getFontMetrics().getAscent();
+                currentDrawHeight += getFontDrawHeight(graphicToPrint);
                 graphicToPrint.drawString(mHeader[i], 0, (float) currentDrawHeight);
             }
         }
         if (!mTitle.isEmpty()) {
             graphicToPrint.setFont(new Font(FONT, Font.ITALIC, 12));
-            currentDrawHeight += graphicToPrint.getFontMetrics().getLeading() + graphicToPrint.getFontMetrics().getAscent();
+            currentDrawHeight += getFontDrawHeight(graphicToPrint);
             graphicToPrint.drawString(mTitle, 0, (float) currentDrawHeight);
         }
         if (pageIndex < 1 && mHeader != null || !mTitle.isEmpty()) {
@@ -124,6 +128,8 @@ public class Printer implements Printable {
             graphicToPrint.setClip(0, 0, (int) Math.ceil(tableWidthOnPage), (int) Math.ceil(headerHeightOnPage));
             graphicToPrint.scale(scale, scale);
             mTable.getTableHeader().paint(graphicToPrint);
+            String coachString = mLabel != null ? mLabel.getText() : "";
+            graphicToPrint.drawString(coachString, (float) (tableWidth - graphicToPrint.getFontMetrics().stringWidth(coachString) - 2), (float) ((headerHeightOnPage / 2 + getFontDrawHeight(graphicToPrint) / 2)));
 
         } else {
 
@@ -172,5 +178,9 @@ public class Printer implements Printable {
         }
 
         return Printable.PAGE_EXISTS;
+    }
+
+    private int getFontDrawHeight(Graphics2D graphicToPrint) {
+        return graphicToPrint.getFontMetrics().getLeading() + graphicToPrint.getFontMetrics().getAscent();
     }
 }
