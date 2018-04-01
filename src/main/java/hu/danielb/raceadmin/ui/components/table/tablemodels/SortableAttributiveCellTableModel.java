@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 public class SortableAttributiveCellTableModel<T> extends AttributiveCellTableModel<T> {
 
     private List<ColumnModel<T>> mColumnModels;
-    private int mSortBy;
+    private int mSortBy = -1;
     private boolean mSortBackwards = false;
 
     SortableAttributiveCellTableModel(List<ColumnModel<T>> columnModels, List<T> data) {

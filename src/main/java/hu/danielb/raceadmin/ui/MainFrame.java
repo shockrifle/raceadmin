@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 
 public class MainFrame extends javax.swing.JFrame {
 
-    private Map<String, JTable> tables;
+    private Map<String, TableHolder> tables;
     private JDialog startupScreen;
     private javax.swing.JButton buttonFinisher;
     private javax.swing.JTabbedPane ageGroupPane;
@@ -241,9 +241,9 @@ public class MainFrame extends javax.swing.JFrame {
 
             try {
                 if (tab.getId() == Constants.BOY_TEAM || tab.getId() == Constants.GIRL_TEAM) {
-                    new Printer(ageGroup.getName() + ", " + tab.getTitle(), tables.get(ageGroup.getId() + (String) tab.getId()), headerString, true).print();
+                    new Printer(ageGroup.getName() + ", " + tab.getTitle(), tables.get(ageGroup.getId() + (String) tab.getId()).mTable, headerString, true).print();
                 } else {
-                    new Printer(ageGroup.getName() + ", " + tab.getTitle(), tables.get(ageGroup.getId() + (String) tab.getId()), headerString).print();
+                    new Printer(ageGroup.getName() + ", " + tab.getTitle(), tables.get(ageGroup.getId() + (String) tab.getId()).mTable, headerString).print();
                 }
             } catch (PrinterException ex) {
                 warn("Nyomtatási hiba!");
@@ -472,10 +472,10 @@ public class MainFrame extends javax.swing.JFrame {
 
                 ageGroupTab.setPreferredSize(new Dimension(ageGroupPane.getHeight(), ageGroupPane.getWidth()));
 
-                ageGroupTab.addTab(Constants.BOY, "Fiú", createTable(ageGroupId + Constants.BOY, new Dimension(ageGroupTab.getHeight(), ageGroupTab.getWidth())));
-                ageGroupTab.addTab(Constants.GIRL, "Lány", createTable(ageGroupId + Constants.GIRL, new Dimension(ageGroupTab.getHeight(), ageGroupTab.getWidth())));
-                ageGroupTab.addTab(Constants.BOY_TEAM, "Fiú Csapat", createTable(ageGroupId + Constants.BOY_TEAM, new Dimension(ageGroupTab.getHeight(), ageGroupTab.getWidth())));
-                ageGroupTab.addTab(Constants.GIRL_TEAM, "Lány Csapat", createTable(ageGroupId + Constants.GIRL_TEAM, new Dimension(ageGroupTab.getHeight(), ageGroupTab.getWidth())));
+                ageGroupTab.addTab(Constants.BOY, "Fiú", createTable(ageGroupId + Constants.BOY));
+                ageGroupTab.addTab(Constants.GIRL, "Lány", createTable(ageGroupId + Constants.GIRL));
+                ageGroupTab.addTab(Constants.BOY_TEAM, "Fiú Csapat", createTable(ageGroupId + Constants.BOY_TEAM));
+                ageGroupTab.addTab(Constants.GIRL_TEAM, "Lány Csapat", createTable(ageGroupId + Constants.GIRL_TEAM));
 
                 ageGroupPane.addTab(ageGroup.getName(), ageGroupTab);
             });
@@ -484,8 +484,9 @@ public class MainFrame extends javax.swing.JFrame {
         }
     }
 
-    private JScrollPane createTable(String name, Dimension size) {
+    private JLayeredPane createTable(String name) {
 
+        Dimension size2 = new Dimension(685, 525);
         MultiSpanCellTable currentTable = new MultiSpanCellTable(new ResultsTableModel(new ArrayList<>()));
         currentTable.getTableHeader().setReorderingAllowed(false);
         currentTable.getTableHeader().setResizingAllowed(false);
@@ -496,10 +497,20 @@ public class MainFrame extends javax.swing.JFrame {
             currentTable.getColumnModel().getColumn(i).setCellRenderer(cellRenderer);
         }
 
+        JLayeredPane layeredPane = new JLayeredPane();
+
         JScrollPane tableScrollPane = new JScrollPane(currentTable);
-        tableScrollPane.setPreferredSize(size);
-        tables.put(name, currentTable);
-        return tableScrollPane;
+        tableScrollPane.setSize(size2);
+        layeredPane.add(tableScrollPane, new Integer(1));
+
+        JLabel label = new JLabel();
+        label.setHorizontalAlignment(SwingConstants.RIGHT);
+        label.setSize((int) size2.getWidth() - 25, 30);
+        layeredPane.add(label, new Integer(2));
+
+        tables.put(name, new TableHolder(currentTable, label));
+
+        return layeredPane;
     }
 
     private void loadData() {
@@ -536,7 +547,7 @@ public class MainFrame extends javax.swing.JFrame {
         List<Team> teams = makeTeams(data, teamMinMembers, teamMaxMembers);
         String tableName = String.valueOf(ageGroup.getId()) + getTeamConst(sex);
         addTeamDataToTable(tableName, teams);
-        JTable jt = tables.get(tableName);
+        JTable jt = tables.get(tableName).mTable;
         CellSpan cellAtt = (CellSpan) ((AttributiveCellTableModel) jt.getModel()).getCellAttribute();
 
         int row = 0;
@@ -598,7 +609,26 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void addTeamDataToTable(String tableName, List<Team> data) {
 
-        JTable currentTable = tables.get(tableName);
+        TableHolder tableHolder = tables.get(tableName);
+        JTable currentTable = tableHolder.mTable;
+
+        if (data != null && !data.isEmpty()) {
+            Team first = data.get(0);
+            if (first != null) {
+                String coachName = "";
+                try {
+                    int coachId = first.getMembers().get(0).getSchool().getCoachId();
+                    if (coachId > 0) {
+                        coachName = Database.get().getCoachDao().queryForId(coachId).getName();
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+                if (!coachName.isEmpty()) {
+                    tableHolder.mLabel.setText("Bajnok csapat edzője: " + coachName);
+                }
+            }
+        }
 
         currentTable.setModel(new TeamResultsTableModel(data));
         setColumnWidth(currentTable, TeamResultsTableModel.Column.POSITION.ordinal(), 60);
@@ -612,7 +642,18 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void addContestantDataToTable(String tableName, List<Contestant> data) {
 
-        JTable currentTable = tables.get(tableName);
+        TableHolder tableHolder = tables.get(tableName);
+        JTable currentTable = tableHolder.mTable;
+
+        if (data != null && !data.isEmpty()) {
+            Contestant first = data.get(0);
+            if (first != null && first.getPosition() > 0) {
+                String coachName = DataUtils.getCoachName(first);
+                if (!coachName.isEmpty()) {
+                    tableHolder.mLabel.setText("Bajnok edzője: " + coachName);
+                }
+            }
+        }
 
         ResultsTableModel dataModel = new ResultsTableModel(data);
         currentTable.setModel(dataModel);
@@ -691,14 +732,8 @@ public class MainFrame extends javax.swing.JFrame {
 
         public String getCoach() {
             String coachName = "";
-            if (!contestants.isEmpty() && contestants.get(0).getCoach() != null) {
-                coachName = contestants.get(0).getCoach().getName();
-            } else if (!contestants.isEmpty() && contestants.get(0).getSchool() != null && contestants.get(0).getSchool().getCoachId() != 0) {
-                try {
-                    coachName = Database.get().getCoachDao().queryForId(contestants.get(0).getSchool().getCoachId()).getName();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
+            if (!contestants.isEmpty()) {
+                coachName = DataUtils.getCoachName(contestants.get(0));
             }
             if (!coachName.isEmpty()) {
                 coachName = "Bajnok edzője: " + coachName;
@@ -723,14 +758,8 @@ public class MainFrame extends javax.swing.JFrame {
 
         public String getCoach() {
             String coachName = "";
-            if (!teams.isEmpty() && teams.get(0).getMembers().get(0).getCoach() != null) {
-                coachName = teams.get(0).getMembers().get(0).getCoach().getName();
-            } else if (!teams.isEmpty() && teams.get(0).getMembers().get(0).getSchool().getCoachId() != 0) {
-                try {
-                    coachName = Database.get().getCoachDao().queryForId(teams.get(0).getMembers().get(0).getSchool().getCoachId()).getName();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
+            if (!teams.isEmpty()) {
+                coachName = DataUtils.getCoachName(teams.get(0).getMembers().get(0));
             }
             if (!coachName.isEmpty()) {
                 coachName = "Bajnok csapat edzője: " + coachName;
@@ -751,6 +780,16 @@ public class MainFrame extends javax.swing.JFrame {
 
         public TeamCategory getTeamCategory() {
             return teamCategory;
+        }
+    }
+
+    private class TableHolder {
+        JTable mTable;
+        JLabel mLabel;
+
+        TableHolder(JTable currentTable, JLabel label) {
+            mTable = currentTable;
+            mLabel = label;
         }
     }
 }

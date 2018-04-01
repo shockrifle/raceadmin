@@ -1,9 +1,7 @@
 package hu.danielb.raceadmin.ui.components.table.tablemodels;
 
-import hu.danielb.raceadmin.database.Database;
 import hu.danielb.raceadmin.entity.Contestant;
 
-import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -38,28 +36,6 @@ public class ResultsTableModel extends SortableAttributiveCellTableModel<Contest
                     .build());
 
     public ResultsTableModel(List<Contestant> data) {
-        super(COLUMN_MODELS, data, data.size() + 1);
-    }
-
-    @Override
-    public Object getValueAt(int row, int tableColumn) {
-        if (row == 0) {
-            if (tableColumn == 3) {
-                Contestant contestant = getDataAt(0);
-                if (contestant.getCoach() != null) {
-                    return contestant.getCoach().getName();
-                } else {
-                    if (contestant.getSchool().getCoachId() != 0) {
-                        try {
-                            return Database.get().getCoachDao().queryForId(contestant.getSchool().getCoachId()).getName();
-                        } catch (SQLException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            }
-            return "";
-        }
-        return super.getValueAt(row - 1, tableColumn);
+        super(COLUMN_MODELS, data);
     }
 }

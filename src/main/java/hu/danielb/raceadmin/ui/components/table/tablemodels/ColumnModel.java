@@ -41,7 +41,7 @@ public class ColumnModel<T> {
 
     @Nullable
     Object getValue(T data) {
-        if (getter == null) {
+        if (getter == null || data == null) {
             return null;
         }
         return getter.getValue(data);
