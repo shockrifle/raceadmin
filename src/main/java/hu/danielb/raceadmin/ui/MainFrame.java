@@ -326,7 +326,7 @@ public class MainFrame extends javax.swing.JFrame {
                                 school,
                                 Integer.parseInt(row.get(Contestant.COLUMN_AGE)),
                                 null,
-                                Boolean.parseBoolean(row.get(Contestant.COLUMN_TEAM_ENTRY))));
+                                1 == Integer.parseInt(row.get(Contestant.COLUMN_TEAM_ENTRY))));
 
                         dialog.progress();
                     }
