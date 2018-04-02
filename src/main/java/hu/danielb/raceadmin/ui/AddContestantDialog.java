@@ -28,6 +28,7 @@ class AddContestantDialog extends BaseDialog {
 
     private javax.swing.ButtonGroup buttonGroupSex;
     private JComboBox<AgeGroup> comboAgeGroup;
+    private JCheckBox checkTeamEntry;
     private javax.swing.JComboBox<School> comboSchool;
     private javax.swing.JComboBox<Coach> comboCoach;
     private javax.swing.JLabel labelPosition;
@@ -67,6 +68,7 @@ class AddContestantDialog extends BaseDialog {
             }
             spinnerAge.setValue(contestant.getAge());
             comboAgeGroup.setSelectedItem(contestant.getAgeGroup());
+            checkTeamEntry.setSelected(contestant.isTeamEntry());
             spinnerNumber.setValue(contestant.getNumber());
             if (Constants.BOY.equals(contestant.getSex())) {
                 radioBoy.setSelected(true);
@@ -109,6 +111,7 @@ class AddContestantDialog extends BaseDialog {
         labelPosition = new javax.swing.JLabel();
         spinnerPosition = new javax.swing.JSpinner();
         comboAgeGroup = new javax.swing.JComboBox<>();
+        checkTeamEntry = new JCheckBox();
         JButton buttonSave = new javax.swing.JButton();
         JButton buttonDelete = new JButton();
         JButton buttonEnd = new JButton();
@@ -121,6 +124,7 @@ class AddContestantDialog extends BaseDialog {
         JLabel labelNumber = new JLabel();
         JLabel labelSex = new JLabel();
         JLabel labelAgeGroup = new JLabel();
+        JLabel labelTeamEntry = new JLabel();
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setMinimumSize(new java.awt.Dimension(300, 225));
@@ -253,6 +257,7 @@ class AddContestantDialog extends BaseDialog {
         }
 
         labelAgeGroup.setText("Korosztály:");
+        labelTeamEntry.setText("Csapat nevezés:");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -277,7 +282,8 @@ class AddContestantDialog extends BaseDialog {
                                                         .addComponent(labelAge, javax.swing.GroupLayout.PREFERRED_SIZE, 61, javax.swing.GroupLayout.PREFERRED_SIZE)
                                                         .addComponent(labelNumber)
                                                         .addComponent(labelSex)
-                                                        .addComponent(labelAgeGroup))
+                                                        .addComponent(labelAgeGroup)
+                                                        .addComponent(labelTeamEntry))
                                                 .addGap(10, 10, 10)
                                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                                         .addComponent(spinnerAge)
@@ -297,7 +303,8 @@ class AddContestantDialog extends BaseDialog {
                                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                                                 .addComponent(radioGirl)
                                                                 .addGap(0, 148, Short.MAX_VALUE))
-                                                        .addComponent(comboAgeGroup, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                                                        .addComponent(comboAgeGroup, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                        .addComponent(checkTeamEntry))))
                                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -329,6 +336,9 @@ class AddContestantDialog extends BaseDialog {
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                         .addComponent(comboAgeGroup, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addComponent(labelAgeGroup))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                        .addComponent(checkTeamEntry, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(labelTeamEntry))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                         .addGroup(layout.createSequentialGroup()
@@ -395,6 +405,7 @@ class AddContestantDialog extends BaseDialog {
         contestant.setCoach((Coach) comboCoach.getSelectedItem());
         contestant.setAge((Integer) spinnerAge.getValue());
         contestant.setAgeGroup((AgeGroup) comboAgeGroup.getSelectedItem());
+        contestant.setTeamEntry(checkTeamEntry.isSelected());
         contestant.setNumber((Integer) spinnerNumber.getValue());
         contestant.setPosition((Integer) spinnerPosition.getValue());
         contestant.setSex("");

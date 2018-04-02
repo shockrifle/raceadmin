@@ -16,6 +16,7 @@ public class Contestant {
     public static final String COLUMN_SCHOOL_ID = "school_id";
     public static final String COLUMN_AGE = "age";
     public static final String COLUMN_COACH_ID = "coach_id";
+    public static final String COLUMN_TEAM_ENTRY = "team_entry";
 
     @DatabaseField(generatedId = true, columnName = COLUMN_ID)
     private int id;
@@ -35,11 +36,13 @@ public class Contestant {
     private int age;
     @DatabaseField(foreign = true, foreignAutoRefresh = true, columnName = COLUMN_COACH_ID)
     private Coach coach = new Coach();
+    @DatabaseField(columnName = COLUMN_TEAM_ENTRY)
+    private boolean teamEntry;
 
     public Contestant() {
     }
 
-    public Contestant(int id, int position, String name, String sex, int number, AgeGroup ageGroup, School school, int age) {
+    public Contestant(int id, int position, String name, String sex, int number, AgeGroup ageGroup, School school, int age, Coach coach, boolean teamEntry) {
         this.id = id;
         this.position = position;
         this.name = name;
@@ -48,6 +51,8 @@ public class Contestant {
         this.ageGroup = ageGroup;
         this.school = school;
         this.age = age;
+        this.coach = coach;
+        this.teamEntry = teamEntry;
     }
 
     public Contestant(Contestant other) {
@@ -59,6 +64,8 @@ public class Contestant {
         this.ageGroup = other.getAgeGroup();
         this.school = other.getSchool();
         this.age = other.getAge();
+        this.coach = other.getCoach();
+        this.teamEntry = other.isTeamEntry();
     }
 
     public int getId() {
@@ -143,5 +150,13 @@ public class Contestant {
 
     public void setCoach(Coach coach) {
         this.coach = coach;
+    }
+
+    public boolean isTeamEntry() {
+        return teamEntry;
+    }
+
+    public void setTeamEntry(boolean teamEntry) {
+        this.teamEntry = teamEntry;
     }
 }

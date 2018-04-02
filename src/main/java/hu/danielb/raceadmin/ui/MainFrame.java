@@ -324,7 +324,9 @@ public class MainFrame extends javax.swing.JFrame {
                                 number,
                                 ageGroup,
                                 school,
-                                Integer.parseInt(row.get(Contestant.COLUMN_AGE))));
+                                Integer.parseInt(row.get(Contestant.COLUMN_AGE)),
+                                null,
+                                Boolean.parseBoolean(row.get(Contestant.COLUMN_TEAM_ENTRY))));
 
                         dialog.progress();
                     }
@@ -575,6 +577,9 @@ public class MainFrame extends javax.swing.JFrame {
     private List<Team> makeTeams(List<Contestant> data, int minMembers, int maxMembers, boolean addPlaceholder) {
         HashMap<String, Team> teams = new HashMap<>();
         for (Contestant contestant : data) {
+            if (!contestant.isTeamEntry()) {
+                continue;
+            }
             boolean added = false;
             int n = 0;
             do {
