@@ -10,6 +10,7 @@ public class SettingDao extends BaseDaoWithListener<Setting, String> {
     private static final String PRINT_HEADER_TITLE = "print_header_title";
     private static final String PRINT_HEADER_SUBTITLE = "print_header_subtitle";
     private static final String HIDE_DISQUALIFIED = "hide_disqualified";
+    private static final String ONLY_TEAM_ENTRIES = "only_team_entries";
     private static final String RACE_DATE = "race_date";
 
     public SettingDao(ConnectionSource connectionSource, Class<Setting> dataClass) throws SQLException {
@@ -96,6 +97,14 @@ public class SettingDao extends BaseDaoWithListener<Setting, String> {
 
     public boolean getHideDisqualified() {
         return getBoolean(HIDE_DISQUALIFIED);
+    }
+
+    public void saveOnlyTeamEntries(boolean enabled) {
+        putBoolean(ONLY_TEAM_ENTRIES, enabled);
+    }
+
+    public boolean getOnlyTeamEntries() {
+        return getBoolean(ONLY_TEAM_ENTRIES, true);
     }
 
     public void savePrintHeaderTitle(String title) {

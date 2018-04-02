@@ -576,8 +576,15 @@ public class MainFrame extends javax.swing.JFrame {
 
     private List<Team> makeTeams(List<Contestant> data, int minMembers, int maxMembers, boolean addPlaceholder) {
         HashMap<String, Team> teams = new HashMap<>();
+
+        boolean onlyTeamEntries = true;
+        try {
+            onlyTeamEntries = Database.get().getSettingDao().getOnlyTeamEntries();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         for (Contestant contestant : data) {
-            if (!contestant.isTeamEntry()) {
+            if (onlyTeamEntries && !contestant.isTeamEntry()) {
                 continue;
             }
             boolean added = false;

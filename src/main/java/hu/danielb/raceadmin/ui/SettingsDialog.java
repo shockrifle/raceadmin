@@ -45,6 +45,7 @@ public class SettingsDialog extends BaseDialog {
     private JButton mPrintHeaderSaveButton;
     private JButton mPrintHeaderCancelButton;
     private JXDatePicker mRaceDate;
+    private JCheckBox mOnlyTeamEntries;
     private List<AgeGroup> mAgeGroupList;
     private boolean ageGroupsSaved = true;
     private ListSelectionListener mListItemSelectedListener;
@@ -312,6 +313,8 @@ public class SettingsDialog extends BaseDialog {
         // basic
         hideDisqualifiedCheckBox.setSelected(loadHideDisqualified());
         hideDisqualifiedCheckBox.addChangeListener(this::hideCheckboxChanged);
+        mOnlyTeamEntries.setSelected(loadTeamEntries());
+        mOnlyTeamEntries.addChangeListener(this::teamCheckboxChanged);
 
         // age groups
         mAgeGroupCancelButton.addActionListener(e -> ageGroupCancelClicked());
@@ -368,6 +371,24 @@ public class SettingsDialog extends BaseDialog {
     private void hideCheckboxChanged(ChangeEvent e) {
         try {
             Database.get().getSettingDao().saveHideDisqualified(((JCheckBox) e.getSource()).isSelected());
+        } catch (SQLException e1) {
+            e1.printStackTrace();
+        }
+    }
+
+    private boolean loadTeamEntries() {
+        boolean teamEntries = true;
+        try {
+            teamEntries = Database.get().getSettingDao().getOnlyTeamEntries();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return teamEntries;
+    }
+
+    private void teamCheckboxChanged(ChangeEvent e) {
+        try {
+            Database.get().getSettingDao().saveOnlyTeamEntries(((JCheckBox) e.getSource()).isSelected());
         } catch (SQLException e1) {
             e1.printStackTrace();
         }
@@ -562,7 +583,7 @@ public class SettingsDialog extends BaseDialog {
         mSettingsContent.setVisible(true);
         mContentPane.add(mSettingsContent, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, new Dimension(50, -1), null, null, 0, false));
         mBasicSettings = new JPanel();
-        mBasicSettings.setLayout(new GridLayoutManager(2, 2, new Insets(0, 0, 0, 0), -1, -1));
+        mBasicSettings.setLayout(new GridLayoutManager(3, 2, new Insets(0, 0, 0, 0), -1, -1));
         mBasicSettings.setVisible(true);
         mSettingsContent.add(mBasicSettings, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         hideDisqualifiedCheckBox = new JCheckBox();
@@ -571,8 +592,13 @@ public class SettingsDialog extends BaseDialog {
         mBasicSettings.add(hideDisqualifiedCheckBox, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final Spacer spacer1 = new Spacer();
         mBasicSettings.add(spacer1, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+        mOnlyTeamEntries = new JCheckBox();
+        mOnlyTeamEntries.setEnabled(true);
+        mOnlyTeamEntries.setSelected(true);
+        mOnlyTeamEntries.setText("Csapatok számolásánál csak csapat nevezések figyelembe vétele");
+        mBasicSettings.add(mOnlyTeamEntries, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         final Spacer spacer2 = new Spacer();
-        mBasicSettings.add(spacer2, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
+        mBasicSettings.add(spacer2, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_VERTICAL, 1, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         mAgeGroups = new JPanel();
         mAgeGroups.setLayout(new GridLayoutManager(3, 3, new Insets(0, 0, 0, 0), -1, -1));
         mAgeGroups.setInheritsPopupMenu(false);
