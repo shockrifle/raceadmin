@@ -18,6 +18,7 @@ public class ContestantTableModel extends BaseTableModel<Contestant> {
                 "Születési év",
                 "Korosztály",
                 "Iskola",
+                "Csapat",
                 "Nem",
                 ""), data);
     }
@@ -42,6 +43,8 @@ public class ContestantTableModel extends BaseTableModel<Contestant> {
             return mData.get(row).getSchool().getNameWithSettlement();
         if (column == Column.SEX.ordinal())
             return "B".equals(mData.get(row).getSex()) ? "Fiú" : "Lány";
+        if (column == Column.TEAM.ordinal())
+            return mData.get(row).isTeamEntry();
         if (column == Column.EDIT.ordinal())
             return "Szerkesztés";
         return null;
@@ -56,6 +59,13 @@ public class ContestantTableModel extends BaseTableModel<Contestant> {
     @Override
     public boolean isCellEditable(int row, int column) {
         return column == Column.EDIT.ordinal();
+    }
+
+    @Override
+    public Class<?> getColumnClass(int columnIndex) {
+        if (columnIndex == Column.TEAM.ordinal())
+            return Boolean.class;
+        return super.getColumnClass(columnIndex);
     }
 
     public ContestantTableModel setSortBy(Column sortBy) {
@@ -85,6 +95,7 @@ public class ContestantTableModel extends BaseTableModel<Contestant> {
         AGE,
         AGE_GROUP_NAME,
         SCHOOL_NAME,
+        TEAM,
         SEX,
         EDIT
     }

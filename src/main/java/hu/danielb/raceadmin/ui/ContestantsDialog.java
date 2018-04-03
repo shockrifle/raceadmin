@@ -180,7 +180,10 @@ class ContestantsDialog extends BaseDialog {
     }
 
     private void comboSchoolsActionPerformed() {
-        schoolFilter = ((School) comboSchools.getSelectedItem()).getNameWithSettlement().toLowerCase();
+        School selectedItem = (School) comboSchools.getSelectedItem();
+        if (selectedItem != null) {
+            schoolFilter = selectedItem.getNameWithSettlement().toLowerCase();
+        }
         loadData();
     }
 
@@ -239,6 +242,9 @@ class ContestantsDialog extends BaseDialog {
                     case SEX:
                         bigger = o1.getSex().compareTo(o2.getSex());
                         break;
+                    case TEAM:
+                        bigger = Boolean.compare(o1.isTeamEntry(), o2.isTeamEntry());
+                        break;
                     default:
                         bigger = 0;
                 }
@@ -260,6 +266,7 @@ class ContestantsDialog extends BaseDialog {
         setColumnWidth(ContestantTableModel.Column.AGE.ordinal(), 70);
         setColumnWidth(ContestantTableModel.Column.AGE_GROUP_NAME.ordinal(), 85);
         setColumnWidth(ContestantTableModel.Column.SEX.ordinal(), 40);
+        setColumnWidth(ContestantTableModel.Column.TEAM.ordinal(), 50);
         setColumnWidth(ContestantTableModel.Column.EDIT.ordinal(), 90);
         tableContestants.getColumnModel().getColumn(ContestantTableModel.Column.EDIT.ordinal()).setCellRenderer(new ButtonRenderer());
         tableContestants.getColumnModel().getColumn(ContestantTableModel.Column.EDIT.ordinal()).setCellEditor(
