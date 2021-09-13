@@ -3,16 +3,10 @@ package hu.danielb.raceadmin.ui;
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
-import hu.danielb.raceadmin.database.Database;
-import hu.danielb.raceadmin.entity.AgeGroup;
-import hu.danielb.raceadmin.entity.Contestant;
-import hu.danielb.raceadmin.util.DateUtils;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.jdesktop.swingx.JXDatePicker;
 
-import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -26,6 +20,18 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
+
+import javax.swing.*;
+import javax.swing.border.TitledBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.plaf.FontUIResource;
+import javax.swing.text.StyleContext;
+
+import hu.danielb.raceadmin.database.Database;
+import hu.danielb.raceadmin.entity.AgeGroup;
+import hu.danielb.raceadmin.entity.Contestant;
+import hu.danielb.raceadmin.util.DateUtils;
 
 public class SettingsDialog extends BaseDialog {
     private JPanel mContentPane;
@@ -123,13 +129,15 @@ public class SettingsDialog extends BaseDialog {
     private void newAgeGroupButtonClicked() {
         enableAgeGroupSaveAndCancel();
         AgeGroup last = null;
-        if (mAgeGroupList != null && !mAgeGroupList.isEmpty()) {
-            last = mAgeGroupList.get(mAgeGroupList.size() - 1);
+        if (mAgeGroupList != null) {
+            if (!mAgeGroupList.isEmpty()) {
+                last = mAgeGroupList.get(mAgeGroupList.size() - 1);
+            }
+            AgeGroup newAgeGroup = new AgeGroup(0, "Új korosztály", (last != null ? last.getMinimum() - 2 : 2000),
+                    (last != null ? last.getMinimum() - 1 : 2001), 4, 4);
+            mAgeGroupList.add(newAgeGroup);
+            loadAgeGroups(mAgeGroupList);
         }
-        AgeGroup newAgeGroup = new AgeGroup(0, "Új korosztály", (last != null ? last.getMinimum() - 2 : 2000),
-                (last != null ? last.getMinimum() - 1 : 2001), 4, 4);
-        mAgeGroupList.add(newAgeGroup);
-        loadAgeGroups(mAgeGroupList);
     }
 
     private void deleteAgeGroupClicked(AgeGroup ageGroup) {
@@ -652,7 +660,7 @@ public class SettingsDialog extends BaseDialog {
         panel2.setName("Előnézet");
         panel2.setToolTipText("Előnézet");
         mPrintHeader.add(panel2, new GridConstraints(0, 0, 1, 3, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
-        panel2.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.black), "Előnézet"));
+        panel2.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(Color.black), "Előnézet", TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION, null, null));
         final JPanel panel3 = new JPanel();
         panel3.setLayout(new GridLayoutManager(2, 1, new Insets(10, 10, 10, 0), -1, -1));
         panel3.setOpaque(false);
@@ -707,7 +715,10 @@ public class SettingsDialog extends BaseDialog {
                 resultName = currentFont.getName();
             }
         }
-        return new Font(resultName, style >= 0 ? style : currentFont.getStyle(), size >= 0 ? size : currentFont.getSize());
+        Font font = new Font(resultName, style >= 0 ? style : currentFont.getStyle(), size >= 0 ? size : currentFont.getSize());
+        boolean isMac = System.getProperty("os.name", "").toLowerCase(Locale.ENGLISH).startsWith("mac");
+        Font fontWithFallback = isMac ? new Font(font.getFamily(), font.getStyle(), font.getSize()) : new StyleContext().getFont(font.getFamily(), font.getStyle(), font.getSize());
+        return fontWithFallback instanceof FontUIResource ? fontWithFallback : new FontUIResource(fontWithFallback);
     }
 
     /**
