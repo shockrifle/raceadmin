@@ -3,12 +3,12 @@
   <grid id="cbd77" binding="contentPane" layout-manager="GridLayoutManager" row-count="2" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="10" left="10" bottom="10" right="10"/>
     <constraints>
-      <xy x="48" y="54" width="436" height="100"/>
+      <xy x="48" y="54" width="436" height="150"/>
     </constraints>
     <properties>
-      <maximumSize width="436" height="100"/>
-      <minimumSize width="436" height="100"/>
-      <preferredSize width="436" height="100"/>
+      <maximumSize width="436" height="150"/>
+      <minimumSize width="436" height="150"/>
+      <preferredSize width="436" height="150"/>
     </properties>
     <border type="none"/>
     <children>
@@ -53,7 +53,7 @@
           </hspacer>
         </children>
       </grid>
-      <grid id="e3588" layout-manager="GridLayoutManager" row-count="2" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+      <grid id="e3588" layout-manager="GridLayoutManager" row-count="3" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
         <margin top="0" left="0" bottom="0" right="0"/>
         <constraints>
           <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -79,7 +79,7 @@
           </component>
           <component id="4d726" class="javax.swing.JComboBox" binding="mComboBoxSchools">
             <constraints>
-              <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="1" indent="0" use-parent-layout="false">
+              <grid row="1" column="1" row-span="1" col-span="3" vsize-policy="0" hsize-policy="0" anchor="8" fill="1" indent="0" use-parent-layout="false">
                 <minimum-size width="350" height="-1"/>
                 <preferred-size width="350" height="-1"/>
                 <maximum-size width="400" height="-1"/>
@@ -89,14 +89,50 @@
           </component>
           <component id="414e1" class="javax.swing.JTextField" binding="mTextFieldName">
             <constraints>
-              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
+              <grid row="0" column="1" row-span="1" col-span="3" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
                 <preferred-size width="150" height="-1"/>
               </grid>
             </constraints>
             <properties/>
           </component>
+          <component id="fcdef" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Típus: "/>
+            </properties>
+          </component>
+          <component id="626bc" class="javax.swing.JRadioButton" binding="typeTeacherRadioButton">
+            <constraints>
+              <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <selected value="true"/>
+              <text value="Tanár"/>
+            </properties>
+          </component>
+          <component id="74e18" class="javax.swing.JRadioButton" binding="typeCoachRadioButton">
+            <constraints>
+              <grid row="2" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Edző"/>
+            </properties>
+          </component>
+          <hspacer id="12d86">
+            <constraints>
+              <grid row="2" column="3" row-span="1" col-span="1" vsize-policy="1" hsize-policy="6" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+          </hspacer>
         </children>
       </grid>
     </children>
   </grid>
+  <buttonGroups>
+    <group name="typeGroup">
+      <member id="626bc"/>
+      <member id="74e18"/>
+    </group>
+  </buttonGroups>
 </form>
