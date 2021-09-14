@@ -84,6 +84,14 @@ public class AddCoachDialog extends BaseDialog {
     private void initValues(Coach data) {
         mTextFieldName.setText(data.getName());
         mComboBoxSchools.setSelectedItem(data.getSchool());
+        switch (data.getType()) {
+            case COACH:
+                typeCoachRadioButton.setSelected(true);
+                break;
+            case TEACHER:
+                typeTeacherRadioButton.setSelected(true);
+                break;
+        }
     }
 
     private void buttonCancelActionPerformed() {
@@ -137,6 +145,14 @@ public class AddCoachDialog extends BaseDialog {
     private void setFields(Coach data) {
         data.setName(mTextFieldName.getText());
         data.setSchool((School) mComboBoxSchools.getSelectedItem());
+        data.setType(calculateType());
+    }
+
+    private Coach.Type calculateType() {
+        if (typeCoachRadioButton.isSelected()) {
+            return Coach.Type.COACH;
+        }
+        return Coach.Type.TEACHER;
     }
 
     protected Dao<Coach, Integer> getDatabase() throws SQLException {
