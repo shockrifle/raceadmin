@@ -84,7 +84,17 @@ public class Coach {
     }
 
     public enum Type {
-        COACH,
-        TEACHER
+        COACH("Edző"),
+        TEACHER("Tanár");
+
+        private String mName;
+
+        Type(String name) {
+            mName = name;
+        }
+
+        public String getName() {
+            return mName;
+        }
     }
 }
