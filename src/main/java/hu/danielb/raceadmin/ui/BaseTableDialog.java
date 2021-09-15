@@ -2,20 +2,26 @@ package hu.danielb.raceadmin.ui;
 
 import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
+
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+import javax.swing.*;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableModel;
+
 import hu.danielb.raceadmin.ui.components.ButtonEditor;
 import hu.danielb.raceadmin.ui.components.ButtonRenderer;
 import hu.danielb.raceadmin.ui.components.table.tablemodels.BaseTableModel;
 import hu.danielb.raceadmin.ui.components.table.tablemodels.ColumnModel;
 import hu.danielb.raceadmin.ui.components.table.tablemodels.SortableAttributiveCellTableModel;
-
-import javax.swing.*;
-import javax.swing.table.TableColumn;
-import javax.swing.table.TableModel;
-import java.awt.*;
-import java.awt.event.*;
-import java.util.List;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 public abstract class BaseTableDialog<T> extends BaseDialog {
     private JPanel contentPane;
@@ -89,7 +95,7 @@ public abstract class BaseTableDialog<T> extends BaseDialog {
 
             data = filter(data)
                     .stream()
-                    .<T>sorted(getColumnModel(mSortBy).getComparator(mSortBackwards))
+                    .sorted(getColumnModel(mSortBy).getComparator(mSortBackwards))
                     .collect(Collectors.toList());
 
             SortableAttributiveCellTableModel<T> tableModel = getTableModel(data);
@@ -145,7 +151,6 @@ public abstract class BaseTableDialog<T> extends BaseDialog {
 
         dialog.setVisible(true);
         mSearchTextField.setText("");
-        loadData();
     }
 
     private void newButtonActionPerformed() {
