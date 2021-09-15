@@ -81,6 +81,19 @@ public class MainFrame extends javax.swing.JFrame {
         mainFrame.setVisible(true);
     }
 
+    private static String getTypeString(Coach coach) {
+        String typeString = "";
+        switch (coach.getType()) {
+            case COACH:
+                typeString = "edzője";
+                break;
+            case TEACHER:
+                typeString = "tanára";
+                break;
+        }
+        return typeString;
+    }
+
     private void initComponents() {
 
         ageGroupPane = new javax.swing.JTabbedPane();
@@ -671,9 +684,9 @@ public class MainFrame extends javax.swing.JFrame {
         if (data != null && !data.isEmpty()) {
             Contestant first = data.get(0);
             if (first != null && first.getPosition() > 0) {
-                String coachName = DataUtils.getCoachName(first);
-                if (!coachName.isEmpty()) {
-                    tableHolder.mLabel.setText("Bajnok edzője: " + coachName);
+                Coach coach = DataUtils.getCoach(first);
+                if (coach != null) {
+                    tableHolder.mLabel.setText("Bajnok " + getTypeString(coach) + ": " + coach.getName());
                 }
             }
         }
@@ -754,14 +767,13 @@ public class MainFrame extends javax.swing.JFrame {
         }
 
         public String getCoach() {
-            String coachName = "";
             if (!contestants.isEmpty()) {
-                coachName = DataUtils.getCoachName(contestants.get(0));
+                Coach coach = DataUtils.getCoach(contestants.get(0));
+                if (coach != null) {
+                    return "Bajnok " + getTypeString(coach) + ": " + coach.getName();
+                }
             }
-            if (!coachName.isEmpty()) {
-                coachName = "Bajnok edzője: " + coachName;
-            }
-            return coachName;
+            return "";
         }
     }
 
@@ -780,14 +792,13 @@ public class MainFrame extends javax.swing.JFrame {
         }
 
         public String getCoach() {
-            String coachName = "";
             if (!teams.isEmpty()) {
-                coachName = DataUtils.getCoachName(teams.get(0).getMembers().get(0));
+                Coach coach = DataUtils.getCoach(teams.get(0).getMembers().get(0));
+                if (coach != null) {
+                    return "Bajnok csapat " + getTypeString(coach) + ": " + coach.getName();
+                }
             }
-            if (!coachName.isEmpty()) {
-                coachName = "Bajnok csapat edzője: " + coachName;
-            }
-            return coachName;
+            return "";
         }
     }
 
