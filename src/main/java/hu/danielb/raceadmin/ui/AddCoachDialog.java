@@ -4,13 +4,10 @@ import com.intellij.uiDesigner.core.GridConstraints;
 import com.intellij.uiDesigner.core.GridLayoutManager;
 import com.intellij.uiDesigner.core.Spacer;
 import com.j256.ormlite.dao.Dao;
-import hu.danielb.raceadmin.database.Database;
-import hu.danielb.raceadmin.entity.Coach;
-import hu.danielb.raceadmin.entity.School;
+
 import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 import org.jdesktop.swingx.autocomplete.ObjectToStringConverter;
 
-import javax.swing.*;
 import java.awt.*;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -19,6 +16,12 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.swing.*;
+
+import hu.danielb.raceadmin.database.Database;
+import hu.danielb.raceadmin.entity.Coach;
+import hu.danielb.raceadmin.entity.School;
+
 public class AddCoachDialog extends BaseDialog {
 
     protected JPanel contentPane;
@@ -26,6 +29,8 @@ public class AddCoachDialog extends BaseDialog {
     protected JButton buttonCancel;
     private JTextField mTextFieldName;
     private JComboBox<School> mComboBoxSchools;
+    private JRadioButton typeTeacherRadioButton;
+    private JRadioButton typeCoachRadioButton;
 
     private List<SaveListener> listeners = new ArrayList<>();
     private Coach mData;
@@ -79,6 +84,14 @@ public class AddCoachDialog extends BaseDialog {
     private void initValues(Coach data) {
         mTextFieldName.setText(data.getName());
         mComboBoxSchools.setSelectedItem(data.getSchool());
+        switch (data.getType()) {
+            case COACH:
+                typeCoachRadioButton.setSelected(true);
+                break;
+            case TEACHER:
+                typeTeacherRadioButton.setSelected(true);
+                break;
+        }
     }
 
     private void buttonCancelActionPerformed() {
@@ -89,12 +102,8 @@ public class AddCoachDialog extends BaseDialog {
         if (validateData()) {
             saveData();
         } else {
-            switch (JOptionPane.showOptionDialog(this, getInvalidDataMessage() + "\nBiztos menti?", "", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, new String[]{"Mentés", "Mégse"}, null)) {
-                case 0:
-                    saveData();
-                    break;
-                default:
-                    break;
+            if (JOptionPane.showOptionDialog(this, getInvalidDataMessage() + "\nBiztos menti?", "", JOptionPane.DEFAULT_OPTION, JOptionPane.QUESTION_MESSAGE, null, new String[]{"Mentés", "Mégse"}, null) == 0) {
+                saveData();
             }
         }
     }
@@ -136,6 +145,14 @@ public class AddCoachDialog extends BaseDialog {
     private void setFields(Coach data) {
         data.setName(mTextFieldName.getText());
         data.setSchool((School) mComboBoxSchools.getSelectedItem());
+        data.setType(calculateType());
+    }
+
+    private Coach.Type calculateType() {
+        if (typeCoachRadioButton.isSelected()) {
+            return Coach.Type.COACH;
+        }
+        return Coach.Type.TEACHER;
     }
 
     protected Dao<Coach, Integer> getDatabase() throws SQLException {
@@ -184,9 +201,9 @@ public class AddCoachDialog extends BaseDialog {
     private void $$$setupUI$$$() {
         contentPane = new JPanel();
         contentPane.setLayout(new GridLayoutManager(2, 1, new Insets(10, 10, 10, 10), -1, -1));
-        contentPane.setMaximumSize(new Dimension(436, 100));
-        contentPane.setMinimumSize(new Dimension(436, 100));
-        contentPane.setPreferredSize(new Dimension(436, 100));
+        contentPane.setMaximumSize(new Dimension(436, 150));
+        contentPane.setMinimumSize(new Dimension(436, 150));
+        contentPane.setPreferredSize(new Dimension(436, 150));
         final JPanel panel1 = new JPanel();
         panel1.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
         contentPane.add(panel1, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, 1, null, null, null, 0, false));
@@ -202,7 +219,7 @@ public class AddCoachDialog extends BaseDialog {
         final Spacer spacer1 = new Spacer();
         panel1.add(spacer1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
         final JPanel panel3 = new JPanel();
-        panel3.setLayout(new GridLayoutManager(2, 2, new Insets(0, 0, 0, 0), -1, -1));
+        panel3.setLayout(new GridLayoutManager(3, 4, new Insets(0, 0, 0, 0), -1, -1));
         contentPane.add(panel3, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         final JLabel label1 = new JLabel();
         label1.setText("Teljes név:");
@@ -211,9 +228,25 @@ public class AddCoachDialog extends BaseDialog {
         label2.setText("Iskola:");
         panel3.add(label2, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         mComboBoxSchools = new JComboBox();
-        panel3.add(mComboBoxSchools, new GridConstraints(1, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(350, -1), new Dimension(350, -1), new Dimension(400, -1), 0, false));
+        panel3.add(mComboBoxSchools, new GridConstraints(1, 1, 1, 3, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, new Dimension(350, -1), new Dimension(350, -1), new Dimension(400, -1), 0, false));
         mTextFieldName = new JTextField();
-        panel3.add(mTextFieldName, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
+        panel3.add(mTextFieldName, new GridConstraints(0, 1, 1, 3, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
+        final JLabel label3 = new JLabel();
+        label3.setText("Típus: ");
+        panel3.add(label3, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        typeTeacherRadioButton = new JRadioButton();
+        typeTeacherRadioButton.setSelected(true);
+        typeTeacherRadioButton.setText("Tanár");
+        panel3.add(typeTeacherRadioButton, new GridConstraints(2, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        typeCoachRadioButton = new JRadioButton();
+        typeCoachRadioButton.setText("Edző");
+        panel3.add(typeCoachRadioButton, new GridConstraints(2, 2, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final Spacer spacer2 = new Spacer();
+        panel3.add(spacer2, new GridConstraints(2, 3, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, 1, null, null, null, 0, false));
+        ButtonGroup buttonGroup;
+        buttonGroup = new ButtonGroup();
+        buttonGroup.add(typeTeacherRadioButton);
+        buttonGroup.add(typeCoachRadioButton);
     }
 
     /**

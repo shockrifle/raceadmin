@@ -2,21 +2,25 @@ package hu.danielb.raceadmin.entity;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
-import hu.danielb.raceadmin.database.dao.CoachDao;
 
 import java.util.Objects;
+
+import hu.danielb.raceadmin.database.dao.CoachDao;
 
 @DatabaseTable(tableName = "coach", daoClass = CoachDao.class)
 public class Coach {
 
     public static final String COLUMN_SCHOOL_ID = "school_id";
     public static final String COLUMN_NAME = "name";
+    public static final String COLUMN_TYPE = "type";
     private static final String COLUMN_ID = "id";
 
     @DatabaseField(generatedId = true, columnName = COLUMN_ID)
     private int mId;
     @DatabaseField(columnName = COLUMN_NAME)
     private String mName = "";
+    @DatabaseField(columnName = COLUMN_TYPE)
+    private Type mType;
     @DatabaseField(foreign = true, foreignAutoRefresh = true, columnName = COLUMN_SCHOOL_ID)
     private School school = new School();
 
@@ -27,9 +31,10 @@ public class Coach {
         mId = id;
     }
 
-    public Coach(int id, String name) {
+    public Coach(int id, String name, Type type) {
         mId = id;
         mName = name;
+        mType = type;
     }
 
     public int getId() {
@@ -46,6 +51,14 @@ public class Coach {
 
     public void setName(String name) {
         mName = name;
+    }
+
+    public Type getType() {
+        return mType;
+    }
+
+    public void setType(Type type) {
+        this.mType = type;
     }
 
     public School getSchool() {
@@ -68,5 +81,20 @@ public class Coach {
     public int hashCode() {
 
         return Objects.hash(mId);
+    }
+
+    public enum Type {
+        COACH("Edző"),
+        TEACHER("Tanár");
+
+        private String mName;
+
+        Type(String name) {
+            mName = name;
+        }
+
+        public String getName() {
+            return mName;
+        }
     }
 }

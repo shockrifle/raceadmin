@@ -1,20 +1,6 @@
 package hu.danielb.raceadmin.ui;
 
 
-import hu.danielb.raceadmin.database.Database;
-import hu.danielb.raceadmin.database.dao.SettingDao;
-import hu.danielb.raceadmin.entity.AgeGroup;
-import hu.danielb.raceadmin.entity.Contestant;
-import hu.danielb.raceadmin.entity.School;
-import hu.danielb.raceadmin.entity.Team;
-import hu.danielb.raceadmin.ui.components.GenericTabbedPane;
-import hu.danielb.raceadmin.ui.components.table.CellSpan;
-import hu.danielb.raceadmin.ui.components.table.MultiSpanCellTable;
-import hu.danielb.raceadmin.ui.components.table.tablemodels.AttributiveCellTableModel;
-import hu.danielb.raceadmin.ui.components.table.tablemodels.ResultsTableModel;
-import hu.danielb.raceadmin.ui.components.table.tablemodels.TeamResultsTableModel;
-import hu.danielb.raceadmin.util.*;
-import hu.danielb.raceadmin.util.Properties;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
@@ -22,21 +8,49 @@ import org.jxls.builder.xls.XlsCommentAreaBuilder;
 import org.jxls.common.Context;
 import org.jxls.util.JxlsHelper;
 
+import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.print.PrinterException;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.Charset;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
-import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.awt.print.PrinterException;
-import java.io.*;
-import java.nio.charset.Charset;
-import java.sql.SQLException;
-import java.util.*;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
+
+import hu.danielb.raceadmin.database.Database;
+import hu.danielb.raceadmin.database.dao.SettingDao;
+import hu.danielb.raceadmin.entity.AgeGroup;
+import hu.danielb.raceadmin.entity.Coach;
+import hu.danielb.raceadmin.entity.Contestant;
+import hu.danielb.raceadmin.entity.School;
+import hu.danielb.raceadmin.entity.Team;
+import hu.danielb.raceadmin.ui.components.GenericTabbedPane;
+import hu.danielb.raceadmin.ui.components.table.CellSpan;
+import hu.danielb.raceadmin.ui.components.table.MultiSpanCellTable;
+import hu.danielb.raceadmin.ui.components.table.tablemodels.ResultsTableModel;
+import hu.danielb.raceadmin.ui.components.table.tablemodels.TeamResultsTableModel;
+import hu.danielb.raceadmin.util.Constants;
+import hu.danielb.raceadmin.util.DataUtils;
+import hu.danielb.raceadmin.util.DateUtils;
+import hu.danielb.raceadmin.util.EachMergeCommand;
+import hu.danielb.raceadmin.util.Printer;
+import hu.danielb.raceadmin.util.Properties;
 
 public class MainFrame extends javax.swing.JFrame {
 
@@ -64,6 +78,19 @@ public class MainFrame extends javax.swing.JFrame {
     public static void main(String[] args) {
         MainFrame mainFrame = new MainFrame();
         mainFrame.setVisible(true);
+    }
+
+    private static String getTypeString(Coach coach) {
+        String typeString = "";
+        switch (coach.getType()) {
+            case COACH:
+                typeString = "edzője";
+                break;
+            case TEACHER:
+                typeString = "tanára";
+                break;
+        }
+        return typeString;
     }
 
     private void initComponents() {
@@ -234,16 +261,17 @@ public class MainFrame extends javax.swing.JFrame {
             e.printStackTrace();
         }
 
-        if (headerString[0].length() != 0 && headerString[1].length() != 0) {
-            GenericTabbedPane ageGroupTab = (GenericTabbedPane) ageGroupPane.getComponentAt(ageGroupPane.getSelectedIndex());
-            AgeGroup ageGroup = (AgeGroup) ageGroupTab.getData();
-            GenericTabbedPane.Tab tab = ageGroupTab.getTab(ageGroupTab.getSelectedIndex());
+        if (headerString[0].length() != 0) {
+            // noinspection unchecked
+            GenericTabbedPane<AgeGroup, String> ageGroupTab = (GenericTabbedPane<AgeGroup, String>) ageGroupPane.getComponentAt(ageGroupPane.getSelectedIndex());
+            AgeGroup ageGroup = ageGroupTab.getData();
+            GenericTabbedPane.Tab<String> tab = ageGroupTab.getTab(ageGroupTab.getSelectedIndex());
 
             try {
-                if (tab.getId() == Constants.BOY_TEAM || tab.getId() == Constants.GIRL_TEAM) {
-                    new Printer(ageGroup.getName() + ", " + tab.getTitle(), tables.get(ageGroup.getId() + (String) tab.getId()), headerString, true).print();
+                if (tab.getId().equals(Constants.BOY_TEAM) || tab.getId().equals(Constants.GIRL_TEAM)) {
+                    new Printer(ageGroup.getName() + ", " + tab.getTitle(), tables.get(ageGroup.getId() + tab.getId()), headerString, true).print();
                 } else {
-                    new Printer(ageGroup.getName() + ", " + tab.getTitle(), tables.get(ageGroup.getId() + (String) tab.getId()), headerString).print();
+                    new Printer(ageGroup.getName() + ", " + tab.getTitle(), tables.get(ageGroup.getId() + tab.getId()), headerString).print();
                 }
             } catch (PrinterException ex) {
                 warn("Nyomtatási hiba!");
@@ -469,7 +497,7 @@ public class MainFrame extends javax.swing.JFrame {
         ageGroupPane.removeAll();
         try {
             Database.get().getAgeGroupDao().queryForAll().stream().sorted().forEach(ageGroup -> {
-                GenericTabbedPane<AgeGroup> ageGroupTab = new GenericTabbedPane<>(ageGroup);
+                GenericTabbedPane<AgeGroup, String> ageGroupTab = new GenericTabbedPane<>(ageGroup);
                 String ageGroupId = String.valueOf(ageGroup.getId());
 
                 ageGroupTab.setPreferredSize(new Dimension(ageGroupPane.getHeight(), ageGroupPane.getWidth()));
@@ -535,7 +563,7 @@ public class MainFrame extends javax.swing.JFrame {
             List<Contestant> data = getByAgeGroupAndSex(ageGroup.getId(), sex);
             if (!data.isEmpty()) {
                 loadTeams(sex, ageGroup, data.stream().filter(contestant -> contestant.getPosition() > 0).collect(Collectors.toList()));
-                addContestantDataToTable(String.valueOf(ageGroup.getId()) + sex, data);
+                addContestantDataToTable(ageGroup.getId() + sex, data);
             }
         } catch (SQLException ex) {
             Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
@@ -547,10 +575,10 @@ public class MainFrame extends javax.swing.JFrame {
         int teamMaxMembers = ageGroup.getTeamMaxMembers();
         int teamMinMembers = ageGroup.getTeamMinMembers();
         List<Team> teams = makeTeams(data, teamMinMembers, teamMaxMembers);
-        String tableName = String.valueOf(ageGroup.getId()) + getTeamConst(sex);
+        String tableName = ageGroup.getId() + getTeamConst(sex);
         addTeamDataToTable(tableName, teams);
         JTable jt = tables.get(tableName).mTable;
-        CellSpan cellAtt = (CellSpan) ((AttributiveCellTableModel) jt.getModel()).getCellAttribute();
+        CellSpan cellAtt = (CellSpan) ((TeamResultsTableModel) jt.getModel()).getCellAttribute();
 
         int row = 0;
         for (Team team : teams) {
@@ -607,9 +635,8 @@ public class MainFrame extends javax.swing.JFrame {
         }
 
 
-        List<Team> teamList = teams.entrySet().stream()
-                .filter(entry -> entry.getValue().isValid())
-                .map(Map.Entry::getValue).collect(Collectors.toList());
+        List<Team> teamList = teams.values().stream()
+                .filter(Team::isValid).collect(Collectors.toList());
 
         if (addPlaceholder) {
             teamList.forEach(team -> team.addMember(new Contestant()));
@@ -628,13 +655,9 @@ public class MainFrame extends javax.swing.JFrame {
             Team first = data.get(0);
             if (first != null) {
                 String coachName = "";
-                try {
-                    int coachId = first.getMembers().get(0).getSchool().getCoachId();
-                    if (coachId > 0) {
-                        coachName = Database.get().getCoachDao().queryForId(coachId).getName();
-                    }
-                } catch (SQLException e) {
-                    e.printStackTrace();
+                Coach coach = first.getMembers().get(0).getSchool().getCoach();
+                if (coach != null) {
+                    coachName = coach.getName();
                 }
                 if (!coachName.isEmpty()) {
                     tableHolder.mLabel.setText("Bajnok csapat edzője: " + coachName);
@@ -660,9 +683,9 @@ public class MainFrame extends javax.swing.JFrame {
         if (data != null && !data.isEmpty()) {
             Contestant first = data.get(0);
             if (first != null && first.getPosition() > 0) {
-                String coachName = DataUtils.getCoachName(first);
-                if (!coachName.isEmpty()) {
-                    tableHolder.mLabel.setText("Bajnok edzője: " + coachName);
+                Coach coach = DataUtils.getCoach(first);
+                if (coach != null) {
+                    tableHolder.mLabel.setText("Bajnok " + getTypeString(coach) + ": " + coach.getName());
                 }
             }
         }
@@ -743,18 +766,16 @@ public class MainFrame extends javax.swing.JFrame {
         }
 
         public String getCoach() {
-            String coachName = "";
             if (!contestants.isEmpty()) {
-                coachName = DataUtils.getCoachName(contestants.get(0));
+                Coach coach = DataUtils.getCoach(contestants.get(0));
+                if (coach != null) {
+                    return "Bajnok " + getTypeString(coach) + ": " + coach.getName();
+                }
             }
-            if (!coachName.isEmpty()) {
-                coachName = "Bajnok edzője: " + coachName;
-            }
-            return coachName;
+            return "";
         }
     }
 
-    @SuppressWarnings("unused")
     public static class TeamCategory {
 
         String name = "";
@@ -764,35 +785,20 @@ public class MainFrame extends javax.swing.JFrame {
             return name;
         }
 
-        public List<Team> getTeams() {
-            return teams;
-        }
-
         public String getCoach() {
-            String coachName = "";
             if (!teams.isEmpty()) {
-                coachName = DataUtils.getCoachName(teams.get(0).getMembers().get(0));
+                Coach coach = DataUtils.getCoach(teams.get(0).getMembers().get(0));
+                if (coach != null) {
+                    return "Bajnok csapat " + getTypeString(coach) + ": " + coach.getName();
+                }
             }
-            if (!coachName.isEmpty()) {
-                coachName = "Bajnok csapat edzője: " + coachName;
-            }
-            return coachName;
+            return "";
         }
     }
 
-    @SuppressWarnings("unused")
-    public class Category {
-
+    public static class Category {
         IndividualCategory individualCategory = new IndividualCategory();
         TeamCategory teamCategory = new TeamCategory();
-
-        public IndividualCategory getIndividualCategory() {
-            return individualCategory;
-        }
-
-        public TeamCategory getTeamCategory() {
-            return teamCategory;
-        }
     }
 
 }

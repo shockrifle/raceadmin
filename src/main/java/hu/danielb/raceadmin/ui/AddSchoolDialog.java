@@ -53,12 +53,9 @@ public class AddSchoolDialog extends BaseDialog {
         mTextFieldShortName.setText(mSchool.getShortName());
         mTextFieldSettlement.setText(mSchool.getSettlement());
         refreshCoaches();
-        Coach coach = null;
-        try {
-            coach = Database.get().getCoachDao().queryForId(mSchool.getCoachId());
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+
+        Coach coach = mSchool.getCoach();
+
         mCoachComboBox.setSelectedItem(coach);
         mCoachComboBox.setVisible(true);
         mCoachLabel.setVisible(true);
@@ -155,8 +152,8 @@ public class AddSchoolDialog extends BaseDialog {
     private void buttonNewCoachActionPerformed() {
         new AddCoachDialog(this, mSchool).addSaveListener(newCoach -> {
             refreshCoaches();
-            if (mSchool.getCoachId() > 0) {
-                mCoachComboBox.setSelectedItem(new Coach(mSchool.getCoachId()));
+            if (mSchool.getCoach() != null) {
+                mCoachComboBox.setSelectedItem(mSchool.getCoach());
             } else {
                 mCoachComboBox.setSelectedItem(newCoach);
             }
@@ -194,7 +191,7 @@ public class AddSchoolDialog extends BaseDialog {
         mSchool.setSettlement(mTextFieldSettlement.getText());
         Coach coach = (Coach) mCoachComboBox.getSelectedItem();
         if (coach != null) {
-            mSchool.setCoachId(coach.getId());
+            mSchool.setCoach(coach);
         }
         try {
             Database.get().getSchoolDao().createOrUpdate(mSchool);
@@ -264,14 +261,14 @@ public class AddSchoolDialog extends BaseDialog {
         mTextAreaFullName.setLineWrap(true);
         mTextAreaFullName.setText("");
         mTextAreaFullName.setWrapStyleWord(true);
-        panel3.add(mTextAreaFullName, new GridConstraints(0, 1, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_WANT_GROW, new Dimension(-1, 66), new Dimension(-1, 66), new Dimension(-1, 66), 0, false));
+        panel3.add(mTextAreaFullName, new GridConstraints(0, 1, 1, 2, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_WANT_GROW, null, null, null, 0, false));
         mTextFieldShortName = new JTextField();
         mTextFieldShortName.setToolTipText("Rövidített név hogy kiférjen");
         panel3.add(mTextFieldShortName, new GridConstraints(1, 1, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
         mTextFieldSettlement = new JTextField();
         panel3.add(mTextFieldSettlement, new GridConstraints(2, 1, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
         mCoachLabel = new JLabel();
-        mCoachLabel.setText("Edzők");
+        mCoachLabel.setText("Edző:");
         panel3.add(mCoachLabel, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         mCoachComboBox = new JComboBox();
         panel3.add(mCoachComboBox, new GridConstraints(3, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));

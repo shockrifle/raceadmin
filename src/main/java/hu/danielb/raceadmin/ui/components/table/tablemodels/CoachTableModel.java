@@ -1,9 +1,9 @@
 package hu.danielb.raceadmin.ui.components.table.tablemodels;
 
-import hu.danielb.raceadmin.entity.Coach;
-
 import java.util.Arrays;
 import java.util.List;
+
+import hu.danielb.raceadmin.entity.Coach;
 
 public class CoachTableModel extends SortableAttributiveCellTableModel<Coach> {
 
@@ -18,11 +18,18 @@ public class CoachTableModel extends SortableAttributiveCellTableModel<Coach> {
                     .setOrdinal(1)
                     .setName("Iskola")
                     .setGetter(coach -> coach.getSchool() != null ? coach.getSchool().getNameWithSettlement() : "")
-                    .setWidth(400)
+                    .setWidth(310)
                     .setComparator(o -> o.getSchool() != null ? o.getSchool().getNameWithSettlement() : "")
                     .build(),
             new ColumnModel.Builder<Coach>()
                     .setOrdinal(2)
+                    .setName("Típus")
+                    .setGetter(coach -> coach.getType() != null ? coach.getType().getName() : "")
+                    .setWidth(90)
+                    .setComparator(o -> o.getType() != null ? o.getType().getName() : "")
+                    .build(),
+            new ColumnModel.Builder<Coach>()
+                    .setOrdinal(3)
                     .setGetter(data -> "Szerkesztés")
                     .setWidth(90)
                     .setButton(true)

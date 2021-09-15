@@ -1,16 +1,8 @@
 package hu.danielb.raceadmin.ui;
 
-import hu.danielb.raceadmin.database.Database;
-import hu.danielb.raceadmin.entity.AgeGroup;
-import hu.danielb.raceadmin.entity.Coach;
-import hu.danielb.raceadmin.entity.Contestant;
-import hu.danielb.raceadmin.entity.School;
-import hu.danielb.raceadmin.util.Constants;
 import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 import org.jdesktop.swingx.autocomplete.ObjectToStringConverter;
 
-import javax.swing.*;
-import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -21,6 +13,16 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.swing.*;
+import javax.swing.text.JTextComponent;
+
+import hu.danielb.raceadmin.database.Database;
+import hu.danielb.raceadmin.entity.AgeGroup;
+import hu.danielb.raceadmin.entity.Coach;
+import hu.danielb.raceadmin.entity.Contestant;
+import hu.danielb.raceadmin.entity.School;
+import hu.danielb.raceadmin.util.Constants;
 
 class AddContestantDialog extends BaseDialog {
 
@@ -384,7 +386,7 @@ class AddContestantDialog extends BaseDialog {
                 coaches.stream().filter(coach -> coach.getSchool() != null && coach.getSchool().getId() == school.getId()).sorted(Comparator.comparing(o -> o.getName().toLowerCase()))
                         .forEach(comboCoach::addItem);
                 if (comboCoach.getItemCount() > 1) {
-                    comboCoach.addItem(new Coach(-1, "----"));
+                    comboCoach.addItem(new Coach(-1, "----", Coach.Type.TEACHER));
                 }
                 coaches.stream().filter(coach -> coach.getSchool() == null || coach.getSchool().getId() != school.getId()).sorted(Comparator.comparing(o -> o.getName().toLowerCase()))
                         .forEach(comboCoach::addItem);
@@ -486,13 +488,13 @@ class AddContestantDialog extends BaseDialog {
                 .le(Contestant.COLUMN_POSITION, newPosition).and()
                 .ne(Contestant.COLUMN_POSITION, 0)
                 .query().forEach(contestant1 -> {
-            contestant1.setPosition(contestant1.getPosition() - 1);
-            try {
-                Database.get().getContestantDao().update(contestant1);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        });
+                    contestant1.setPosition(contestant1.getPosition() - 1);
+                    try {
+                        Database.get().getContestantDao().update(contestant1);
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                });
     }
 
     private void moveForward(Contestant contestantOld, int newPosition) throws SQLException {
@@ -505,13 +507,13 @@ class AddContestantDialog extends BaseDialog {
                 .lt(Contestant.COLUMN_POSITION, oldPosition).and()
                 .ne(Contestant.COLUMN_POSITION, 0)
                 .query().forEach(contestant1 -> {
-            contestant1.setPosition(contestant1.getPosition() + 1);
-            try {
-                Database.get().getContestantDao().update(contestant1);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        });
+                    contestant1.setPosition(contestant1.getPosition() + 1);
+                    try {
+                        Database.get().getContestantDao().update(contestant1);
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                });
     }
 
     private void buttonDeleteActionPerformed() {
