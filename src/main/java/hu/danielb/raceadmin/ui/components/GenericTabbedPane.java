@@ -1,14 +1,15 @@
 package hu.danielb.raceadmin.ui.components;
 
-import javax.swing.*;
 import java.awt.*;
 import java.util.HashMap;
 import java.util.Map;
 
-public class GenericTabbedPane<T> extends JTabbedPane {
+import javax.swing.*;
+
+public class GenericTabbedPane<T, K> extends JTabbedPane {
 
     private T mData;
-    private Map<Integer, Tab> tabs;
+    private final Map<Integer, Tab<K>> tabs;
 
     public GenericTabbedPane(T data) {
         super();
@@ -16,7 +17,7 @@ public class GenericTabbedPane<T> extends JTabbedPane {
         tabs = new HashMap<>();
     }
 
-    public <K> void addTab(K id, String title, Component component) {
+    public void addTab(K id, String title, Component component) {
         super.addTab(title, component);
         tabs.put(indexOfComponent(component), new Tab<>(id, title, component));
     }
@@ -29,23 +30,23 @@ public class GenericTabbedPane<T> extends JTabbedPane {
         this.mData = model;
     }
 
-    public Tab getTab(int position) {
+    public Tab<K> getTab(int position) {
         return tabs.get(position);
     }
 
-    public class Tab<K> {
+    public static class Tab<P> {
 
-        K id;
+        P id;
         String title;
         Component component;
 
-        Tab(K id, String title, Component component) {
+        Tab(P id, String title, Component component) {
             this.id = id;
             this.title = title;
             this.component = component;
         }
 
-        public K getId() {
+        public P getId() {
             return id;
         }
 
