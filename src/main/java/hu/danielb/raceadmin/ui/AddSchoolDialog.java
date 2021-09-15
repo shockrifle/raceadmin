@@ -53,12 +53,9 @@ public class AddSchoolDialog extends BaseDialog {
         mTextFieldShortName.setText(mSchool.getShortName());
         mTextFieldSettlement.setText(mSchool.getSettlement());
         refreshCoaches();
-        Coach coach = null;
-        try {
-            coach = Database.get().getCoachDao().queryForId(mSchool.getCoachId());
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+
+        Coach coach = mSchool.getCoach();
+
         mCoachComboBox.setSelectedItem(coach);
         mCoachComboBox.setVisible(true);
         mCoachLabel.setVisible(true);
@@ -155,8 +152,8 @@ public class AddSchoolDialog extends BaseDialog {
     private void buttonNewCoachActionPerformed() {
         new AddCoachDialog(this, mSchool).addSaveListener(newCoach -> {
             refreshCoaches();
-            if (mSchool.getCoachId() > 0) {
-                mCoachComboBox.setSelectedItem(new Coach(mSchool.getCoachId()));
+            if (mSchool.getCoach() != null) {
+                mCoachComboBox.setSelectedItem(mSchool.getCoach());
             } else {
                 mCoachComboBox.setSelectedItem(newCoach);
             }
@@ -194,7 +191,7 @@ public class AddSchoolDialog extends BaseDialog {
         mSchool.setSettlement(mTextFieldSettlement.getText());
         Coach coach = (Coach) mCoachComboBox.getSelectedItem();
         if (coach != null) {
-            mSchool.setCoachId(coach.getId());
+            mSchool.setCoach(coach);
         }
         try {
             Database.get().getSchoolDao().createOrUpdate(mSchool);

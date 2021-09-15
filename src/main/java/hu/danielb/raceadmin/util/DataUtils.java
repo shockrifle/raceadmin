@@ -1,9 +1,6 @@
 package hu.danielb.raceadmin.util;
 
-import hu.danielb.raceadmin.database.Database;
 import hu.danielb.raceadmin.entity.Contestant;
-
-import java.sql.SQLException;
 
 public class DataUtils {
     private DataUtils() {
@@ -15,12 +12,8 @@ public class DataUtils {
             if (contestant.getCoach() != null) {
                 return contestant.getCoach().getName();
             }
-            if (contestant.getSchool() != null && contestant.getSchool().getCoachId() != 0) {
-                try {
-                    return Database.get().getCoachDao().queryForId(contestant.getSchool().getCoachId()).getName();
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                }
+            if (contestant.getSchool() != null && contestant.getSchool().getCoach() != null) {
+                return contestant.getSchool().getCoach().getName();
             }
         }
 

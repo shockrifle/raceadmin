@@ -1,9 +1,42 @@
 package hu.danielb.raceadmin.ui;
 
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
+import org.jxls.builder.xls.XlsCommentAreaBuilder;
+import org.jxls.common.Context;
+import org.jxls.util.JxlsHelper;
+
+import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.print.PrinterException;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.Charset;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+
+import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableColumn;
+
 import hu.danielb.raceadmin.database.Database;
 import hu.danielb.raceadmin.database.dao.SettingDao;
 import hu.danielb.raceadmin.entity.AgeGroup;
+import hu.danielb.raceadmin.entity.Coach;
 import hu.danielb.raceadmin.entity.Contestant;
 import hu.danielb.raceadmin.entity.School;
 import hu.danielb.raceadmin.entity.Team;
@@ -13,30 +46,12 @@ import hu.danielb.raceadmin.ui.components.table.MultiSpanCellTable;
 import hu.danielb.raceadmin.ui.components.table.tablemodels.AttributiveCellTableModel;
 import hu.danielb.raceadmin.ui.components.table.tablemodels.ResultsTableModel;
 import hu.danielb.raceadmin.ui.components.table.tablemodels.TeamResultsTableModel;
-import hu.danielb.raceadmin.util.*;
+import hu.danielb.raceadmin.util.Constants;
+import hu.danielb.raceadmin.util.DataUtils;
+import hu.danielb.raceadmin.util.DateUtils;
+import hu.danielb.raceadmin.util.EachMergeCommand;
+import hu.danielb.raceadmin.util.Printer;
 import hu.danielb.raceadmin.util.Properties;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
-import org.jxls.builder.xls.XlsCommentAreaBuilder;
-import org.jxls.common.Context;
-import org.jxls.util.JxlsHelper;
-
-import javax.swing.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableColumn;
-import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.awt.print.PrinterException;
-import java.io.*;
-import java.nio.charset.Charset;
-import java.sql.SQLException;
-import java.util.*;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 public class MainFrame extends javax.swing.JFrame {
 
@@ -628,13 +643,9 @@ public class MainFrame extends javax.swing.JFrame {
             Team first = data.get(0);
             if (first != null) {
                 String coachName = "";
-                try {
-                    int coachId = first.getMembers().get(0).getSchool().getCoachId();
-                    if (coachId > 0) {
-                        coachName = Database.get().getCoachDao().queryForId(coachId).getName();
-                    }
-                } catch (SQLException e) {
-                    e.printStackTrace();
+                Coach coach = first.getMembers().get(0).getSchool().getCoach();
+                if (coach != null) {
+                    coachName = coach.getName();
                 }
                 if (!coachName.isEmpty()) {
                     tableHolder.mLabel.setText("Bajnok csapat edzője: " + coachName);
