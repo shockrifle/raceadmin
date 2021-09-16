@@ -660,7 +660,7 @@ public class MainFrame extends javax.swing.JFrame {
                     coachName = coach.getName();
                 }
                 if (!coachName.isEmpty()) {
-                    tableHolder.mLabel.setText("Bajnok csapat edzője: " + coachName);
+                    tableHolder.mLabel.setText("Bajnok csapat " + getTypeString(coach) + ": " + coachName);
                 }
             }
         }
@@ -776,6 +776,7 @@ public class MainFrame extends javax.swing.JFrame {
         }
     }
 
+    @SuppressWarnings("unused")
     public static class TeamCategory {
 
         String name = "";
@@ -783,6 +784,10 @@ public class MainFrame extends javax.swing.JFrame {
 
         public String getName() {
             return name;
+        }
+
+        public List<Team> getTeams() {
+            return teams;
         }
 
         public String getCoach() {
@@ -796,9 +801,19 @@ public class MainFrame extends javax.swing.JFrame {
         }
     }
 
+    @SuppressWarnings("unused")
     public static class Category {
+
         IndividualCategory individualCategory = new IndividualCategory();
         TeamCategory teamCategory = new TeamCategory();
+
+        public IndividualCategory getIndividualCategory() {
+            return individualCategory;
+        }
+
+        public TeamCategory getTeamCategory() {
+            return teamCategory;
+        }
     }
 
 }
