@@ -603,10 +603,9 @@ public class SettingsDialog extends BaseDialog {
     private void $$$setupUI$$$() {
         mContentPane = new JPanel();
         mContentPane.setLayout(new GridLayoutManager(1, 2, new Insets(10, 10, 10, 10), -1, -1));
-        mContentPane.setMaximumSize(new Dimension(540, 480));
-        mContentPane.setMinimumSize(new Dimension(540, 480));
-        mContentPane.setPreferredSize(new Dimension(540, 480));
-        mContentPane.setRequestFocusEnabled(true);
+        mContentPane.setMaximumSize(new Dimension(600, 550));
+        mContentPane.setMinimumSize(new Dimension(600, 550));
+        mContentPane.setPreferredSize(new Dimension(600, 550));
         mSettingsContent = new JPanel();
         mSettingsContent.setLayout(new GridLayoutManager(3, 1, new Insets(0, 0, 0, 0), -1, -1));
         mSettingsContent.setVisible(true);
