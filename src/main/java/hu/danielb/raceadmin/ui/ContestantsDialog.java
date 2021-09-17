@@ -1,17 +1,5 @@
 package hu.danielb.raceadmin.ui;
 
-import hu.danielb.raceadmin.database.Database;
-import hu.danielb.raceadmin.entity.Contestant;
-import hu.danielb.raceadmin.entity.School;
-import hu.danielb.raceadmin.ui.components.ButtonEditor;
-import hu.danielb.raceadmin.ui.components.ButtonRenderer;
-import hu.danielb.raceadmin.ui.components.table.tablemodels.ContestantTableModel;
-import hu.danielb.raceadmin.util.Constants;
-import hu.danielb.raceadmin.util.Printer;
-
-import javax.swing.*;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -26,9 +14,23 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableColumn;
+
+import hu.danielb.raceadmin.database.Database;
+import hu.danielb.raceadmin.entity.Contestant;
+import hu.danielb.raceadmin.entity.School;
+import hu.danielb.raceadmin.ui.components.ButtonEditor;
+import hu.danielb.raceadmin.ui.components.ButtonRenderer;
+import hu.danielb.raceadmin.ui.components.table.tablemodels.ContestantTableModel;
+import hu.danielb.raceadmin.util.Constants;
+import hu.danielb.raceadmin.util.Printer;
+
 class ContestantsDialog extends BaseDialog {
 
     private static final int COLUMN_SIZE_EDIT = 90;
+    private static final int COLUMN_SIZE_COUNTER = 35;
     private JComboBox<School> comboSchools;
     private javax.swing.JTable tableContestants;
     private javax.swing.JTextField textSearch;
@@ -201,12 +203,12 @@ class ContestantsDialog extends BaseDialog {
             }
             if (!filter.isEmpty()) {
                 data = data.stream().filter(contestant -> contestant.getName().toLowerCase().contains(filter) ||
-                        contestant.getAgeGroup() != null && contestant.getAgeGroup().getName().toLowerCase().contains(filter) ||
-                        contestant.getSchool().getNameWithSettlement().toLowerCase().contains(filter) ||
-                        (contestant.getSex().equals(Constants.BOY) ? "Fiú".toLowerCase().contains(filter) : "Lány".toLowerCase().contains(filter)) ||
-                        String.valueOf(contestant.getPosition()).toLowerCase().contains(filter) ||
-                        String.valueOf(contestant.getNumber()).toLowerCase().contains(filter) ||
-                        String.valueOf(contestant.getAge()).toLowerCase().contains(filter))
+                                contestant.getAgeGroup() != null && contestant.getAgeGroup().getName().toLowerCase().contains(filter) ||
+                                contestant.getSchool().getNameWithSettlement().toLowerCase().contains(filter) ||
+                                (contestant.getSex().equals(Constants.BOY) ? "Fiú".toLowerCase().contains(filter) : "Lány".toLowerCase().contains(filter)) ||
+                                String.valueOf(contestant.getPosition()).toLowerCase().contains(filter) ||
+                                String.valueOf(contestant.getNumber()).toLowerCase().contains(filter) ||
+                                String.valueOf(contestant.getAge()).toLowerCase().contains(filter))
                         .collect(Collectors.toList());
             }
 
@@ -260,14 +262,22 @@ class ContestantsDialog extends BaseDialog {
 
     private void loadData(List<Contestant> data) {
 
+        boolean contestantCounter = true;
+        try {
+            contestantCounter = Database.get().getSettingDao().getContestantCounter();
+        } catch (SQLException ex) {
+            Logger.getLogger(ContestantsDialog.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
         tableContestants.setModel(new ContestantTableModel(data).setSortBy(sortBy).setSortBackwards(sortBackwards));
+        setColumnWidth(ContestantTableModel.Column.COUNTER.ordinal(), contestantCounter ? COLUMN_SIZE_COUNTER : 0);
         setColumnWidth(ContestantTableModel.Column.POSITION.ordinal(), 60);
         setColumnWidth(ContestantTableModel.Column.NUMBER.ordinal(), 60);
         setColumnWidth(ContestantTableModel.Column.AGE.ordinal(), 70);
         setColumnWidth(ContestantTableModel.Column.AGE_GROUP_NAME.ordinal(), 85);
         setColumnWidth(ContestantTableModel.Column.SEX.ordinal(), 40);
         setColumnWidth(ContestantTableModel.Column.TEAM.ordinal(), 50);
-        setColumnWidth(ContestantTableModel.Column.EDIT.ordinal(), 90);
+        setColumnWidth(ContestantTableModel.Column.EDIT.ordinal(), COLUMN_SIZE_EDIT);
         tableContestants.getColumnModel().getColumn(ContestantTableModel.Column.EDIT.ordinal()).setCellRenderer(new ButtonRenderer());
         tableContestants.getColumnModel().getColumn(ContestantTableModel.Column.EDIT.ordinal()).setCellEditor(
                 new ButtonEditor(ContestantsDialog.this::editButtonActionPerformed)
