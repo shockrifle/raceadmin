@@ -76,12 +76,12 @@ public class Printer implements Printable {
 
         Font tmpFont = graphicToPrint.getFont();
         if (pageIndex < 1 && mHeader != null) {
-            graphicToPrint.setFont(new Font(FONT, Font.BOLD, 14));
+            graphicToPrint.setFont(new Font(FONT, Font.BOLD, 18));
 
             currentDrawHeight += getFontDrawHeight(graphicToPrint);
             graphicToPrint.drawString(mHeader[0], 0, (float) currentDrawHeight);
 
-            graphicToPrint.setFont(new Font(FONT, Font.PLAIN, 14));
+            graphicToPrint.setFont(new Font(FONT, Font.PLAIN, 16));
 
             for (int i = 1; i < mHeader.length; i++) {
                 currentDrawHeight += getFontDrawHeight(graphicToPrint);
