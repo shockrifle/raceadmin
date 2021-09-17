@@ -2,6 +2,7 @@ package hu.danielb.raceadmin.entity;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+
 import hu.danielb.raceadmin.database.dao.ContestantDao;
 
 @DatabaseTable(tableName = "contestant", daoClass = ContestantDao.class)
@@ -35,14 +36,14 @@ public class Contestant {
     @DatabaseField(columnName = COLUMN_AGE)
     private int age;
     @DatabaseField(foreign = true, foreignAutoRefresh = true, columnName = COLUMN_COACH_ID)
-    private Coach coach = new Coach();
+    private Supervisor supervisor = new Supervisor();
     @DatabaseField(columnName = COLUMN_TEAM_ENTRY)
     private boolean teamEntry;
 
     public Contestant() {
     }
 
-    public Contestant(int id, int position, String name, String sex, int number, AgeGroup ageGroup, School school, int age, Coach coach, boolean teamEntry) {
+    public Contestant(int id, int position, String name, String sex, int number, AgeGroup ageGroup, School school, int age, Supervisor supervisor, boolean teamEntry) {
         this.id = id;
         this.position = position;
         this.name = name;
@@ -51,7 +52,7 @@ public class Contestant {
         this.ageGroup = ageGroup;
         this.school = school;
         this.age = age;
-        this.coach = coach;
+        this.supervisor = supervisor;
         this.teamEntry = teamEntry;
     }
 
@@ -64,7 +65,7 @@ public class Contestant {
         this.ageGroup = other.getAgeGroup();
         this.school = other.getSchool();
         this.age = other.getAge();
-        this.coach = other.getCoach();
+        this.supervisor = other.getSupervisor();
         this.teamEntry = other.isTeamEntry();
     }
 
@@ -144,12 +145,12 @@ public class Contestant {
         return age > 0 ? String.valueOf(age) : "";
     }
 
-    public Coach getCoach() {
-        return coach;
+    public Supervisor getSupervisor() {
+        return supervisor;
     }
 
-    public void setCoach(Coach coach) {
-        this.coach = coach;
+    public void setSupervisor(Supervisor supervisor) {
+        this.supervisor = supervisor;
     }
 
     public boolean isTeamEntry() {

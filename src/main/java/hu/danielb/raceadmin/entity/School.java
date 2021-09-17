@@ -12,7 +12,7 @@ public class School {
     private static final String COLUMN_SHORT_NAME = "short_name";
     private static final String COLUMN_ID = "id";
     private static final String COLUMN_SETTLEMENT = "settlement";
-    private static final String COLUMN_COACH_ID = "coach_id";
+    private static final String COLUMN_SUPERVISOR_ID = "coach_id";
 
     @DatabaseField(generatedId = true, columnName = COLUMN_ID)
     private int id;
@@ -22,8 +22,8 @@ public class School {
     private String shortName = "";
     @DatabaseField(columnName = COLUMN_SETTLEMENT, defaultValue = "")
     private String settlement = "";
-    @DatabaseField(foreign = true, foreignAutoRefresh = true, columnName = COLUMN_COACH_ID)
-    private Coach coach;
+    @DatabaseField(foreign = true, foreignAutoRefresh = true, columnName = COLUMN_SUPERVISOR_ID)
+    private Supervisor supervisor;
 
     public int getId() {
         return id;
@@ -53,12 +53,12 @@ public class School {
         this.settlement = settlement;
     }
 
-    public Coach getCoach() {
-        return coach;
+    public Supervisor getSupervisor() {
+        return supervisor;
     }
 
-    public void setCoach(Coach coach) {
-        this.coach = coach;
+    public void setSupervisor(Supervisor supervisor) {
+        this.supervisor = supervisor;
     }
 
     public String getNameWithSettlement() {

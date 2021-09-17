@@ -19,10 +19,10 @@ import java.util.logging.Logger;
 import javax.swing.*;
 
 import hu.danielb.raceadmin.database.Database;
-import hu.danielb.raceadmin.entity.Coach;
 import hu.danielb.raceadmin.entity.School;
+import hu.danielb.raceadmin.entity.Supervisor;
 
-public class AddCoachDialog extends BaseDialog {
+public class AddSupervisorDialog extends BaseDialog {
 
     protected JPanel contentPane;
     protected JButton buttonSave;
@@ -33,18 +33,23 @@ public class AddCoachDialog extends BaseDialog {
     private JRadioButton typeCoachRadioButton;
 
     private List<SaveListener> listeners = new ArrayList<>();
-    private Coach mData;
+    private Supervisor mData;
 
-    AddCoachDialog(Dialog owner) {
+    AddSupervisorDialog(Dialog owner) {
         super(owner);
         initComponents();
         setLocationRelativeTo(owner);
     }
 
-    AddCoachDialog(Dialog owner, Coach data) {
+    AddSupervisorDialog(Dialog owner, Supervisor data) {
         this(owner);
         mData = data;
         initValues(mData);
+    }
+
+    AddSupervisorDialog(Dialog owner, School school) {
+        this(owner);
+        mComboBoxSchools.setModel(new DefaultComboBoxModel<>(new School[]{school}));
     }
 
     private void initComponents() {
@@ -81,7 +86,7 @@ public class AddCoachDialog extends BaseDialog {
         pack();
     }
 
-    private void initValues(Coach data) {
+    private void initValues(Supervisor data) {
         mTextFieldName.setText(data.getName());
         mComboBoxSchools.setSelectedItem(data.getSchool());
         switch (data.getType()) {
@@ -138,25 +143,25 @@ public class AddCoachDialog extends BaseDialog {
         return "Nem adott meg nevet!";
     }
 
-    private Coach newData() {
-        return new Coach();
+    private Supervisor newData() {
+        return new Supervisor();
     }
 
-    private void setFields(Coach data) {
+    private void setFields(Supervisor data) {
         data.setName(mTextFieldName.getText());
         data.setSchool((School) mComboBoxSchools.getSelectedItem());
         data.setType(calculateType());
     }
 
-    private Coach.Type calculateType() {
+    private Supervisor.Type calculateType() {
         if (typeCoachRadioButton.isSelected()) {
-            return Coach.Type.COACH;
+            return Supervisor.Type.COACH;
         }
-        return Coach.Type.TEACHER;
+        return Supervisor.Type.TEACHER;
     }
 
-    protected Dao<Coach, Integer> getDatabase() throws SQLException {
-        return Database.get().getCoachDao();
+    protected Dao<Supervisor, Integer> getDatabase() throws SQLException {
+        return Database.get().getSupervisorDao();
     }
 
     private void saveData() {
@@ -170,13 +175,8 @@ public class AddCoachDialog extends BaseDialog {
             listeners.forEach(l -> l.onSave(mData));
             dispose();
         } catch (SQLException ex) {
-            Logger.getLogger(AddCoachDialog.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(AddSupervisorDialog.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }
-
-    AddCoachDialog(Dialog owner, School school) {
-        this(owner);
-        mComboBoxSchools.setModel(new DefaultComboBoxModel<>(new School[]{school}));
     }
 
     public BaseDialog addSaveListener(SaveListener listener) {
@@ -257,7 +257,7 @@ public class AddCoachDialog extends BaseDialog {
     }
 
     public interface SaveListener {
-        void onSave(Coach newCoach);
+        void onSave(Supervisor newSupervisor);
     }
 
 }

@@ -19,9 +19,9 @@ import javax.swing.plaf.FontUIResource;
 import javax.swing.text.StyleContext;
 
 import hu.danielb.raceadmin.database.Database;
-import hu.danielb.raceadmin.database.dao.CoachDao;
-import hu.danielb.raceadmin.entity.Coach;
+import hu.danielb.raceadmin.database.dao.SupervisorDao;
 import hu.danielb.raceadmin.entity.School;
+import hu.danielb.raceadmin.entity.Supervisor;
 
 public class AddSchoolDialog extends BaseDialog {
     private JPanel contentPane;
@@ -30,9 +30,9 @@ public class AddSchoolDialog extends BaseDialog {
     private JTextField mTextFieldSettlement;
     private JButton buttonSave;
     private JButton buttonCancel;
-    private JComboBox<Coach> mCoachComboBox;
-    private JButton mNewCoachButton;
-    private JLabel mCoachLabel;
+    private JComboBox<Supervisor> mSupervisorComboBox;
+    private JButton mNewSupervisorButton;
+    private JLabel mSupervisorLabel;
     private List<SaveListener> listeners = new ArrayList<>();
     private School mSchool;
 
@@ -52,22 +52,22 @@ public class AddSchoolDialog extends BaseDialog {
         mTextAreaFullName.setText(mSchool.getName());
         mTextFieldShortName.setText(mSchool.getShortName());
         mTextFieldSettlement.setText(mSchool.getSettlement());
-        refreshCoaches();
+        refreshSupervisors();
 
-        Coach coach = mSchool.getCoach();
+        Supervisor supervisor = mSchool.getSupervisor();
 
-        mCoachComboBox.setSelectedItem(coach);
-        mCoachComboBox.setVisible(true);
-        mCoachLabel.setVisible(true);
-        mNewCoachButton.setVisible(true);
+        mSupervisorComboBox.setSelectedItem(supervisor);
+        mSupervisorComboBox.setVisible(true);
+        mSupervisorLabel.setVisible(true);
+        mNewSupervisorButton.setVisible(true);
     }
 
-    private void initCoaches() {
-        mCoachComboBox.setRenderer(new DefaultListCellRenderer() {
+    private void initSupervisor() {
+        mSupervisorComboBox.setRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                if (value instanceof Coach) {
-                    value = ((Coach) value).getName();
+                if (value instanceof Supervisor) {
+                    value = ((Supervisor) value).getName();
                 }
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 return this;
@@ -75,18 +75,18 @@ public class AddSchoolDialog extends BaseDialog {
         });
     }
 
-    private void refreshCoaches() {
-        mCoachComboBox.setModel(new DefaultComboBoxModel<>(new Coach[]{new Coach()}));
+    private void refreshSupervisors() {
+        mSupervisorComboBox.setModel(new DefaultComboBoxModel<>(new Supervisor[]{new Supervisor()}));
         try {
-            CoachDao coachDao = Database.get().getCoachDao();
-            List<Coach> coaches;
+            SupervisorDao supervisorDao = Database.get().getSupervisorDao();
+            List<Supervisor> supervisors;
             if (mSchool != null && mSchool.getId() > 0) {
-                coaches = coachDao.getBySchool(mSchool.getId());
+                supervisors = supervisorDao.getBySchool(mSchool.getId());
             } else {
-                coaches = coachDao.queryForAll();
+                supervisors = supervisorDao.queryForAll();
             }
-            coaches.stream().sorted(Comparator.comparing(o -> o.getName().toLowerCase()))
-                    .forEach(mCoachComboBox::addItem);
+            supervisors.stream().sorted(Comparator.comparing(o -> o.getName().toLowerCase()))
+                    .forEach(mSupervisorComboBox::addItem);
         } catch (SQLException ex) {
             Logger.getLogger(AddContestantDialog.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -149,13 +149,13 @@ public class AddSchoolDialog extends BaseDialog {
         }
     }
 
-    private void buttonNewCoachActionPerformed() {
-        new AddCoachDialog(this, mSchool).addSaveListener(newCoach -> {
-            refreshCoaches();
-            if (mSchool.getCoach() != null) {
-                mCoachComboBox.setSelectedItem(mSchool.getCoach());
+    private void buttonNewSupervisorActionPerformed() {
+        new AddSupervisorDialog(this, mSchool).addSaveListener(newSupervisor -> {
+            refreshSupervisors();
+            if (mSchool.getSupervisor() != null) {
+                mSupervisorComboBox.setSelectedItem(mSchool.getSupervisor());
             } else {
-                mCoachComboBox.setSelectedItem(newCoach);
+                mSupervisorComboBox.setSelectedItem(newSupervisor);
             }
         }).setVisible(true);
     }
@@ -169,15 +169,15 @@ public class AddSchoolDialog extends BaseDialog {
 
         buttonSave.addActionListener(e -> buttonSaveActionPerformed());
         buttonCancel.addActionListener(e -> buttonCancelActionPerformed());
-        mNewCoachButton.addActionListener(e -> buttonNewCoachActionPerformed());
+        mNewSupervisorButton.addActionListener(e -> buttonNewSupervisorActionPerformed());
 
-        mCoachComboBox.setVisible(false);
-        mCoachLabel.setVisible(false);
-        mNewCoachButton.setVisible(false);
+        mSupervisorComboBox.setVisible(false);
+        mSupervisorLabel.setVisible(false);
+        mNewSupervisorButton.setVisible(false);
 
         mTextAreaFullName.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
 
-        initCoaches();
+        initSupervisor();
 
         pack();
     }
@@ -189,9 +189,9 @@ public class AddSchoolDialog extends BaseDialog {
         mSchool.setName(mTextAreaFullName.getText());
         mSchool.setShortName(mTextFieldShortName.getText());
         mSchool.setSettlement(mTextFieldSettlement.getText());
-        Coach coach = (Coach) mCoachComboBox.getSelectedItem();
-        if (coach != null) {
-            mSchool.setCoach(coach);
+        Supervisor supervisor = (Supervisor) mSupervisorComboBox.getSelectedItem();
+        if (supervisor != null) {
+            mSchool.setSupervisor(supervisor);
         }
         try {
             Database.get().getSchoolDao().createOrUpdate(mSchool);
@@ -267,14 +267,14 @@ public class AddSchoolDialog extends BaseDialog {
         panel3.add(mTextFieldShortName, new GridConstraints(1, 1, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
         mTextFieldSettlement = new JTextField();
         panel3.add(mTextFieldSettlement, new GridConstraints(2, 1, 1, 2, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, new Dimension(150, -1), null, 0, false));
-        mCoachLabel = new JLabel();
-        mCoachLabel.setText("Edző:");
-        panel3.add(mCoachLabel, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        mCoachComboBox = new JComboBox();
-        panel3.add(mCoachComboBox, new GridConstraints(3, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        mNewCoachButton = new JButton();
-        mNewCoachButton.setText("Új Edző");
-        panel3.add(mNewCoachButton, new GridConstraints(3, 2, 1, 1, GridConstraints.ANCHOR_EAST, GridConstraints.FILL_NONE, 1, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        mSupervisorLabel = new JLabel();
+        mSupervisorLabel.setText("Edző:");
+        panel3.add(mSupervisorLabel, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_NONE, GridConstraints.SIZEPOLICY_FIXED, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        mSupervisorComboBox = new JComboBox();
+        panel3.add(mSupervisorComboBox, new GridConstraints(3, 1, 1, 1, GridConstraints.ANCHOR_WEST, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        mNewSupervisorButton = new JButton();
+        mNewSupervisorButton.setText("Új Edző");
+        panel3.add(mNewSupervisorButton, new GridConstraints(3, 2, 1, 1, GridConstraints.ANCHOR_EAST, GridConstraints.FILL_NONE, 1, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
     }
 
     /**

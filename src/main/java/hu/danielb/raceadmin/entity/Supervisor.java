@@ -5,10 +5,10 @@ import com.j256.ormlite.table.DatabaseTable;
 
 import java.util.Objects;
 
-import hu.danielb.raceadmin.database.dao.CoachDao;
+import hu.danielb.raceadmin.database.dao.SupervisorDao;
 
-@DatabaseTable(tableName = "coach", daoClass = CoachDao.class)
-public class Coach {
+@DatabaseTable(tableName = "supervisor", daoClass = SupervisorDao.class)
+public class Supervisor {
 
     public static final String COLUMN_SCHOOL_ID = "school_id";
     public static final String COLUMN_NAME = "name";
@@ -24,14 +24,14 @@ public class Coach {
     @DatabaseField(foreign = true, foreignAutoRefresh = true, columnName = COLUMN_SCHOOL_ID)
     private School school = new School();
 
-    public Coach() {
+    public Supervisor() {
     }
 
-    public Coach(int id) {
+    public Supervisor(int id) {
         mId = id;
     }
 
-    public Coach(int id, String name, Type type) {
+    public Supervisor(int id, String name, Type type) {
         mId = id;
         mName = name;
         mType = type;
@@ -72,9 +72,9 @@ public class Coach {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Coach)) return false;
-        Coach coach = (Coach) o;
-        return mId == coach.mId;
+        if (!(o instanceof Supervisor)) return false;
+        Supervisor supervisor = (Supervisor) o;
+        return mId == supervisor.mId;
     }
 
     @Override
