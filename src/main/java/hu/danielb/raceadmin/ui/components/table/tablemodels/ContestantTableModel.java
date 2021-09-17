@@ -1,9 +1,9 @@
 package hu.danielb.raceadmin.ui.components.table.tablemodels;
 
-import hu.danielb.raceadmin.entity.Contestant;
-
 import java.util.Arrays;
 import java.util.List;
+
+import hu.danielb.raceadmin.entity.Contestant;
 
 public class ContestantTableModel extends BaseTableModel<Contestant> {
 
@@ -12,6 +12,7 @@ public class ContestantTableModel extends BaseTableModel<Contestant> {
 
     public ContestantTableModel(List<Contestant> data) {
         super(Arrays.asList(
+                "",
                 "Helyezés",
                 "Név",
                 "Rajtszám",
@@ -25,6 +26,8 @@ public class ContestantTableModel extends BaseTableModel<Contestant> {
 
     @Override
     public Object getValueAt(int row, int column) {
+        if (column == Column.COUNTER.ordinal())
+            return row;
         if (column == Column.POSITION.ordinal())
             return mData.get(row).getPositionString();
         if (column == Column.NAME.ordinal())
@@ -89,6 +92,7 @@ public class ContestantTableModel extends BaseTableModel<Contestant> {
     }
 
     public enum Column {
+        COUNTER,
         POSITION,
         NAME,
         NUMBER,

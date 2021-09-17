@@ -1,17 +1,5 @@
 package hu.danielb.raceadmin.ui;
 
-import hu.danielb.raceadmin.database.Database;
-import hu.danielb.raceadmin.entity.Contestant;
-import hu.danielb.raceadmin.entity.School;
-import hu.danielb.raceadmin.ui.components.ButtonEditor;
-import hu.danielb.raceadmin.ui.components.ButtonRenderer;
-import hu.danielb.raceadmin.ui.components.table.tablemodels.ContestantTableModel;
-import hu.danielb.raceadmin.util.Constants;
-import hu.danielb.raceadmin.util.Printer;
-
-import javax.swing.*;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableColumn;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -25,6 +13,19 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
+import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.table.TableColumn;
+
+import hu.danielb.raceadmin.database.Database;
+import hu.danielb.raceadmin.entity.Contestant;
+import hu.danielb.raceadmin.entity.School;
+import hu.danielb.raceadmin.ui.components.ButtonEditor;
+import hu.danielb.raceadmin.ui.components.ButtonRenderer;
+import hu.danielb.raceadmin.ui.components.table.tablemodels.ContestantTableModel;
+import hu.danielb.raceadmin.util.Constants;
+import hu.danielb.raceadmin.util.Printer;
 
 class ContestantsDialog extends BaseDialog {
 
@@ -261,6 +262,7 @@ class ContestantsDialog extends BaseDialog {
     private void loadData(List<Contestant> data) {
 
         tableContestants.setModel(new ContestantTableModel(data).setSortBy(sortBy).setSortBackwards(sortBackwards));
+        setColumnWidth(ContestantTableModel.Column.COUNTER.ordinal(), 35);
         setColumnWidth(ContestantTableModel.Column.POSITION.ordinal(), 60);
         setColumnWidth(ContestantTableModel.Column.NUMBER.ordinal(), 60);
         setColumnWidth(ContestantTableModel.Column.AGE.ordinal(), 70);
