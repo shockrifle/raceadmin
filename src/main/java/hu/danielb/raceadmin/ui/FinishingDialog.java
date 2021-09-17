@@ -1,13 +1,7 @@
 package hu.danielb.raceadmin.ui;
 
 import com.j256.ormlite.dao.GenericRawResults;
-import hu.danielb.raceadmin.database.Database;
-import hu.danielb.raceadmin.entity.AgeGroup;
-import hu.danielb.raceadmin.entity.Contestant;
-import hu.danielb.raceadmin.ui.listeners.FinishingListener;
-import hu.danielb.raceadmin.util.Constants;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.sql.SQLException;
@@ -18,6 +12,14 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
+import javax.swing.*;
+
+import hu.danielb.raceadmin.database.Database;
+import hu.danielb.raceadmin.entity.AgeGroup;
+import hu.danielb.raceadmin.entity.Contestant;
+import hu.danielb.raceadmin.ui.listeners.FinishingListener;
+import hu.danielb.raceadmin.util.Constants;
 
 //import java.util.Timer;
 
@@ -101,9 +103,6 @@ class FinishingDialog extends BaseDialog {
         JLabel labelAgeGroup = new JLabel();
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setMaximumSize(new java.awt.Dimension(380, 322));
-        setMinimumSize(new java.awt.Dimension(380, 322));
-        setPreferredSize(new java.awt.Dimension(380, 322));
         setResizable(false);
 
         buttonEnd.setText("Vége");
@@ -381,7 +380,7 @@ class FinishingDialog extends BaseDialog {
             while (i < 300) {
                 long curentTime = System.currentTimeMillis();
                 if (curentTime > mTime + 25) {
-                    textNumber.setBackground(new Color(255, i > 255 ? 255 : i, i > 255 ? 255 : i));
+                    textNumber.setBackground(new Color(255, Math.min(i, 255), Math.min(i, 255)));
                     i += 25;
                     mTime = curentTime;
                 }
@@ -401,7 +400,7 @@ class FinishingDialog extends BaseDialog {
     }
 
 
-    private class Positions {
+    private static class Positions {
         Map<String, Integer> positions = new HashMap<>();
 
         Positions() {
