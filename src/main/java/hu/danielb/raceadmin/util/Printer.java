@@ -1,8 +1,5 @@
 package hu.danielb.raceadmin.util;
 
-import hu.danielb.raceadmin.ui.TableHolder;
-
-import javax.swing.*;
 import java.awt.*;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
@@ -10,16 +7,20 @@ import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
 import java.util.Arrays;
 
+import javax.swing.*;
+
+import hu.danielb.raceadmin.ui.TableHolder;
+
 public class Printer implements Printable {
 
     private static final String FONT = "Times New Roman";
-    private String mTitle;
-    private JTable mTable;
+    private final String mTitle;
+    private final JTable mTable;
+    private final boolean mIsTeam;
+    private final JLabel mLabel;
     private String[] mHeader;
     private int numOfRowsPrinted;
     private int firstPageRows;
-    private boolean mIsTeam;
-    private JLabel mLabel;
 
     public Printer(TableHolder tableToPrint) {
         this("", tableToPrint, null);
@@ -32,7 +33,7 @@ public class Printer implements Printable {
     public Printer(String title, TableHolder tableToPrint, String[] header, boolean isTeam) {
         mTitle = title;
         mTable = tableToPrint.getTable();
-        mLabel = tableToPrint.getCoach();
+        mLabel = tableToPrint.getSupervisor();
         if (header != null) {
             mHeader = Arrays.copyOf(header, header.length);
         }
@@ -49,7 +50,7 @@ public class Printer implements Printable {
     }
 
     @Override
-    public int print(Graphics graphics, PageFormat pageFormat, int pageIndex) throws PrinterException {
+    public int print(Graphics graphics, PageFormat pageFormat, int pageIndex) {
         Graphics2D graphicToPrint = (Graphics2D) graphics;
 
         graphicToPrint.setColor(Color.black);
@@ -59,7 +60,7 @@ public class Printer implements Printable {
 
         double pageHeight = pageFormat.getImageableHeight();
         double pageWidth = pageFormat.getImageableWidth();
-        double tableWidth = (double) mTable.getColumnModel().getTotalColumnWidth();
+        double tableWidth = mTable.getColumnModel().getTotalColumnWidth();
         double scale = 1;
         if (tableWidth >= pageWidth) {
             scale = (pageWidth / tableWidth);
@@ -102,11 +103,10 @@ public class Printer implements Printable {
         if (mIsTeam) {
             oneRowHeight *= 4;
         }
-        int numOfRowsOnAPage;
 
         double tablesHeightBefore;
+        int numOfRowsOnAPage = (int) Math.floor((pageHeight - currentDrawHeight - headerHeightOnPage - fontHeight) / oneRowHeight);
         if (pageIndex < 1) {
-            numOfRowsOnAPage = (int) Math.floor((pageHeight - currentDrawHeight - headerHeightOnPage - fontHeight) / oneRowHeight);
             firstPageRows = numOfRowsOnAPage;
 
             double tableHeightForPage = oneRowHeight * (double) numOfRowsOnAPage;
@@ -120,11 +120,7 @@ public class Printer implements Printable {
             graphicToPrint.scale(scale, scale);
             mTable.paint(graphicToPrint);
             graphicToPrint.scale(1 / scale, 1 / scale);
-            if (pageIndex < 1) {
-                graphicToPrint.translate(0f, -headerHeightOnPage);
-            } else {
-                graphicToPrint.translate(0f, -((-tableHeightForPage * (pageIndex - 1)) - tableHeightForPage + headerHeightOnPage));
-            }
+            graphicToPrint.translate(0f, -headerHeightOnPage);
             graphicToPrint.setClip(0, 0, (int) Math.ceil(tableWidthOnPage), (int) Math.ceil(headerHeightOnPage));
             graphicToPrint.scale(scale, scale);
             mTable.getTableHeader().paint(graphicToPrint);
@@ -133,19 +129,12 @@ public class Printer implements Printable {
 
         } else {
 
-            numOfRowsOnAPage = (int) Math.floor((pageHeight - currentDrawHeight - headerHeightOnPage - fontHeight) / oneRowHeight);
-
             numOfRowsPrinted = firstPageRows + numOfRowsOnAPage * (pageIndex - 1);
             int rowsLeft = mTable.getRowCount() - (mIsTeam ? numOfRowsPrinted * 4 : numOfRowsPrinted);
             if (rowsLeft < 1) {
                 return NO_SUCH_PAGE;
             }
-            int numOfRowsOnThisPage;
-            if (rowsLeft > numOfRowsOnAPage) {
-                numOfRowsOnThisPage = numOfRowsOnAPage;
-            } else {
-                numOfRowsOnThisPage = rowsLeft;
-            }
+            int numOfRowsOnThisPage = Math.min(rowsLeft, numOfRowsOnAPage);
             tablesHeightBefore = oneRowHeight * (double) (numOfRowsPrinted);
 
             double tableHeightForPage = oneRowHeight * (double) (numOfRowsOnThisPage);
@@ -165,11 +154,7 @@ public class Printer implements Printable {
             graphicToPrint.scale(scale, scale);
             mTable.paint(graphicToPrint);
             graphicToPrint.scale(1 / scale, 1 / scale);
-            if (pageIndex < 1) {
-                graphicToPrint.translate(0f, -headerHeightOnPage);
-            } else {
-                graphicToPrint.translate(0f, -(headerHeightOnPage - tablesHeightBefore));
-            }
+            graphicToPrint.translate(0f, -(headerHeightOnPage - tablesHeightBefore));
             graphicToPrint.setClip(0, 0, (int) Math.ceil(tableWidthOnPage), (int) Math.ceil(headerHeightOnPage));
             graphicToPrint.scale(scale, scale);
             mTable.getTableHeader().paint(graphicToPrint);

@@ -5,12 +5,21 @@ import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.logger.LocalLog;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
-import hu.danielb.raceadmin.database.dao.*;
-import hu.danielb.raceadmin.database.listeners.DatabaseListener;
-import hu.danielb.raceadmin.entity.*;
-import hu.danielb.raceadmin.util.Properties;
 
 import java.sql.SQLException;
+
+import hu.danielb.raceadmin.database.dao.AgeGroupDao;
+import hu.danielb.raceadmin.database.dao.ContestantDao;
+import hu.danielb.raceadmin.database.dao.SchoolDao;
+import hu.danielb.raceadmin.database.dao.SettingDao;
+import hu.danielb.raceadmin.database.dao.SupervisorDao;
+import hu.danielb.raceadmin.database.listeners.DatabaseListener;
+import hu.danielb.raceadmin.entity.AgeGroup;
+import hu.danielb.raceadmin.entity.Contestant;
+import hu.danielb.raceadmin.entity.School;
+import hu.danielb.raceadmin.entity.Setting;
+import hu.danielb.raceadmin.entity.Supervisor;
+import hu.danielb.raceadmin.util.Properties;
 
 public class Database {
 
@@ -20,7 +29,7 @@ public class Database {
     private AgeGroupDao ageGroupDao;
     private ContestantDao contestantDao;
     private SchoolDao schoolDao;
-    private CoachDao coachDao;
+    private SupervisorDao supervisorDao;
     private SettingDao settingDao;
     private boolean backedUp = false;
 
@@ -50,7 +59,7 @@ public class Database {
         ageGroupDao = DaoManager.createDao(connectionSource, AgeGroup.class);
         contestantDao = DaoManager.createDao(connectionSource, Contestant.class);
         schoolDao = DaoManager.createDao(connectionSource, School.class);
-        coachDao = DaoManager.createDao(connectionSource, Coach.class);
+        supervisorDao = DaoManager.createDao(connectionSource, Supervisor.class);
         settingDao = DaoManager.createDao(connectionSource, Setting.class);
 
 
@@ -58,7 +67,7 @@ public class Database {
         ageGroupDao.addListener(listener);
         contestantDao.addListener(listener);
         schoolDao.addListener(listener);
-        coachDao.addListener(listener);
+        supervisorDao.addListener(listener);
         settingDao.addListener(listener);
     }
 
@@ -66,7 +75,7 @@ public class Database {
         TableUtils.createTableIfNotExists(connectionSource, AgeGroup.class);
         TableUtils.createTableIfNotExists(connectionSource, Contestant.class);
         TableUtils.createTableIfNotExists(connectionSource, School.class);
-        TableUtils.createTableIfNotExists(connectionSource, Coach.class);
+        TableUtils.createTableIfNotExists(connectionSource, Supervisor.class);
         TableUtils.createTableIfNotExists(connectionSource, Setting.class);
     }
 
@@ -82,8 +91,8 @@ public class Database {
         return schoolDao;
     }
 
-    public CoachDao getCoachDao() {
-        return coachDao;
+    public SupervisorDao getSupervisorDao() {
+        return supervisorDao;
     }
 
     public SettingDao getSettingDao() {

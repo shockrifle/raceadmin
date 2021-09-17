@@ -3,32 +3,32 @@ package hu.danielb.raceadmin.ui.components.table.tablemodels;
 import java.util.Arrays;
 import java.util.List;
 
-import hu.danielb.raceadmin.entity.Coach;
+import hu.danielb.raceadmin.entity.Supervisor;
 
-public class CoachTableModel extends SortableAttributiveCellTableModel<Coach> {
+public class SupervisorTableModel extends SortableAttributiveCellTableModel<Supervisor> {
 
-    public static final List<ColumnModel<Coach>> COLUMN_MODELS = Arrays.asList(
-            new ColumnModel.Builder<Coach>()
+    public static final List<ColumnModel<Supervisor>> COLUMN_MODELS = Arrays.asList(
+            new ColumnModel.Builder<Supervisor>()
                     .setName("Név")
-                    .setGetter(Coach::getName)
+                    .setGetter(Supervisor::getName)
                     .setWidth(285)
                     .setComparator(o -> o.getName().toLowerCase())
                     .build(),
-            new ColumnModel.Builder<Coach>()
+            new ColumnModel.Builder<Supervisor>()
                     .setOrdinal(1)
                     .setName("Iskola")
-                    .setGetter(coach -> coach.getSchool() != null ? coach.getSchool().getNameWithSettlement() : "")
+                    .setGetter(supervisor -> supervisor.getSchool() != null ? supervisor.getSchool().getNameWithSettlement() : "")
                     .setWidth(310)
                     .setComparator(o -> o.getSchool() != null ? o.getSchool().getNameWithSettlement() : "")
                     .build(),
-            new ColumnModel.Builder<Coach>()
+            new ColumnModel.Builder<Supervisor>()
                     .setOrdinal(2)
                     .setName("Típus")
-                    .setGetter(coach -> coach.getType() != null ? coach.getType().getName() : "")
+                    .setGetter(supervisor -> supervisor.getType() != null ? supervisor.getType().getName() : "")
                     .setWidth(90)
                     .setComparator(o -> o.getType() != null ? o.getType().getName() : "")
                     .build(),
-            new ColumnModel.Builder<Coach>()
+            new ColumnModel.Builder<Supervisor>()
                     .setOrdinal(3)
                     .setGetter(data -> "Szerkesztés")
                     .setWidth(90)
@@ -36,7 +36,7 @@ public class CoachTableModel extends SortableAttributiveCellTableModel<Coach> {
                     .setSortable(false)
                     .build());
 
-    public CoachTableModel(List<Coach> data) {
+    public SupervisorTableModel(List<Supervisor> data) {
         super(COLUMN_MODELS, data);
     }
 

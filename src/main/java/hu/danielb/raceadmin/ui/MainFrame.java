@@ -36,9 +36,9 @@ import javax.swing.table.TableColumn;
 import hu.danielb.raceadmin.database.Database;
 import hu.danielb.raceadmin.database.dao.SettingDao;
 import hu.danielb.raceadmin.entity.AgeGroup;
-import hu.danielb.raceadmin.entity.Coach;
 import hu.danielb.raceadmin.entity.Contestant;
 import hu.danielb.raceadmin.entity.School;
+import hu.danielb.raceadmin.entity.Supervisor;
 import hu.danielb.raceadmin.entity.Team;
 import hu.danielb.raceadmin.ui.components.GenericTabbedPane;
 import hu.danielb.raceadmin.ui.components.table.CellSpan;
@@ -80,9 +80,9 @@ public class MainFrame extends javax.swing.JFrame {
         mainFrame.setVisible(true);
     }
 
-    private static String getTypeString(Coach coach) {
+    private static String getTypeString(Supervisor supervisor) {
         String typeString = "";
-        switch (coach.getType()) {
+        switch (supervisor.getType()) {
             case COACH:
                 typeString = "edzője";
                 break;
@@ -107,7 +107,7 @@ public class MainFrame extends javax.swing.JFrame {
         JMenuItem menuItemFinisher = new JMenuItem();
         JMenuItem menuItemContestants = new JMenuItem();
         JMenuItem menuItemSchools = new JMenuItem();
-        JMenuItem menuItemCoaches = new JMenuItem();
+        JMenuItem menuItemSupervisors = new JMenuItem();
         JMenuItem menuItemSettings = new JMenuItem();
         JMenu menuHelp = new JMenu();
         JMenuItem menuItemAbout = new JMenuItem();
@@ -184,9 +184,9 @@ public class MainFrame extends javax.swing.JFrame {
         menuItemSchools.addActionListener(e -> menuItemSchoolsActionPerformed());
         menuEdit.add(menuItemSchools);
 
-        menuItemCoaches.setText("Edzők/Tanárok");
-        menuItemCoaches.addActionListener(e -> menuItemCoachesActionPerformed());
-        menuEdit.add(menuItemCoaches);
+        menuItemSupervisors.setText("Edzők/Tanárok");
+        menuItemSupervisors.addActionListener(e -> menuItemSupervisorsActionPerformed());
+        menuEdit.add(menuItemSupervisors);
 
         menuItemSettings.setText("Beállítások");
         menuItemSettings.addActionListener(e -> menuItemSettingsActionPerformed());
@@ -294,8 +294,8 @@ public class MainFrame extends javax.swing.JFrame {
         loadData();
     }
 
-    private void menuItemCoachesActionPerformed() {
-        CoachesDialog dial = new CoachesDialog(this);
+    private void menuItemSupervisorsActionPerformed() {
+        SupervisorDialog dial = new SupervisorDialog(this);
         dial.setVisible(true);
         loadData();
     }
@@ -654,13 +654,13 @@ public class MainFrame extends javax.swing.JFrame {
         if (data != null && !data.isEmpty()) {
             Team first = data.get(0);
             if (first != null) {
-                String coachName = "";
-                Coach coach = first.getMembers().get(0).getSchool().getCoach();
-                if (coach != null) {
-                    coachName = coach.getName();
+                String supervisorName = "";
+                Supervisor supervisor = first.getMembers().get(0).getSchool().getSupervisor();
+                if (supervisor != null) {
+                    supervisorName = supervisor.getName();
                 }
-                if (!coachName.isEmpty()) {
-                    tableHolder.mLabel.setText("Bajnok csapat " + getTypeString(coach) + ": " + coachName);
+                if (!supervisorName.isEmpty()) {
+                    tableHolder.mLabel.setText("Bajnok csapat " + getTypeString(supervisor) + ": " + supervisorName);
                 }
             }
         }
@@ -683,9 +683,9 @@ public class MainFrame extends javax.swing.JFrame {
         if (data != null && !data.isEmpty()) {
             Contestant first = data.get(0);
             if (first != null && first.getPosition() > 0) {
-                Coach coach = DataUtils.getCoach(first);
-                if (coach != null) {
-                    tableHolder.mLabel.setText("Bajnok " + getTypeString(coach) + ": " + coach.getName());
+                Supervisor supervisor = DataUtils.getSupervisor(first);
+                if (supervisor != null) {
+                    tableHolder.mLabel.setText("Bajnok " + getTypeString(supervisor) + ": " + supervisor.getName());
                 }
             }
         }
@@ -765,11 +765,11 @@ public class MainFrame extends javax.swing.JFrame {
             return contestants;
         }
 
-        public String getCoach() {
+        public String getSupervisor() {
             if (!contestants.isEmpty()) {
-                Coach coach = DataUtils.getCoach(contestants.get(0));
-                if (coach != null) {
-                    return "Bajnok " + getTypeString(coach) + ": " + coach.getName();
+                Supervisor supervisor = DataUtils.getSupervisor(contestants.get(0));
+                if (supervisor != null) {
+                    return "Bajnok " + getTypeString(supervisor) + ": " + supervisor.getName();
                 }
             }
             return "";
@@ -790,11 +790,11 @@ public class MainFrame extends javax.swing.JFrame {
             return teams;
         }
 
-        public String getCoach() {
+        public String getSupervisor() {
             if (!teams.isEmpty()) {
-                Coach coach = DataUtils.getCoach(teams.get(0).getMembers().get(0));
-                if (coach != null) {
-                    return "Bajnok csapat " + getTypeString(coach) + ": " + coach.getName();
+                Supervisor supervisor = DataUtils.getSupervisor(teams.get(0).getMembers().get(0));
+                if (supervisor != null) {
+                    return "Bajnok csapat " + getTypeString(supervisor) + ": " + supervisor.getName();
                 }
             }
             return "";

@@ -15,7 +15,7 @@ public class TableHolder {
         return mTable;
     }
 
-    public JLabel getCoach() {
+    public JLabel getSupervisor() {
         return mLabel;
     }
 }
