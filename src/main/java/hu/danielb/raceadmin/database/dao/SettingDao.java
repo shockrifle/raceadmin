@@ -1,16 +1,18 @@
 package hu.danielb.raceadmin.database.dao;
 
 import com.j256.ormlite.support.ConnectionSource;
-import hu.danielb.raceadmin.entity.Setting;
 
 import java.sql.SQLException;
 import java.util.Date;
+
+import hu.danielb.raceadmin.entity.Setting;
 
 public class SettingDao extends BaseDaoWithListener<Setting, String> {
     private static final String PRINT_HEADER_TITLE = "print_header_title";
     private static final String PRINT_HEADER_SUBTITLE = "print_header_subtitle";
     private static final String HIDE_DISQUALIFIED = "hide_disqualified";
     private static final String ONLY_TEAM_ENTRIES = "only_team_entries";
+    private static final String CONTESTANT_COUNTER = "contestant_counter";
     private static final String RACE_DATE = "race_date";
 
     public SettingDao(ConnectionSource connectionSource, Class<Setting> dataClass) throws SQLException {
@@ -105,6 +107,14 @@ public class SettingDao extends BaseDaoWithListener<Setting, String> {
 
     public boolean getOnlyTeamEntries() {
         return getBoolean(ONLY_TEAM_ENTRIES, true);
+    }
+
+    public void saveContestantCounter(boolean enabled) {
+        putBoolean(CONTESTANT_COUNTER, enabled);
+    }
+
+    public boolean getContestantCounter() {
+        return getBoolean(CONTESTANT_COUNTER, true);
     }
 
     public void savePrintHeaderTitle(String title) {
