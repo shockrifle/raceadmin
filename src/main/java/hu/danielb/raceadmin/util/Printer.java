@@ -5,7 +5,9 @@ import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import javax.swing.*;
 
@@ -76,10 +78,16 @@ public class Printer implements Printable {
 
         Font tmpFont = graphicToPrint.getFont();
         if (pageIndex < 1 && mHeader != null) {
-            graphicToPrint.setFont(new Font(FONT, Font.BOLD, 18));
+            graphicToPrint.setFont(new Font(FONT, Font.BOLD, 22));
+
+            List<String> strings = calculateSplits(pageWidth, graphicToPrint.getFontMetrics(), mHeader[0]);
 
             currentDrawHeight += getFontDrawHeight(graphicToPrint);
-            graphicToPrint.drawString(mHeader[0], 0, (float) currentDrawHeight);
+            for (String string : strings) {
+                currentDrawHeight += getFontDrawHeight(graphicToPrint);
+                graphicToPrint.drawString(string, (float) (pageWidth / 2 - graphicToPrint.getFontMetrics().stringWidth(string) / 2), (float) currentDrawHeight);
+            }
+            currentDrawHeight += getFontDrawHeight(graphicToPrint);
 
             graphicToPrint.setFont(new Font(FONT, Font.PLAIN, 16));
 
@@ -163,6 +171,25 @@ public class Printer implements Printable {
         }
 
         return Printable.PAGE_EXISTS;
+    }
+
+    private java.util.List<String> calculateSplits(double pageWidth, FontMetrics metrics, String text) {
+        java.util.List<String> splits = new ArrayList<>();
+        String[] words = text.split(" ");
+        for (String word : words) {
+            if (splits.isEmpty()) {
+                splits.add(word);
+            } else {
+                String split = splits.get(splits.size() - 1);
+                String newSplit = split + " " + word;
+                if (metrics.stringWidth(newSplit) < pageWidth) {
+                    splits.set(splits.size() - 1, newSplit);
+                } else {
+                    splits.add(word);
+                }
+            }
+        }
+        return splits;
     }
 
     private int getFontDrawHeight(Graphics2D graphicToPrint) {
