@@ -255,7 +255,8 @@ public class MainFrame extends javax.swing.JFrame {
             SettingDao settingDao = Database.get().getSettingDao();
             headerString = new String[]{
                     settingDao.getPrintHeaderTitle(),
-                    settingDao.getPrintHeaderSubtitle() + " " + DateUtils.formatDate(settingDao.getRaceDate())
+                    settingDao.getPrintHeaderSubtitle(),
+                    DateUtils.formatDate(settingDao.getRaceDate())
             };
         } catch (SQLException e) {
             e.printStackTrace();

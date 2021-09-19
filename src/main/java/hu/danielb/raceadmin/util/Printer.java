@@ -77,24 +77,29 @@ public class Printer implements Printable {
 
 
         Font tmpFont = graphicToPrint.getFont();
-        if (pageIndex < 1 && mHeader != null) {
+        if (pageIndex < 1 && mHeader != null && mHeader.length > 0) {
             graphicToPrint.setFont(new Font(FONT, Font.BOLD, 22));
 
-            List<String> strings = calculateSplits(pageWidth, graphicToPrint.getFontMetrics(), mHeader[0]);
+            List<String> title = calculateSplits(pageWidth, graphicToPrint.getFontMetrics(), mHeader[0]);
 
             currentDrawHeight += getFontDrawHeight(graphicToPrint);
-            for (String string : strings) {
+            for (String string : title) {
                 currentDrawHeight += getFontDrawHeight(graphicToPrint);
                 graphicToPrint.drawString(string, (float) (pageWidth / 2 - graphicToPrint.getFontMetrics().stringWidth(string) / 2), (float) currentDrawHeight);
             }
             currentDrawHeight += getFontDrawHeight(graphicToPrint);
 
-            graphicToPrint.setFont(new Font(FONT, Font.PLAIN, 16));
+            graphicToPrint.setFont(new Font(FONT, Font.PLAIN, 18));
 
             for (int i = 1; i < mHeader.length; i++) {
-                currentDrawHeight += getFontDrawHeight(graphicToPrint);
-                graphicToPrint.drawString(mHeader[i], 0, (float) currentDrawHeight);
+                List<String> subtitle = calculateSplits(pageWidth, graphicToPrint.getFontMetrics(), mHeader[i]);
+                for (String string : subtitle) {
+                    currentDrawHeight += getFontDrawHeight(graphicToPrint);
+                    graphicToPrint.drawString(string, (float) (pageWidth / 2 - graphicToPrint.getFontMetrics().stringWidth(string) / 2), (float) currentDrawHeight);
+                }
             }
+            currentDrawHeight += getFontDrawHeight(graphicToPrint);
+
         }
         if (!mTitle.isEmpty()) {
             graphicToPrint.setFont(new Font(FONT, Font.ITALIC, 12));
