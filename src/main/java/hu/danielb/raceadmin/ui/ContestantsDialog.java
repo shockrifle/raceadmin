@@ -172,13 +172,18 @@ class ContestantsDialog extends BaseDialog {
     }
 
     private void menuItemPrintActionPerformed() {
-        try {
-            setColumnWidth(ContestantTableModel.Column.EDIT.ordinal(), 0);
-            new Printer(new TableHolder(tableContestants, null)).print();
-            setColumnWidth(ContestantTableModel.Column.EDIT.ordinal(), COLUMN_SIZE_EDIT);
-        } catch (PrinterException | HeadlessException ex) {
-            Logger.getLogger(ContestantsDialog.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        LoadingDialog dialog = new LoadingDialog(this, "Nyomtatás...");
+        new Thread(() -> {
+            try {
+                setColumnWidth(ContestantTableModel.Column.EDIT.ordinal(), 0);
+                new Printer(new TableHolder(tableContestants, null)).print();
+                setColumnWidth(ContestantTableModel.Column.EDIT.ordinal(), COLUMN_SIZE_EDIT);
+            } catch (PrinterException | HeadlessException ex) {
+                Logger.getLogger(ContestantsDialog.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            dialog.dispose();
+        }).start();
+        dialog.setVisible(true);
     }
 
     private void comboSchoolsActionPerformed() {
