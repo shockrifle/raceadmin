@@ -1,14 +1,20 @@
 package hu.danielb.raceadmin.util;
 
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 
 import hu.danielb.raceadmin.ui.TableHolder;
@@ -87,19 +93,50 @@ public class Printer implements Printable {
                 currentDrawHeight += getFontDrawHeight(graphicToPrint);
                 graphicToPrint.drawString(string, (float) (pageWidth / 2 - graphicToPrint.getFontMetrics().stringWidth(string) / 2), (float) currentDrawHeight);
             }
-            currentDrawHeight += getFontDrawHeight(graphicToPrint);
+            double logoStartHeight = currentDrawHeight;
 
             graphicToPrint.setFont(new Font(FONT, Font.PLAIN, 18));
 
+            currentDrawHeight += getFontDrawHeight(graphicToPrint);
+
+            int subtitleHeight = 0;
             for (int i = 1; i < mHeader.length; i++) {
-                List<String> subtitle = calculateSplits(pageWidth, graphicToPrint.getFontMetrics(), mHeader[i]);
+                List<String> subtitle = calculateSplits(pageWidth / 2, graphicToPrint.getFontMetrics(), mHeader[i]);
                 for (String string : subtitle) {
+                    subtitleHeight++;
                     currentDrawHeight += getFontDrawHeight(graphicToPrint);
                     graphicToPrint.drawString(string, (float) (pageWidth / 2 - graphicToPrint.getFontMetrics().stringWidth(string) / 2), (float) currentDrawHeight);
                 }
             }
             currentDrawHeight += getFontDrawHeight(graphicToPrint);
 
+            try {
+                double maxLogoHeight = (2 + subtitleHeight) * getFontDrawHeight(graphicToPrint);
+                double maxLogoWidth = pageWidth / 4;
+                double maxLogoRatio = maxLogoHeight / maxLogoWidth;
+
+                InputStream resource = this.getClass().getClassLoader().getResourceAsStream("images/hunyadi.png");
+                if (resource != null) {
+                    BufferedImage image = ImageIO.read(resource);
+
+                    int w = image.getWidth(null);
+                    int h = image.getHeight(null);
+
+                    double ratio = (float) h / (float) w;
+                    double rescaleRatio;
+                    if (maxLogoRatio > ratio) {
+                        rescaleRatio = maxLogoWidth / w;
+                    } else {
+                        rescaleRatio = maxLogoHeight / h;
+                    }
+                    int newW = (int) (w * rescaleRatio);
+                    int newH = (int) (h * rescaleRatio);
+
+                    graphicToPrint.drawImage(image, (int) pageWidth - newW - (int) (maxLogoWidth / 2 - newW / 2), (int) logoStartHeight, newW, newH, null);
+                }
+            } catch (IOException e) {
+                Logger.getLogger(Printer.class.getName()).log(Level.WARNING, "cannot read logo", e);
+            }
         }
         if (!mTitle.isEmpty()) {
             graphicToPrint.setFont(new Font(FONT, Font.ITALIC, 12));
