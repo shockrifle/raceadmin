@@ -82,13 +82,15 @@ public class MainFrame extends javax.swing.JFrame {
 
     private static String getTypeString(Supervisor supervisor) {
         String typeString = "";
-        switch (supervisor.getType()) {
-            case COACH:
-                typeString = "edzője";
-                break;
-            case TEACHER:
-                typeString = "tanára";
-                break;
+        if (supervisor != null && supervisor.getType() != null) {
+            switch (supervisor.getType()) {
+                case COACH:
+                    typeString = "edzője";
+                    break;
+                case TEACHER:
+                    typeString = "tanára";
+                    break;
+            }
         }
         return typeString;
     }
@@ -659,13 +661,12 @@ public class MainFrame extends javax.swing.JFrame {
         if (data != null && !data.isEmpty()) {
             Team first = data.get(0);
             if (first != null) {
-                String supervisorName = "";
                 Supervisor supervisor = first.getMembers().get(0).getSchool().getSupervisor();
                 if (supervisor != null) {
-                    supervisorName = supervisor.getName();
-                }
-                if (!supervisorName.isEmpty()) {
-                    tableHolder.mLabel.setText("Bajnok csapat " + getTypeString(supervisor) + ": " + supervisorName);
+                    String supervisorName = supervisor.getName();
+                    if (!supervisorName.isEmpty()) {
+                        tableHolder.mLabel.setText("Bajnok csapat " + getTypeString(supervisor) + ": " + supervisorName);
+                    }
                 }
             }
         }
