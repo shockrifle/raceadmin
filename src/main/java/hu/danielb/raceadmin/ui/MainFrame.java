@@ -249,38 +249,42 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void menuItemPrintActionPerformed() {
 
-
-        String[] headerString = new String[]{"", ""};
-        try {
-            SettingDao settingDao = Database.get().getSettingDao();
-            headerString = new String[]{
-                    settingDao.getPrintHeaderTitle(),
-                    settingDao.getPrintHeaderSubtitle(),
-                    DateUtils.formatDate(settingDao.getRaceDate())
-            };
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        if (headerString[0].length() != 0) {
-            // noinspection unchecked
-            GenericTabbedPane<AgeGroup, String> ageGroupTab = (GenericTabbedPane<AgeGroup, String>) ageGroupPane.getComponentAt(ageGroupPane.getSelectedIndex());
-            AgeGroup ageGroup = ageGroupTab.getData();
-            GenericTabbedPane.Tab<String> tab = ageGroupTab.getTab(ageGroupTab.getSelectedIndex());
-
+        LoadingDialog dialog = new LoadingDialog(this, "Nyomtatás...");
+        new Thread(() -> {
+            String[] headerString = new String[]{"", ""};
             try {
-                if (tab.getId().equals(Constants.BOY_TEAM) || tab.getId().equals(Constants.GIRL_TEAM)) {
-                    new Printer(ageGroup.getName() + ", " + tab.getTitle(), tables.get(ageGroup.getId() + tab.getId()), headerString, true).print();
-                } else {
-                    new Printer(ageGroup.getName() + ", " + tab.getTitle(), tables.get(ageGroup.getId() + tab.getId()), headerString).print();
-                }
-            } catch (PrinterException ex) {
-                warn("Nyomtatási hiba!");
-                Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+                SettingDao settingDao = Database.get().getSettingDao();
+                headerString = new String[]{
+                        settingDao.getPrintHeaderTitle(),
+                        settingDao.getPrintHeaderSubtitle(),
+                        DateUtils.formatDate(settingDao.getRaceDate())
+                };
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
-        } else {
-            warn("Nem adott meg nyomtatási fejlécet!\n(Beállítások -> Nyomtatási fejléc)");
-        }
+
+            if (headerString[0].length() != 0) {
+                // noinspection unchecked
+                GenericTabbedPane<AgeGroup, String> ageGroupTab = (GenericTabbedPane<AgeGroup, String>) ageGroupPane.getComponentAt(ageGroupPane.getSelectedIndex());
+                AgeGroup ageGroup = ageGroupTab.getData();
+                GenericTabbedPane.Tab<String> tab = ageGroupTab.getTab(ageGroupTab.getSelectedIndex());
+
+                try {
+                    if (tab.getId().equals(Constants.BOY_TEAM) || tab.getId().equals(Constants.GIRL_TEAM)) {
+                        new Printer(ageGroup.getName() + ", " + tab.getTitle(), tables.get(ageGroup.getId() + tab.getId()), headerString, true).print();
+                    } else {
+                        new Printer(ageGroup.getName() + ", " + tab.getTitle(), tables.get(ageGroup.getId() + tab.getId()), headerString).print();
+                    }
+                } catch (PrinterException ex) {
+                    warn("Nyomtatási hiba!");
+                    Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            } else {
+                warn("Nem adott meg nyomtatási fejlécet!\n(Beállítások -> Nyomtatási fejléc)");
+            }
+            dialog.dispose();
+        }).start();
+        dialog.setVisible(true);
     }
 
     private void menuItemContestantsActionPerformed() {
