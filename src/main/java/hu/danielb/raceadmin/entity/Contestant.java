@@ -36,7 +36,7 @@ public class Contestant {
     @DatabaseField(columnName = COLUMN_AGE)
     private int age;
     @DatabaseField(foreign = true, foreignAutoRefresh = true, columnName = COLUMN_COACH_ID)
-    private Supervisor supervisor = new Supervisor();
+    private Supervisor supervisor;
     @DatabaseField(columnName = COLUMN_TEAM_ENTRY)
     private boolean teamEntry;
 
