@@ -1,34 +1,47 @@
 package hu.danielb.raceadmin.util;
 
-import javax.swing.*;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.imageio.ImageIO;
+import javax.swing.*;
+
+import hu.danielb.raceadmin.ui.TableHolder;
 
 public class Printer implements Printable {
 
     private static final String FONT = "Times New Roman";
-    private String mTitle;
-    private JTable mTable;
+    private final String mTitle;
+    private final JTable mTable;
+    private final boolean mIsTeam;
+    private final JLabel mLabel;
     private String[] mHeader;
     private int numOfRowsPrinted;
     private int firstPageRows;
-    private boolean mIsTeam;
 
-    public Printer(JTable tableToPrint) {
+    public Printer(TableHolder tableToPrint) {
         this("", tableToPrint, null);
     }
 
-    public Printer(String title, JTable tableToPrint, String[] header) {
+    public Printer(String title, TableHolder tableToPrint, String[] header) {
         this(title, tableToPrint, header, false);
     }
 
-    public Printer(String title, JTable tableToPrint, String[] header, boolean isTeam) {
+    public Printer(String title, TableHolder tableToPrint, String[] header, boolean isTeam) {
         mTitle = title;
-        mTable = tableToPrint;
+        mTable = tableToPrint.getTable();
+        mLabel = tableToPrint.getSupervisor();
         if (header != null) {
             mHeader = Arrays.copyOf(header, header.length);
         }
@@ -45,7 +58,7 @@ public class Printer implements Printable {
     }
 
     @Override
-    public int print(Graphics graphics, PageFormat pageFormat, int pageIndex) throws PrinterException {
+    public int print(Graphics graphics, PageFormat pageFormat, int pageIndex) {
         Graphics2D graphicToPrint = (Graphics2D) graphics;
 
         graphicToPrint.setColor(Color.black);
@@ -55,7 +68,7 @@ public class Printer implements Printable {
 
         double pageHeight = pageFormat.getImageableHeight();
         double pageWidth = pageFormat.getImageableWidth();
-        double tableWidth = (double) mTable.getColumnModel().getTotalColumnWidth();
+        double tableWidth = mTable.getColumnModel().getTotalColumnWidth();
         double scale = 1;
         if (tableWidth >= pageWidth) {
             scale = (pageWidth / tableWidth);
@@ -70,22 +83,64 @@ public class Printer implements Printable {
 
 
         Font tmpFont = graphicToPrint.getFont();
-        if (pageIndex < 1 && mHeader != null) {
-            graphicToPrint.setFont(new Font(FONT, Font.BOLD, 14));
+        if (pageIndex < 1 && mHeader != null && mHeader.length > 0) {
+            graphicToPrint.setFont(new Font(FONT, Font.BOLD, 22));
 
-            currentDrawHeight += graphicToPrint.getFontMetrics().getLeading() + graphicToPrint.getFontMetrics().getAscent();
-            graphicToPrint.drawString(mHeader[0], 0, (float) currentDrawHeight);
+            List<String> title = calculateSplits(pageWidth, graphicToPrint.getFontMetrics(), mHeader[0]);
 
-            graphicToPrint.setFont(new Font(FONT, Font.PLAIN, 14));
+            currentDrawHeight += getFontDrawHeight(graphicToPrint);
+            for (String string : title) {
+                currentDrawHeight += getFontDrawHeight(graphicToPrint);
+                graphicToPrint.drawString(string, (float) (pageWidth / 2 - graphicToPrint.getFontMetrics().stringWidth(string) / 2), (float) currentDrawHeight);
+            }
+            double logoStartHeight = currentDrawHeight;
 
+            graphicToPrint.setFont(new Font(FONT, Font.PLAIN, 18));
+
+            currentDrawHeight += getFontDrawHeight(graphicToPrint);
+
+            int subtitleHeight = 0;
             for (int i = 1; i < mHeader.length; i++) {
-                currentDrawHeight += graphicToPrint.getFontMetrics().getLeading() + graphicToPrint.getFontMetrics().getAscent();
-                graphicToPrint.drawString(mHeader[i], 0, (float) currentDrawHeight);
+                List<String> subtitle = calculateSplits(pageWidth / 2, graphicToPrint.getFontMetrics(), mHeader[i]);
+                for (String string : subtitle) {
+                    subtitleHeight++;
+                    currentDrawHeight += getFontDrawHeight(graphicToPrint);
+                    graphicToPrint.drawString(string, (float) (pageWidth / 2 - graphicToPrint.getFontMetrics().stringWidth(string) / 2), (float) currentDrawHeight);
+                }
+            }
+            currentDrawHeight += getFontDrawHeight(graphicToPrint);
+
+            try {
+                double maxLogoHeight = (2 + subtitleHeight) * getFontDrawHeight(graphicToPrint);
+                double maxLogoWidth = pageWidth / 4;
+                double maxLogoRatio = maxLogoHeight / maxLogoWidth;
+
+                InputStream resource = this.getClass().getClassLoader().getResourceAsStream("images/hunyadi.png");
+                if (resource != null) {
+                    BufferedImage image = ImageIO.read(resource);
+
+                    int w = image.getWidth(null);
+                    int h = image.getHeight(null);
+
+                    double ratio = (float) h / (float) w;
+                    double rescaleRatio;
+                    if (maxLogoRatio > ratio) {
+                        rescaleRatio = maxLogoWidth / w;
+                    } else {
+                        rescaleRatio = maxLogoHeight / h;
+                    }
+                    int newW = (int) (w * rescaleRatio);
+                    int newH = (int) (h * rescaleRatio);
+
+                    graphicToPrint.drawImage(image, (int) pageWidth - newW - (int) (maxLogoWidth / 2 - newW / 2), (int) logoStartHeight, newW, newH, null);
+                }
+            } catch (IOException e) {
+                Logger.getLogger(Printer.class.getName()).log(Level.WARNING, "cannot read logo", e);
             }
         }
         if (!mTitle.isEmpty()) {
             graphicToPrint.setFont(new Font(FONT, Font.ITALIC, 12));
-            currentDrawHeight += graphicToPrint.getFontMetrics().getLeading() + graphicToPrint.getFontMetrics().getAscent();
+            currentDrawHeight += getFontDrawHeight(graphicToPrint);
             graphicToPrint.drawString(mTitle, 0, (float) currentDrawHeight);
         }
         if (pageIndex < 1 && mHeader != null || !mTitle.isEmpty()) {
@@ -98,11 +153,10 @@ public class Printer implements Printable {
         if (mIsTeam) {
             oneRowHeight *= 4;
         }
-        int numOfRowsOnAPage;
 
         double tablesHeightBefore;
+        int numOfRowsOnAPage = (int) Math.floor((pageHeight - currentDrawHeight - headerHeightOnPage - fontHeight) / oneRowHeight);
         if (pageIndex < 1) {
-            numOfRowsOnAPage = (int) Math.floor((pageHeight - currentDrawHeight - headerHeightOnPage - fontHeight) / oneRowHeight);
             firstPageRows = numOfRowsOnAPage;
 
             double tableHeightForPage = oneRowHeight * (double) numOfRowsOnAPage;
@@ -116,30 +170,21 @@ public class Printer implements Printable {
             graphicToPrint.scale(scale, scale);
             mTable.paint(graphicToPrint);
             graphicToPrint.scale(1 / scale, 1 / scale);
-            if (pageIndex < 1) {
-                graphicToPrint.translate(0f, -headerHeightOnPage);
-            } else {
-                graphicToPrint.translate(0f, -((-tableHeightForPage * (pageIndex - 1)) - tableHeightForPage + headerHeightOnPage));
-            }
+            graphicToPrint.translate(0f, -headerHeightOnPage);
             graphicToPrint.setClip(0, 0, (int) Math.ceil(tableWidthOnPage), (int) Math.ceil(headerHeightOnPage));
             graphicToPrint.scale(scale, scale);
             mTable.getTableHeader().paint(graphicToPrint);
+            String coachString = mLabel != null ? mLabel.getText() : "";
+            graphicToPrint.drawString(coachString, (float) (tableWidth - graphicToPrint.getFontMetrics().stringWidth(coachString) - 2), (float) ((headerHeightOnPage / 2 + getFontDrawHeight(graphicToPrint) / 2)));
 
         } else {
-
-            numOfRowsOnAPage = (int) Math.floor((pageHeight - currentDrawHeight - headerHeightOnPage - fontHeight) / oneRowHeight);
 
             numOfRowsPrinted = firstPageRows + numOfRowsOnAPage * (pageIndex - 1);
             int rowsLeft = mTable.getRowCount() - (mIsTeam ? numOfRowsPrinted * 4 : numOfRowsPrinted);
             if (rowsLeft < 1) {
                 return NO_SUCH_PAGE;
             }
-            int numOfRowsOnThisPage;
-            if (rowsLeft > numOfRowsOnAPage) {
-                numOfRowsOnThisPage = numOfRowsOnAPage;
-            } else {
-                numOfRowsOnThisPage = rowsLeft;
-            }
+            int numOfRowsOnThisPage = Math.min(rowsLeft, numOfRowsOnAPage);
             tablesHeightBefore = oneRowHeight * (double) (numOfRowsPrinted);
 
             double tableHeightForPage = oneRowHeight * (double) (numOfRowsOnThisPage);
@@ -159,11 +204,7 @@ public class Printer implements Printable {
             graphicToPrint.scale(scale, scale);
             mTable.paint(graphicToPrint);
             graphicToPrint.scale(1 / scale, 1 / scale);
-            if (pageIndex < 1) {
-                graphicToPrint.translate(0f, -headerHeightOnPage);
-            } else {
-                graphicToPrint.translate(0f, -(headerHeightOnPage - tablesHeightBefore));
-            }
+            graphicToPrint.translate(0f, -(headerHeightOnPage - tablesHeightBefore));
             graphicToPrint.setClip(0, 0, (int) Math.ceil(tableWidthOnPage), (int) Math.ceil(headerHeightOnPage));
             graphicToPrint.scale(scale, scale);
             mTable.getTableHeader().paint(graphicToPrint);
@@ -172,5 +213,28 @@ public class Printer implements Printable {
         }
 
         return Printable.PAGE_EXISTS;
+    }
+
+    private java.util.List<String> calculateSplits(double pageWidth, FontMetrics metrics, String text) {
+        java.util.List<String> splits = new ArrayList<>();
+        String[] words = text.split(" ");
+        for (String word : words) {
+            if (splits.isEmpty()) {
+                splits.add(word);
+            } else {
+                String split = splits.get(splits.size() - 1);
+                String newSplit = split + " " + word;
+                if (metrics.stringWidth(newSplit) < pageWidth) {
+                    splits.set(splits.size() - 1, newSplit);
+                } else {
+                    splits.add(word);
+                }
+            }
+        }
+        return splits;
+    }
+
+    private int getFontDrawHeight(Graphics2D graphicToPrint) {
+        return graphicToPrint.getFontMetrics().getLeading() + graphicToPrint.getFontMetrics().getAscent();
     }
 }

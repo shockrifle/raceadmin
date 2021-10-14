@@ -11,6 +11,7 @@ public class AgeGroup implements Comparable<AgeGroup> {
     public static final String COLUMN_MAXIMUM = "maximum";
     private static final String COLUMN_ID = "id";
     private static final String COLUMN_NAME = "name";
+    private static final String COLUMN_TEAM_MIN_MEMBERS = "team_min_members";
     private static final String COLUMN_TEAM_MAX_MEMBERS = "team_max_members";
 
     @DatabaseField(generatedId = true, columnName = COLUMN_ID)
@@ -21,6 +22,8 @@ public class AgeGroup implements Comparable<AgeGroup> {
     private int mMinimum;
     @DatabaseField(columnName = COLUMN_MAXIMUM)
     private int mMaximum;
+    @DatabaseField(columnName = COLUMN_TEAM_MIN_MEMBERS, defaultValue = "4")
+    private int mTeamMinMembers = 4;
     @DatabaseField(columnName = COLUMN_TEAM_MAX_MEMBERS, defaultValue = "4")
     private int mTeamMaxMembers = 4;
 
@@ -28,11 +31,12 @@ public class AgeGroup implements Comparable<AgeGroup> {
     public AgeGroup() {
     }
 
-    public AgeGroup(int id, String name, int minimum, int maximum, int teamMaxMembers) {
+    public AgeGroup(int id, String name, int minimum, int maximum, int teamMinMembers, int teamMaxMembers) {
         this.mId = id;
         this.mName = name;
         this.mMinimum = minimum;
         this.mMaximum = maximum;
+        this.mTeamMinMembers = teamMinMembers;
         this.mTeamMaxMembers = teamMaxMembers;
     }
 
@@ -66,6 +70,14 @@ public class AgeGroup implements Comparable<AgeGroup> {
 
     public boolean includes(int age) {
         return mMinimum <= age && age <= mMaximum;
+    }
+
+    public int getTeamMinMembers() {
+        return mTeamMinMembers;
+    }
+
+    public void setTeamMinMembers(int teamMinMembers) {
+        mTeamMinMembers = teamMinMembers;
     }
 
     public int getTeamMaxMembers() {

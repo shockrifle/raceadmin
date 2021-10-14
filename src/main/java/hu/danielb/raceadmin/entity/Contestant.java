@@ -2,9 +2,10 @@ package hu.danielb.raceadmin.entity;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
-import hu.danielb.raceadmin.database.dao.BaseDaoWithListener;
 
-@DatabaseTable(tableName = "contestant", daoClass = BaseDaoWithListener.class)
+import hu.danielb.raceadmin.database.dao.ContestantDao;
+
+@DatabaseTable(tableName = "contestant", daoClass = ContestantDao.class)
 public class Contestant {
 
     public static final String COLUMN_ID = "id";
@@ -15,6 +16,8 @@ public class Contestant {
     public static final String COLUMN_AGE_GROUP_ID = "age_group_id";
     public static final String COLUMN_SCHOOL_ID = "school_id";
     public static final String COLUMN_AGE = "age";
+    public static final String COLUMN_COACH_ID = "coach_id";
+    public static final String COLUMN_TEAM_ENTRY = "team_entry";
 
     @DatabaseField(generatedId = true, columnName = COLUMN_ID)
     private int id;
@@ -28,15 +31,19 @@ public class Contestant {
     private int number;
     @DatabaseField(foreign = true, foreignAutoRefresh = true, columnName = COLUMN_AGE_GROUP_ID)
     private AgeGroup ageGroup = new AgeGroup();
-    @DatabaseField(foreign = true, foreignAutoRefresh = true, foreignAutoCreate = true, columnName = COLUMN_SCHOOL_ID)
+    @DatabaseField(foreign = true, foreignAutoRefresh = true, columnName = COLUMN_SCHOOL_ID)
     private School school = new School();
     @DatabaseField(columnName = COLUMN_AGE)
     private int age;
+    @DatabaseField(foreign = true, foreignAutoRefresh = true, columnName = COLUMN_COACH_ID)
+    private Supervisor supervisor;
+    @DatabaseField(columnName = COLUMN_TEAM_ENTRY)
+    private boolean teamEntry;
 
     public Contestant() {
     }
 
-    public Contestant(int id, int position, String name, String sex, int number, AgeGroup ageGroup, School school, int age) {
+    public Contestant(int id, int position, String name, String sex, int number, AgeGroup ageGroup, School school, int age, Supervisor supervisor, boolean teamEntry) {
         this.id = id;
         this.position = position;
         this.name = name;
@@ -45,6 +52,8 @@ public class Contestant {
         this.ageGroup = ageGroup;
         this.school = school;
         this.age = age;
+        this.supervisor = supervisor;
+        this.teamEntry = teamEntry;
     }
 
     public Contestant(Contestant other) {
@@ -56,6 +65,8 @@ public class Contestant {
         this.ageGroup = other.getAgeGroup();
         this.school = other.getSchool();
         this.age = other.getAge();
+        this.supervisor = other.getSupervisor();
+        this.teamEntry = other.isTeamEntry();
     }
 
     public int getId() {
@@ -72,6 +83,15 @@ public class Contestant {
 
     public void setPosition(int position) {
         this.position = position;
+    }
+
+    @SuppressWarnings("unused") // used by export
+    public String getPositionString() {
+        return getPositionString(name != null && !name.isEmpty());
+    }
+
+    public String getPositionString(boolean showDnf) {
+        return position > 0 ? String.valueOf(position) : (showDnf ? "dnf/dns" : "");
     }
 
     public String getName() {
@@ -98,6 +118,10 @@ public class Contestant {
         this.number = number;
     }
 
+    public String getNumberString() {
+        return number > 0 ? String.valueOf(number) : "";
+    }
+
     public AgeGroup getAgeGroup() {
         return ageGroup;
     }
@@ -120,5 +144,25 @@ public class Contestant {
 
     public void setAge(int age) {
         this.age = age;
+    }
+
+    public String getAgeString() {
+        return age > 0 ? String.valueOf(age) : "";
+    }
+
+    public Supervisor getSupervisor() {
+        return supervisor;
+    }
+
+    public void setSupervisor(Supervisor supervisor) {
+        this.supervisor = supervisor;
+    }
+
+    public boolean isTeamEntry() {
+        return teamEntry;
+    }
+
+    public void setTeamEntry(boolean teamEntry) {
+        this.teamEntry = teamEntry;
     }
 }

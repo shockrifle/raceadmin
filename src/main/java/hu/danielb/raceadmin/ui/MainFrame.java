@@ -1,58 +1,63 @@
 package hu.danielb.raceadmin.ui;
 
 
-import hu.danielb.raceadmin.database.Database;
-import hu.danielb.raceadmin.entity.AgeGroup;
-import hu.danielb.raceadmin.entity.Contestant;
-import hu.danielb.raceadmin.entity.School;
-import hu.danielb.raceadmin.entity.Team;
-import hu.danielb.raceadmin.ui.components.GenericTabbedPane;
-import hu.danielb.raceadmin.ui.components.table.CellSpan;
-import hu.danielb.raceadmin.ui.components.table.MultiSpanCellTable;
-import hu.danielb.raceadmin.ui.components.table.models.AttributiveCellTableModel;
-import hu.danielb.raceadmin.ui.components.table.models.ResultsTableModel;
-import hu.danielb.raceadmin.ui.components.table.models.TeamResultsTableModel;
-import hu.danielb.raceadmin.util.Constants;
-import hu.danielb.raceadmin.util.Printer;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
+import org.jxls.builder.xls.XlsCommentAreaBuilder;
 import org.jxls.common.Context;
 import org.jxls.util.JxlsHelper;
+
+import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.print.PrinterException;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.Charset;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
-import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.awt.print.PrinterException;
-import java.io.*;
-import java.nio.charset.Charset;
-import java.sql.SQLException;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
-//TODO: fix school name or clause
-//TODO: add logging
-//TODO: save a note for contestant edits
-//TODO: make windows resizable
-//TODO: régi adatok újrafelhasználása rajtszám elvételével
-//TODO: iskola legördülő ne csak az elején keressen
-//TODO: nevek nagybetűvel kezdése
-//TODO: i18n
+import hu.danielb.raceadmin.database.Database;
+import hu.danielb.raceadmin.database.dao.SettingDao;
+import hu.danielb.raceadmin.entity.AgeGroup;
+import hu.danielb.raceadmin.entity.Contestant;
+import hu.danielb.raceadmin.entity.School;
+import hu.danielb.raceadmin.entity.Supervisor;
+import hu.danielb.raceadmin.entity.Team;
+import hu.danielb.raceadmin.ui.components.GenericTabbedPane;
+import hu.danielb.raceadmin.ui.components.table.CellSpan;
+import hu.danielb.raceadmin.ui.components.table.MultiSpanCellTable;
+import hu.danielb.raceadmin.ui.components.table.tablemodels.ResultsTableModel;
+import hu.danielb.raceadmin.ui.components.table.tablemodels.TeamResultsTableModel;
+import hu.danielb.raceadmin.util.Constants;
+import hu.danielb.raceadmin.util.DataUtils;
+import hu.danielb.raceadmin.util.DateUtils;
+import hu.danielb.raceadmin.util.EachMergeCommand;
+import hu.danielb.raceadmin.util.Printer;
+import hu.danielb.raceadmin.util.Properties;
 
 public class MainFrame extends javax.swing.JFrame {
 
-    private Map<String, JTable> tables;
+    private Map<String, TableHolder> tables;
     private JDialog startupScreen;
     private javax.swing.JButton buttonFinisher;
     private javax.swing.JTabbedPane ageGroupPane;
-    private String exportsPath;
 
     private MainFrame() {
         try {
@@ -75,6 +80,21 @@ public class MainFrame extends javax.swing.JFrame {
         mainFrame.setVisible(true);
     }
 
+    private static String getTypeString(Supervisor supervisor) {
+        String typeString = "";
+        if (supervisor != null && supervisor.getType() != null) {
+            switch (supervisor.getType()) {
+                case COACH:
+                    typeString = "edzője";
+                    break;
+                case TEACHER:
+                    typeString = "tanára";
+                    break;
+            }
+        }
+        return typeString;
+    }
+
     private void initComponents() {
 
         ageGroupPane = new javax.swing.JTabbedPane();
@@ -89,6 +109,7 @@ public class MainFrame extends javax.swing.JFrame {
         JMenuItem menuItemFinisher = new JMenuItem();
         JMenuItem menuItemContestants = new JMenuItem();
         JMenuItem menuItemSchools = new JMenuItem();
+        JMenuItem menuItemSupervisors = new JMenuItem();
         JMenuItem menuItemSettings = new JMenuItem();
         JMenu menuHelp = new JMenu();
         JMenuItem menuItemAbout = new JMenuItem();
@@ -165,6 +186,10 @@ public class MainFrame extends javax.swing.JFrame {
         menuItemSchools.addActionListener(e -> menuItemSchoolsActionPerformed());
         menuEdit.add(menuItemSchools);
 
+        menuItemSupervisors.setText("Edzők/Tanárok");
+        menuItemSupervisors.addActionListener(e -> menuItemSupervisorsActionPerformed());
+        menuEdit.add(menuItemSupervisors);
+
         menuItemSettings.setText("Beállítások");
         menuItemSettings.addActionListener(e -> menuItemSettingsActionPerformed());
         menuEdit.add(menuItemSettings);
@@ -226,35 +251,42 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void menuItemPrintActionPerformed() {
 
-
-        String[] headerString = new String[]{"", ""};
-        try {
-            headerString = new String[]{
-                    Database.get().getSettingDao().getPrintHeaderTitle(),
-                    Database.get().getSettingDao().getPrintHeaderSubtitle()
-            };
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        if (headerString[0].length() != 0 && headerString[1].length() != 0) {
-            GenericTabbedPane ageGroupTab = (GenericTabbedPane) ageGroupPane.getComponentAt(ageGroupPane.getSelectedIndex());
-            AgeGroup ageGroup = (AgeGroup) ageGroupTab.getData();
-            GenericTabbedPane.Tab tab = ageGroupTab.getTab(ageGroupTab.getSelectedIndex());
-
+        LoadingDialog dialog = new LoadingDialog(this, "Nyomtatás...");
+        new Thread(() -> {
+            String[] headerString = new String[]{"", ""};
             try {
-                if (tab.getId() == Constants.BOY_TEAM || tab.getId() == Constants.GIRL_TEAM) {
-                    new Printer(ageGroup.getName() + ", " + tab.getTitle(), tables.get(ageGroup.getId() + (String) tab.getId()), headerString, true).print();
-                } else {
-                    new Printer(ageGroup.getName() + ", " + tab.getTitle(), tables.get(ageGroup.getId() + (String) tab.getId()), headerString).print();
-                }
-            } catch (PrinterException ex) {
-                warn("Nyomtatási hiba!");
-                Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+                SettingDao settingDao = Database.get().getSettingDao();
+                headerString = new String[]{
+                        settingDao.getPrintHeaderTitle(),
+                        settingDao.getPrintHeaderSubtitle(),
+                        DateUtils.formatDate(settingDao.getRaceDate())
+                };
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
-        } else {
-            warn("Nem adott meg nyomtatási fejlécet!\n(Beállítások -> Nyomtatási fejléc)");
-        }
+
+            if (headerString[0].length() != 0) {
+                // noinspection unchecked
+                GenericTabbedPane<AgeGroup, String> ageGroupTab = (GenericTabbedPane<AgeGroup, String>) ageGroupPane.getComponentAt(ageGroupPane.getSelectedIndex());
+                AgeGroup ageGroup = ageGroupTab.getData();
+                GenericTabbedPane.Tab<String> tab = ageGroupTab.getTab(ageGroupTab.getSelectedIndex());
+
+                try {
+                    if (tab.getId().equals(Constants.BOY_TEAM) || tab.getId().equals(Constants.GIRL_TEAM)) {
+                        new Printer(ageGroup.getName() + ", " + tab.getTitle(), tables.get(ageGroup.getId() + tab.getId()), headerString, true).print();
+                    } else {
+                        new Printer(ageGroup.getName() + ", " + tab.getTitle(), tables.get(ageGroup.getId() + tab.getId()), headerString).print();
+                    }
+                } catch (PrinterException ex) {
+                    warn("Nyomtatási hiba!");
+                    Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            } else {
+                warn("Nem adott meg nyomtatási fejlécet!\n(Beállítások -> Nyomtatási fejléc)");
+            }
+            dialog.dispose();
+        }).start();
+        dialog.setVisible(true);
     }
 
     private void menuItemContestantsActionPerformed() {
@@ -269,6 +301,12 @@ public class MainFrame extends javax.swing.JFrame {
         loadData();
     }
 
+    private void menuItemSupervisorsActionPerformed() {
+        SupervisorDialog dial = new SupervisorDialog(this);
+        dial.setVisible(true);
+        loadData();
+    }
+
     private void menuItemSettingsActionPerformed() {
         SettingsDialog dialog = new SettingsDialog(this);
         dialog.setVisible(true);
@@ -278,7 +316,7 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void menuItemImportActionPerformed() {
 
-        final JFileChooser fc = new JFileChooser(System.getProperty("user.dir"));
+        final JFileChooser fc = new JFileChooser(Properties.getUserDir());
         fc.setAcceptAllFileFilterUsed(false);
         fc.addChoosableFileFilter(new FileNameExtensionFilter("csv", "csv"));
         int returnVal = fc.showOpenDialog(this);
@@ -321,7 +359,9 @@ public class MainFrame extends javax.swing.JFrame {
                                 number,
                                 ageGroup,
                                 school,
-                                Integer.parseInt(row.get(Contestant.COLUMN_AGE))));
+                                Integer.parseInt(row.get(Contestant.COLUMN_AGE)),
+                                null,
+                                1 == Integer.parseInt(row.get(Contestant.COLUMN_TEAM_ENTRY))));
 
                         dialog.progress();
                     }
@@ -351,7 +391,16 @@ public class MainFrame extends javax.swing.JFrame {
             public void run() {
                 List<Category> results = new ArrayList<>();
 
+                String exportsPath = Properties.getExportsPath();
+                String printHeaderTitle = "";
+                String printHeaderSubtitle = "";
+                String date = "";
                 try {
+                    printHeaderTitle = Database.get().getSettingDao().getPrintHeaderTitle();
+                    printHeaderSubtitle = Database.get().getSettingDao().getPrintHeaderSubtitle();
+                    date = DateUtils.formatDate(Database.get().getSettingDao().getRaceDate());
+
+
                     Database.get().getAgeGroupDao().queryForAll().stream().sorted().forEach(ageGroup -> {
                         try {
                             File exportDir = new File(exportsPath);
@@ -366,7 +415,9 @@ public class MainFrame extends javax.swing.JFrame {
                             boyAgeGroup.teamCategory.name = ageGroup.getName() + " " + "Fiú, csapat";
 
                             boyAgeGroup.individualCategory.contestants = getByAgeGroupAndSex(ageGroup.getId(), Constants.BOY);
-                            boyAgeGroup.teamCategory.teams.addAll(makeTeams(boyAgeGroup.individualCategory.contestants.stream().filter(contestant1 -> contestant1.getPosition() > 0).collect(Collectors.toList()), ageGroup.getTeamMaxMembers()));
+                            boyAgeGroup.teamCategory.teams.addAll(
+                                    makeTeams(boyAgeGroup.individualCategory.contestants.stream().filter(contestant1 -> contestant1.getPosition() > 0).collect(Collectors.toList()),
+                                            ageGroup.getTeamMinMembers(), ageGroup.getTeamMaxMembers(), true));
 
                             Category girlAgeGroup = new Category();
                             results.add(girlAgeGroup);
@@ -374,7 +425,9 @@ public class MainFrame extends javax.swing.JFrame {
                             girlAgeGroup.teamCategory.name = ageGroup.getName() + " " + "Lány, csapat";
 
                             girlAgeGroup.individualCategory.contestants = getByAgeGroupAndSex(ageGroup.getId(), Constants.GIRL);
-                            girlAgeGroup.teamCategory.teams.addAll(makeTeams(girlAgeGroup.individualCategory.contestants.stream().filter(contestant1 -> contestant1.getPosition() > 0).collect(Collectors.toList()), ageGroup.getTeamMaxMembers()));
+                            girlAgeGroup.teamCategory.teams.addAll(
+                                    makeTeams(girlAgeGroup.individualCategory.contestants.stream().filter(contestant1 -> contestant1.getPosition() > 0).collect(Collectors.toList()),
+                                            ageGroup.getTeamMinMembers(), ageGroup.getTeamMaxMembers(), true));
 
                         } catch (SQLException ex) {
                             Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
@@ -386,10 +439,13 @@ public class MainFrame extends javax.swing.JFrame {
                     e.printStackTrace();
                 }
 
-                try (InputStream is = getClass().getResourceAsStream("/templates/egyeni_template.xlsx")) {
-                    try (OutputStream os = new FileOutputStream(exportsPath + File.separator + "export" + new SimpleDateFormat("_HH.mm.ss").format(new Date()) + ".xlsx")) {
+                try (InputStream is = getClass().getResourceAsStream("/templates/result_template.xlsx")) {
+                    try (OutputStream os = new FileOutputStream(exportsPath + File.separator + "export" + DateUtils.formatForFile(new Date()) + ".xlsx")) {
                         Context context = new Context();
                         context.putVar("results", results);
+                        context.putVar("header", printHeaderTitle);
+                        context.putVar("subheader", printHeaderSubtitle);
+                        context.putVar("date", date);
                         JxlsHelper.getInstance().processTemplate(is, os, context);
                     }
                 } catch (IOException e) {
@@ -424,14 +480,9 @@ public class MainFrame extends javax.swing.JFrame {
     }
 
     private void init() {
-        final Properties properties = new Properties();
-        try {
-            properties.load(this.getClass().getResourceAsStream("/project.properties"));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        startupScreen = new StartupScreen(this, true, properties.getProperty("version"));
-        exportsPath = properties.getProperty("exports-path");
+
+        XlsCommentAreaBuilder.addCommandMapping(EachMergeCommand.COMMAND_NAME, EachMergeCommand.class);
+        startupScreen = new StartupScreen(this, true, Properties.getVersion());
         try {
             Database.get();
             new Thread(() -> {
@@ -453,15 +504,15 @@ public class MainFrame extends javax.swing.JFrame {
         ageGroupPane.removeAll();
         try {
             Database.get().getAgeGroupDao().queryForAll().stream().sorted().forEach(ageGroup -> {
-                GenericTabbedPane<AgeGroup> ageGroupTab = new GenericTabbedPane<>(ageGroup);
+                GenericTabbedPane<AgeGroup, String> ageGroupTab = new GenericTabbedPane<>(ageGroup);
                 String ageGroupId = String.valueOf(ageGroup.getId());
 
                 ageGroupTab.setPreferredSize(new Dimension(ageGroupPane.getHeight(), ageGroupPane.getWidth()));
 
-                ageGroupTab.addTab(Constants.BOY, "Fiú", createTable(ageGroupId + Constants.BOY, new Dimension(ageGroupTab.getHeight(), ageGroupTab.getWidth())));
-                ageGroupTab.addTab(Constants.GIRL, "Lány", createTable(ageGroupId + Constants.GIRL, new Dimension(ageGroupTab.getHeight(), ageGroupTab.getWidth())));
-                ageGroupTab.addTab(Constants.BOY_TEAM, "Fiú Csapat", createTable(ageGroupId + Constants.BOY_TEAM, new Dimension(ageGroupTab.getHeight(), ageGroupTab.getWidth())));
-                ageGroupTab.addTab(Constants.GIRL_TEAM, "Lány Csapat", createTable(ageGroupId + Constants.GIRL_TEAM, new Dimension(ageGroupTab.getHeight(), ageGroupTab.getWidth())));
+                ageGroupTab.addTab(Constants.BOY, "Fiú", createTable(ageGroupId + Constants.BOY));
+                ageGroupTab.addTab(Constants.GIRL, "Lány", createTable(ageGroupId + Constants.GIRL));
+                ageGroupTab.addTab(Constants.BOY_TEAM, "Fiú Csapat", createTable(ageGroupId + Constants.BOY_TEAM));
+                ageGroupTab.addTab(Constants.GIRL_TEAM, "Lány Csapat", createTable(ageGroupId + Constants.GIRL_TEAM));
 
                 ageGroupPane.addTab(ageGroup.getName(), ageGroupTab);
             });
@@ -470,8 +521,9 @@ public class MainFrame extends javax.swing.JFrame {
         }
     }
 
-    private JScrollPane createTable(String name, Dimension size) {
+    private JLayeredPane createTable(String name) {
 
+        Dimension size2 = new Dimension(685, 525);
         MultiSpanCellTable currentTable = new MultiSpanCellTable(new ResultsTableModel(new ArrayList<>()));
         currentTable.getTableHeader().setReorderingAllowed(false);
         currentTable.getTableHeader().setResizingAllowed(false);
@@ -482,10 +534,20 @@ public class MainFrame extends javax.swing.JFrame {
             currentTable.getColumnModel().getColumn(i).setCellRenderer(cellRenderer);
         }
 
+        JLayeredPane layeredPane = new JLayeredPane();
+
         JScrollPane tableScrollPane = new JScrollPane(currentTable);
-        tableScrollPane.setPreferredSize(size);
-        tables.put(name, currentTable);
-        return tableScrollPane;
+        tableScrollPane.setSize(size2);
+        layeredPane.add(tableScrollPane, new Integer(1));
+
+        JLabel label = new JLabel();
+        label.setHorizontalAlignment(SwingConstants.RIGHT);
+        label.setSize((int) size2.getWidth() - 25, 30);
+        layeredPane.add(label, new Integer(2));
+
+        tables.put(name, new TableHolder(currentTable, label));
+
+        return layeredPane;
     }
 
     private void loadData() {
@@ -508,7 +570,7 @@ public class MainFrame extends javax.swing.JFrame {
             List<Contestant> data = getByAgeGroupAndSex(ageGroup.getId(), sex);
             if (!data.isEmpty()) {
                 loadTeams(sex, ageGroup, data.stream().filter(contestant -> contestant.getPosition() > 0).collect(Collectors.toList()));
-                addContestantDataToTable(String.valueOf(ageGroup.getId()) + sex, data);
+                addContestantDataToTable(ageGroup.getId() + sex, data);
             }
         } catch (SQLException ex) {
             Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
@@ -518,35 +580,52 @@ public class MainFrame extends javax.swing.JFrame {
     private void loadTeams(String sex, AgeGroup ageGroup, List<Contestant> data) {
 
         int teamMaxMembers = ageGroup.getTeamMaxMembers();
-        List<Team> teams = makeTeams(data, teamMaxMembers);
-        String tableName = String.valueOf(ageGroup.getId()) + getTeamConst(sex);
+        int teamMinMembers = ageGroup.getTeamMinMembers();
+        List<Team> teams = makeTeams(data, teamMinMembers, teamMaxMembers);
+        String tableName = ageGroup.getId() + getTeamConst(sex);
         addTeamDataToTable(tableName, teams);
-        JTable jt = tables.get(tableName);
-        CellSpan cellAtt = (CellSpan) ((AttributiveCellTableModel) jt.getModel()).getCellAttribute();
-        for (int i = 0; i < (teams.size() * teamMaxMembers); i = i + teamMaxMembers) {
-            int[] rowsArray = new int[teamMaxMembers];
-            for (int j = 0; j < teamMaxMembers; j++) {
-                rowsArray[j] = i + j;
+        JTable jt = tables.get(tableName).mTable;
+        CellSpan cellAtt = (CellSpan) ((TeamResultsTableModel) jt.getModel()).getCellAttribute();
+
+        int row = 0;
+        for (Team team : teams) {
+            int teamSize = team.getSize();
+            int[] rowsArray = new int[teamSize];
+            for (int j = 0; j < teamSize; j++) {
+                rowsArray[j] = row + j;
             }
             cellAtt.combine(rowsArray, new int[]{TeamResultsTableModel.Column.POSITION.ordinal()});
             cellAtt.combine(rowsArray, new int[]{TeamResultsTableModel.Column.POINTS.ordinal()});
             cellAtt.combine(rowsArray, new int[]{TeamResultsTableModel.Column.SCHOOL_NAME.ordinal()});
+            row += teamSize;
         }
 
         jt.clearSelection();
         jt.revalidate();
         jt.repaint();
-
-
     }
 
-    private List<Team> makeTeams(List<Contestant> data, int maxMembers) {
+    private List<Team> makeTeams(List<Contestant> data, int minMembers, int maxMembers) {
+        return makeTeams(data, minMembers, maxMembers, false);
+    }
+
+    private List<Team> makeTeams(List<Contestant> data, int minMembers, int maxMembers, boolean addPlaceholder) {
         HashMap<String, Team> teams = new HashMap<>();
+
+        boolean onlyTeamEntries = true;
+        try {
+            onlyTeamEntries = Database.get().getSettingDao().getOnlyTeamEntries();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         for (Contestant contestant : data) {
+            if (onlyTeamEntries && !contestant.isTeamEntry()) {
+                continue;
+            }
             boolean added = false;
             int n = 0;
             do {
-                String teamName = contestant.getSchool().getNameWithSettlement() + n;
+                String teamName = contestant.getSchool().getNameWithSettlement() + (n > 0 ? " " + (char) ('A' + n) : "");
                 if (teams.containsKey(teamName)) {
                     if (!teams.get(teamName).isFull()) {
                         teams.get(teamName).addMember(contestant);
@@ -555,7 +634,7 @@ public class MainFrame extends javax.swing.JFrame {
                         n++;
                     }
                 } else {
-                    teams.put(teamName, new Team(teamName, maxMembers));
+                    teams.put(teamName, new Team(teamName, minMembers, maxMembers));
                     teams.get(teamName).addMember(contestant);
                     added = true;
                 }
@@ -563,16 +642,34 @@ public class MainFrame extends javax.swing.JFrame {
         }
 
 
-        return teams.entrySet().stream()
-                .filter(entry -> entry.getValue().isFull())
-                .map(Map.Entry::getValue).collect(Collectors.toList())
-                .stream()
-                .sorted().collect(Collectors.toList());
+        List<Team> teamList = teams.values().stream()
+                .filter(Team::isValid).collect(Collectors.toList());
+
+        if (addPlaceholder) {
+            teamList.forEach(team -> team.addMember(new Contestant()));
+        }
+
+        return teamList.stream().sorted().collect(Collectors.toList());
+
     }
 
     private void addTeamDataToTable(String tableName, List<Team> data) {
 
-        JTable currentTable = tables.get(tableName);
+        TableHolder tableHolder = tables.get(tableName);
+        JTable currentTable = tableHolder.mTable;
+
+        if (data != null && !data.isEmpty()) {
+            Team first = data.get(0);
+            if (first != null) {
+                Supervisor supervisor = first.getMembers().get(0).getSchool().getSupervisor();
+                if (supervisor != null) {
+                    String supervisorName = supervisor.getName();
+                    if (!supervisorName.isEmpty()) {
+                        tableHolder.mLabel.setText("Bajnok csapat " + getTypeString(supervisor) + ": " + supervisorName);
+                    }
+                }
+            }
+        }
 
         currentTable.setModel(new TeamResultsTableModel(data));
         setColumnWidth(currentTable, TeamResultsTableModel.Column.POSITION.ordinal(), 60);
@@ -586,12 +683,22 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void addContestantDataToTable(String tableName, List<Contestant> data) {
 
-        JTable currentTable = tables.get(tableName);
+        TableHolder tableHolder = tables.get(tableName);
+        JTable currentTable = tableHolder.mTable;
 
-        currentTable.setModel(new ResultsTableModel(data));
-        setColumnWidth(currentTable, ResultsTableModel.Column.POSITION.ordinal(), 80);
-        setColumnWidth(currentTable, ResultsTableModel.Column.NUMBER.ordinal(), 80);
-        setColumnWidth(currentTable, ResultsTableModel.Column.NAME.ordinal(), 180);
+        if (data != null && !data.isEmpty()) {
+            Contestant first = data.get(0);
+            if (first != null && first.getPosition() > 0) {
+                Supervisor supervisor = DataUtils.getSupervisor(first);
+                if (supervisor != null) {
+                    tableHolder.mLabel.setText("Bajnok " + getTypeString(supervisor) + ": " + supervisor.getName());
+                }
+            }
+        }
+
+        ResultsTableModel dataModel = new ResultsTableModel(data);
+        currentTable.setModel(dataModel);
+        ResultsTableModel.COLUMN_MODELS.forEach(c -> setColumnWidth(currentTable, c.getOrdinal(), c.getWidth()));
 
         setupTable(currentTable);
     }
@@ -623,10 +730,12 @@ public class MainFrame extends javax.swing.JFrame {
     }
 
     private void setColumnWidth(JTable table, int columnNumber, int size) {
-        TableColumn tc = table.getColumnModel().getColumn(columnNumber);
-        tc.setMaxWidth(size);
-        tc.setMinWidth(size);
-        tc.setPreferredWidth(size);
+        if (size > 0) {
+            TableColumn tc = table.getColumnModel().getColumn(columnNumber);
+            tc.setMaxWidth(size);
+            tc.setMinWidth(size);
+            tc.setPreferredWidth(size);
+        }
     }
 
     private List<Contestant> getByAgeGroupAndSex(int ageGroupId, String sex) throws SQLException {
@@ -661,6 +770,16 @@ public class MainFrame extends javax.swing.JFrame {
         public List<Contestant> getContestants() {
             return contestants;
         }
+
+        public String getSupervisor() {
+            if (!contestants.isEmpty()) {
+                Supervisor supervisor = DataUtils.getSupervisor(contestants.get(0));
+                if (supervisor != null) {
+                    return "Bajnok " + getTypeString(supervisor) + ": " + supervisor.getName();
+                }
+            }
+            return "";
+        }
     }
 
     @SuppressWarnings("unused")
@@ -676,10 +795,20 @@ public class MainFrame extends javax.swing.JFrame {
         public List<Team> getTeams() {
             return teams;
         }
+
+        public String getSupervisor() {
+            if (!teams.isEmpty()) {
+                Supervisor supervisor = DataUtils.getSupervisor(teams.get(0).getMembers().get(0));
+                if (supervisor != null) {
+                    return "Bajnok csapat " + getTypeString(supervisor) + ": " + supervisor.getName();
+                }
+            }
+            return "";
+        }
     }
 
     @SuppressWarnings("unused")
-    public class Category {
+    public static class Category {
 
         IndividualCategory individualCategory = new IndividualCategory();
         TeamCategory teamCategory = new TeamCategory();
@@ -692,4 +821,5 @@ public class MainFrame extends javax.swing.JFrame {
             return teamCategory;
         }
     }
+
 }

@@ -1,15 +1,8 @@
 package hu.danielb.raceadmin.ui;
 
-import hu.danielb.raceadmin.database.Database;
-import hu.danielb.raceadmin.entity.AgeGroup;
-import hu.danielb.raceadmin.entity.Contestant;
-import hu.danielb.raceadmin.entity.School;
-import hu.danielb.raceadmin.util.Constants;
 import org.jdesktop.swingx.autocomplete.AutoCompleteDecorator;
 import org.jdesktop.swingx.autocomplete.ObjectToStringConverter;
 
-import javax.swing.*;
-import javax.swing.text.JTextComponent;
 import java.awt.*;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
@@ -17,8 +10,19 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.sql.SQLException;
 import java.util.Comparator;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.swing.*;
+import javax.swing.text.JTextComponent;
+
+import hu.danielb.raceadmin.database.Database;
+import hu.danielb.raceadmin.entity.AgeGroup;
+import hu.danielb.raceadmin.entity.Contestant;
+import hu.danielb.raceadmin.entity.School;
+import hu.danielb.raceadmin.entity.Supervisor;
+import hu.danielb.raceadmin.util.Constants;
 
 class AddContestantDialog extends BaseDialog {
 
@@ -26,7 +30,9 @@ class AddContestantDialog extends BaseDialog {
 
     private javax.swing.ButtonGroup buttonGroupSex;
     private JComboBox<AgeGroup> comboAgeGroup;
+    private JCheckBox checkTeamEntry;
     private javax.swing.JComboBox<School> comboSchool;
+    private javax.swing.JComboBox<Supervisor> comboSupervisor;
     private javax.swing.JLabel labelPosition;
     private javax.swing.JRadioButton radioBoy;
     private javax.swing.JRadioButton radioGirl;
@@ -59,8 +65,12 @@ class AddContestantDialog extends BaseDialog {
             spinnerPosition.setValue(contestant.getPosition());
             textName.setText(contestant.getName());
             comboSchool.setSelectedItem(contestant.getSchool());
+            if (contestant.getSupervisor() != null) {
+                comboSupervisor.setSelectedItem(contestant.getSupervisor());
+            }
             spinnerAge.setValue(contestant.getAge());
             comboAgeGroup.setSelectedItem(contestant.getAgeGroup());
+            checkTeamEntry.setSelected(contestant.isTeamEntry());
             spinnerNumber.setValue(contestant.getNumber());
             if (Constants.BOY.equals(contestant.getSex())) {
                 radioBoy.setSelected(true);
@@ -95,6 +105,7 @@ class AddContestantDialog extends BaseDialog {
         buttonGroupSex = new javax.swing.ButtonGroup();
         textName = new javax.swing.JTextField();
         comboSchool = new javax.swing.JComboBox<>();
+        comboSupervisor = new javax.swing.JComboBox<>();
         spinnerAge = new javax.swing.JSpinner();
         spinnerNumber = new javax.swing.JSpinner();
         radioBoy = new javax.swing.JRadioButton();
@@ -102,16 +113,20 @@ class AddContestantDialog extends BaseDialog {
         labelPosition = new javax.swing.JLabel();
         spinnerPosition = new javax.swing.JSpinner();
         comboAgeGroup = new javax.swing.JComboBox<>();
+        checkTeamEntry = new JCheckBox();
         JButton buttonSave = new javax.swing.JButton();
         JButton buttonDelete = new JButton();
         JButton buttonEnd = new JButton();
         JButton buttonNew = new JButton();
+        JButton buttonNewSupervisor = new JButton();
         JLabel labelName = new JLabel();
         JLabel labelSchool = new JLabel();
+        JLabel labelSupervisor = new JLabel();
         JLabel labelAge = new JLabel();
         JLabel labelNumber = new JLabel();
         JLabel labelSex = new JLabel();
         JLabel labelAgeGroup = new JLabel();
+        JLabel labelTeamEntry = new JLabel();
 
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
         setMinimumSize(new java.awt.Dimension(300, 225));
@@ -137,7 +152,33 @@ class AddContestantDialog extends BaseDialog {
                 return this;
             }
         });
+        comboSchool.addItemListener(e -> refreshSupervisors());
         refreshSchools();
+
+
+        AutoCompleteDecorator.decorate(comboSupervisor, new ObjectToStringConverter() {
+            @Override
+            public String getPreferredStringForItem(Object item) {
+                if (item instanceof Supervisor) {
+                    Supervisor supervisor = (Supervisor) item;
+                    return supervisor.getName() + (supervisor.getSchool() != null && supervisor.getSchool().getId() > 0 ? " - " + supervisor.getSchool().getShortName() : "");
+                }
+                return null;
+            }
+        });
+        comboSupervisor.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                String name = null;
+                if (value instanceof Supervisor) {
+                    Supervisor supervisor = (Supervisor) value;
+                    name = supervisor.getName() + (supervisor.getSchool() != null && supervisor.getSchool().getId() > 0 ? " - " + supervisor.getSchool().getShortName() : "");
+                }
+                super.getListCellRendererComponent(list, name, index, isSelected, cellHasFocus);
+                return this;
+            }
+        });
+        refreshSupervisors();
 
         int min = 9999;
         int max = 0;
@@ -185,9 +226,15 @@ class AddContestantDialog extends BaseDialog {
         buttonNew.setFocusable(false);
         buttonNew.addActionListener(e -> buttonNewActionPerformed());
 
+        buttonNewSupervisor.setText("Új");
+        buttonNewSupervisor.setFocusable(false);
+        buttonNewSupervisor.addActionListener(e -> buttonNewSupervisorActionPerformed());
+
         labelName.setText("Név:");
 
         labelSchool.setText("Iskola:");
+
+        labelSupervisor.setText("Edző/Tanár:");
 
         labelAge.setText("Születési év:");
 
@@ -204,7 +251,9 @@ class AddContestantDialog extends BaseDialog {
         spinnerPosition.setEnabled(false);
         spinnerPosition.setVisible(false);
 
-        comboAgeGroup.setModel(new javax.swing.DefaultComboBoxModel<>(new AgeGroup[]{new AgeGroup(0, "", 0, 0, 0)}));
+        checkTeamEntry.setSelected(true);
+
+        comboAgeGroup.setModel(new javax.swing.DefaultComboBoxModel<>(new AgeGroup[]{new AgeGroup(0, "", 0, 0, 0, 0)}));
         try {
             Database.get().getAgeGroupDao().queryForAll().forEach(comboAgeGroup::addItem);
         } catch (SQLException ex) {
@@ -212,6 +261,7 @@ class AddContestantDialog extends BaseDialog {
         }
 
         labelAgeGroup.setText("Korosztály:");
+        labelTeamEntry.setText("Csapat nevezés:");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -231,11 +281,13 @@ class AddContestantDialog extends BaseDialog {
                                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                                         .addComponent(labelName)
                                                         .addComponent(labelSchool)
+                                                        .addComponent(labelSupervisor)
                                                         .addComponent(labelPosition)
                                                         .addComponent(labelAge, javax.swing.GroupLayout.PREFERRED_SIZE, 61, javax.swing.GroupLayout.PREFERRED_SIZE)
                                                         .addComponent(labelNumber)
                                                         .addComponent(labelSex)
-                                                        .addComponent(labelAgeGroup))
+                                                        .addComponent(labelAgeGroup)
+                                                        .addComponent(labelTeamEntry))
                                                 .addGap(10, 10, 10)
                                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                                         .addComponent(spinnerAge)
@@ -243,6 +295,10 @@ class AddContestantDialog extends BaseDialog {
                                                                 .addComponent(comboSchool, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                                                 .addComponent(buttonNew))
+                                                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                                                .addComponent(comboSupervisor, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                                                .addComponent(buttonNewSupervisor))
                                                         .addComponent(textName, javax.swing.GroupLayout.Alignment.TRAILING)
                                                         .addComponent(spinnerPosition, javax.swing.GroupLayout.Alignment.TRAILING)
                                                         .addComponent(spinnerNumber)
@@ -251,7 +307,8 @@ class AddContestantDialog extends BaseDialog {
                                                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                                                 .addComponent(radioGirl)
                                                                 .addGap(0, 148, Short.MAX_VALUE))
-                                                        .addComponent(comboAgeGroup, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                                                        .addComponent(comboAgeGroup, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                                        .addComponent(checkTeamEntry))))
                                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -272,12 +329,20 @@ class AddContestantDialog extends BaseDialog {
                                         .addComponent(buttonNew))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                        .addComponent(labelSupervisor, javax.swing.GroupLayout.PREFERRED_SIZE, 14, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(comboSupervisor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(buttonNewSupervisor))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                         .addComponent(spinnerAge, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addComponent(labelAge))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                                         .addComponent(comboAgeGroup, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addComponent(labelAgeGroup))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                        .addComponent(checkTeamEntry, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(labelTeamEntry))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                         .addGroup(layout.createSequentialGroup()
@@ -301,10 +366,36 @@ class AddContestantDialog extends BaseDialog {
     }
 
     private void refreshSchools() {
-        comboSchool.setModel(new DefaultComboBoxModel<>(new School[]{new School(0, "")}));
+        comboSchool.setModel(new DefaultComboBoxModel<>(new School[]{new School()}));
         try {
             Database.get().getSchoolDao().queryForAll().stream().sorted(Comparator.comparing(o -> o.getNameWithSettlement().toLowerCase()))
                     .forEach(comboSchool::addItem);
+        } catch (SQLException ex) {
+            Logger.getLogger(AddContestantDialog.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void refreshSupervisors() {
+        Object selectedItem = comboSupervisor.getSelectedItem();
+        comboSupervisor.setModel(new DefaultComboBoxModel<>(new Supervisor[]{new Supervisor()}));
+        try {
+            List<Supervisor> supervisors = Database.get().getSupervisorDao().queryForAll();
+
+            School school = (School) comboSchool.getSelectedItem();
+            if (school != null && school.getId() != 0) {
+                supervisors.stream().filter(supervisor -> supervisor.getSchool() != null && supervisor.getSchool().getId() == school.getId()).sorted(Comparator.comparing(o -> o.getName().toLowerCase()))
+                        .forEach(comboSupervisor::addItem);
+                if (comboSupervisor.getItemCount() > 1) {
+                    comboSupervisor.addItem(new Supervisor(-1, "----", Supervisor.Type.TEACHER));
+                }
+                supervisors.stream().filter(supervisor -> supervisor.getSchool() == null || supervisor.getSchool().getId() != school.getId()).sorted(Comparator.comparing(o -> o.getName().toLowerCase()))
+                        .forEach(comboSupervisor::addItem);
+            } else {
+                supervisors.stream().sorted(Comparator.comparing(o -> o.getName().toLowerCase()))
+                        .forEach(comboSupervisor::addItem);
+            }
+
+            comboSupervisor.setSelectedItem(selectedItem);
         } catch (SQLException ex) {
             Logger.getLogger(AddContestantDialog.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -315,8 +406,10 @@ class AddContestantDialog extends BaseDialog {
 
         contestant.setName((textName.getText()).trim());
         contestant.setSchool((School) comboSchool.getSelectedItem());
+        contestant.setSupervisor((Supervisor) comboSupervisor.getSelectedItem());
         contestant.setAge((Integer) spinnerAge.getValue());
         contestant.setAgeGroup((AgeGroup) comboAgeGroup.getSelectedItem());
+        contestant.setTeamEntry(checkTeamEntry.isSelected());
         contestant.setNumber((Integer) spinnerNumber.getValue());
         contestant.setPosition((Integer) spinnerPosition.getValue());
         contestant.setSex("");
@@ -395,13 +488,13 @@ class AddContestantDialog extends BaseDialog {
                 .le(Contestant.COLUMN_POSITION, newPosition).and()
                 .ne(Contestant.COLUMN_POSITION, 0)
                 .query().forEach(contestant1 -> {
-            contestant1.setPosition(contestant1.getPosition() - 1);
-            try {
-                Database.get().getContestantDao().update(contestant1);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        });
+                    contestant1.setPosition(contestant1.getPosition() - 1);
+                    try {
+                        Database.get().getContestantDao().update(contestant1);
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                });
     }
 
     private void moveForward(Contestant contestantOld, int newPosition) throws SQLException {
@@ -414,13 +507,13 @@ class AddContestantDialog extends BaseDialog {
                 .lt(Contestant.COLUMN_POSITION, oldPosition).and()
                 .ne(Contestant.COLUMN_POSITION, 0)
                 .query().forEach(contestant1 -> {
-            contestant1.setPosition(contestant1.getPosition() + 1);
-            try {
-                Database.get().getContestantDao().update(contestant1);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        });
+                    contestant1.setPosition(contestant1.getPosition() + 1);
+                    try {
+                        Database.get().getContestantDao().update(contestant1);
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                });
     }
 
     private void buttonDeleteActionPerformed() {
@@ -446,6 +539,14 @@ class AddContestantDialog extends BaseDialog {
         new AddSchoolDialog(this).addSaveListener(newSchool -> {
             refreshSchools();
             comboSchool.setSelectedItem(newSchool);
+        }).setVisible(true);
+
+    }
+
+    private void buttonNewSupervisorActionPerformed() {
+        new AddSupervisorDialog(this).addSaveListener(newSupervisor -> {
+            refreshSupervisors();
+            comboSupervisor.setSelectedItem(newSupervisor);
         }).setVisible(true);
 
     }

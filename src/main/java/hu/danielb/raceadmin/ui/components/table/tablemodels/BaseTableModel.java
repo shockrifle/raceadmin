@@ -1,4 +1,4 @@
-package hu.danielb.raceadmin.ui.components.table.models;
+package hu.danielb.raceadmin.ui.components.table.tablemodels;
 
 import javax.swing.table.DefaultTableModel;
 import java.util.List;

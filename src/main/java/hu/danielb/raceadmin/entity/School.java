@@ -2,6 +2,7 @@ package hu.danielb.raceadmin.entity;
 
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.table.DatabaseTable;
+
 import hu.danielb.raceadmin.database.dao.SchoolDao;
 
 @DatabaseTable(tableName = "school", daoClass = SchoolDao.class)
@@ -11,6 +12,7 @@ public class School {
     private static final String COLUMN_SHORT_NAME = "short_name";
     private static final String COLUMN_ID = "id";
     private static final String COLUMN_SETTLEMENT = "settlement";
+    private static final String COLUMN_SUPERVISOR_ID = "coach_id";
 
     @DatabaseField(generatedId = true, columnName = COLUMN_ID)
     private int id;
@@ -20,14 +22,8 @@ public class School {
     private String shortName = "";
     @DatabaseField(columnName = COLUMN_SETTLEMENT, defaultValue = "")
     private String settlement = "";
-
-    public School() {
-    }
-
-    public School(int id, String name) {
-        this.id = id;
-        this.name = name;
-    }
+    @DatabaseField(foreign = true, foreignAutoRefresh = true, columnName = COLUMN_SUPERVISOR_ID)
+    private Supervisor supervisor;
 
     public int getId() {
         return id;
@@ -55,6 +51,14 @@ public class School {
 
     public void setSettlement(String settlement) {
         this.settlement = settlement;
+    }
+
+    public Supervisor getSupervisor() {
+        return supervisor;
+    }
+
+    public void setSupervisor(Supervisor supervisor) {
+        this.supervisor = supervisor;
     }
 
     public String getNameWithSettlement() {
