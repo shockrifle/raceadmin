@@ -1,16 +1,16 @@
 package hu.danielb.raceadmin.ui.components.table.tablemodels;
 
-import hu.danielb.raceadmin.entity.Contestant;
-
 import java.util.Arrays;
 import java.util.List;
+
+import hu.danielb.raceadmin.entity.Contestant;
 
 public class ResultsTableModel extends SortableAttributiveCellTableModel<Contestant> {
 
     public static final List<ColumnModel<Contestant>> COLUMN_MODELS = Arrays.asList(
             new ColumnModel.Builder<Contestant>()
                     .setName("Helyezés")
-                    .setGetter(Contestant::getPositionString)
+                    .setGetter(data -> data.getPositionString(false))
                     .setWidth(80)
                     .setSortable(false)
                     .build(),

@@ -29,7 +29,7 @@ public class ContestantTableModel extends BaseTableModel<Contestant> {
         if (column == Column.COUNTER.ordinal())
             return row;
         if (column == Column.POSITION.ordinal())
-            return mData.get(row).getPositionString();
+            return mData.get(row).getPositionString(false);
         if (column == Column.NAME.ordinal())
             return mData.get(row).getName();
         if (column == Column.NUMBER.ordinal())

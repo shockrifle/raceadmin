@@ -85,8 +85,13 @@ public class Contestant {
         this.position = position;
     }
 
+    @SuppressWarnings("unused") // used by export
     public String getPositionString() {
-        return position > 0 ? String.valueOf(position) : "";
+        return getPositionString(name != null && !name.isEmpty());
+    }
+
+    public String getPositionString(boolean showDnf) {
+        return position > 0 ? String.valueOf(position) : (showDnf ? "dnf/dns" : "");
     }
 
     public String getName() {
