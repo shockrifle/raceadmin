@@ -1,12 +1,11 @@
 package hu.danielb.raceadmin.ui.components.table.tablemodels;
 
-import hu.danielb.raceadmin.entity.Contestant;
-import hu.danielb.raceadmin.entity.Team;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
+
+import hu.danielb.raceadmin.entity.Contestant;
+import hu.danielb.raceadmin.entity.Team;
 
 public class TeamResultsTableModel extends AttributiveCellTableModel<Team> {
 
@@ -14,7 +13,7 @@ public class TeamResultsTableModel extends AttributiveCellTableModel<Team> {
 
     public TeamResultsTableModel(List<Team> data) {
         super(Arrays.asList("Helyezés", "Pontszám", "Egyéni", "Rajtszám", "Név", "Iskola"), data,
-                data.stream().flatMap(team -> team.getMembers().stream()).collect(Collectors.toList()).size());
+                data.stream().mapToInt(team -> team.getMembers().size()).sum());
 
         mTeamRows = new ArrayList<>();
         int row = 0;
@@ -40,7 +39,7 @@ public class TeamResultsTableModel extends AttributiveCellTableModel<Team> {
         }
         Contestant member = team.getMembers().get(rowInTeam);
         if (column == Column.INDIVIDUAL_POSITION.ordinal()) {
-            return member.getPositionString();
+            return member.getPositionString(false);
         }
         if (column == Column.NAME.ordinal()) {
             return member.getName();
